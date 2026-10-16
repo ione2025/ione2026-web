@@ -260,11 +260,10 @@
 
     </main>
 
-    <script src="admin.js"></script>
     <script>
-        // ═══════════════════════════════════════════════════════════
-        // Login Page Logic — standalone (لا يستخدم admin.js للتحويل)
-        // ═══════════════════════════════════════════════════════════
+        /* ═══════════════════════════════════════════════════════════ */
+        /*  Login Page Logic — standalone (لا يحمّل admin.js)          */
+        /* ═══════════════════════════════════════════════════════════ */
 
         if (window.lucide) lucide.createIcons();
 
@@ -287,17 +286,6 @@
                 }
             });
         }
-
-        // Check if already logged in — redirect to dashboard
-        (function checkAlreadyLoggedIn() {
-            const token = localStorage.getItem('ione_admin_token');
-            const user = localStorage.getItem('ione_admin_user');
-            
-            if (token && user) {
-                // Already logged in — go to dashboard
-                window.location.replace('dashboard.html');
-            }
-        })();
 
         // Form submit
         loginForm.addEventListener('submit', async (e) => {
