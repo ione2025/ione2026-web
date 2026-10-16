@@ -241,15 +241,6 @@
     <script src="../admin.js"></script>
     <script>
         // ─────────────────────────────────────────────
-        // 🔐 Auth Guard
-        // ─────────────────────────────────────────────
-        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
-            window.location.href = '../login.html';
-        }
-        
-        lucide.createIcons();
-        
-        // ─────────────────────────────────────────────
         // 📦 State
         // ─────────────────────────────────────────────
         let allOrders = [];
@@ -269,7 +260,6 @@
             `;
             
             try {
-                // ✅ استخدام مفتاح التوكن الصحيح من admin.js
                 const token = localStorage.getItem('ione_admin_token');
                 
                 if (!token) {
@@ -422,14 +412,6 @@
             renderOrders();
         }
         
-        document.getElementById('searchInput').addEventListener('input', applyFilters);
-        document.getElementById('statusFilter').addEventListener('change', applyFilters);
-        document.getElementById('refreshBtn').addEventListener('click', () => {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('statusFilter').value = 'all';
-            loadOrders();
-        });
-        
         // ─────────────────────────────────────────────
         // 👁️ View Order
         // ─────────────────────────────────────────────
@@ -453,14 +435,39 @@
         }
         
         // ─────────────────────────────────────────────
-        // 🚀 Init
+        // 🚀 Init — Run after DOM ready
         // ─────────────────────────────────────────────
-        loadOrders();
+        function init() {
+            // Bind events
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            if (searchInput) searchInput.addEventListener('input', applyFilters);
+            if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    statusFilter.value = 'all';
+                    loadOrders();
+                });
+            }
+            
+            // Initial load
+            loadOrders();
+            
+            console.log(
+                '%c 📋 Orders Page v3.0 ',
+                'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
+            );
+        }
         
-        console.log(
-            '%c 📋 Orders Page v2.0 ',
-            'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
-        );
+        // Wait for DOM
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
