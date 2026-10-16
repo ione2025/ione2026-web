@@ -164,11 +164,9 @@
     <script>
         const CREATE_API = 'https://ionecenter.com';
         const CREATE_TOKEN = 'ione_admin_token';
-        const CREATE_USER = 'ione_admin_user';
 
         if (window.lucide) lucide.createIcons();
 
-        // Auth check
         if (!localStorage.getItem(CREATE_TOKEN)) {
             window.location.replace('../login.html');
         }
@@ -226,8 +224,6 @@
                 if (window.lucide) lucide.createIcons();
             }
         });
-
-        console.log('%c Create User Page v2.0 ', 'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
     </script>
     
 </body>
