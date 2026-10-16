@@ -1,185 +1,175 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Admin Panel Scripts                           */
-/*  Version: 1.0.0                                             */
+/*  IONECENTER — Admin Core Script v2.0                        */
+/*  Authentication + Permissions + Utilities                   */
 /* ═══════════════════════════════════════════════════════════ */
 
-// ─────────────────────────────────────────────────────────
-// 🔐 Admin Password (سنُغيّرها لاحقاً إلى API)
-// ─────────────────────────────────────────────────────────
-const ADMIN_PASSWORD = 'ione2026admin';
-const SESSION_KEY = 'ione_admin_session';
-const SESSION_DURATION = 2 * 60 * 60 * 1000; // ساعتان
+const TOKEN_KEY = 'ione_admin_token';
+const USER_KEY = 'ione_admin_user';
+const API_BASE = 'https://ionecenter.com';
 
-// ─────────────────────────────────────────────────────────
-// 🔐 Login Page Logic
-// ─────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-    
-    const loginForm = document.getElementById('loginForm');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('loginBtn');
-    const formMessage = document.getElementById('formMessage');
-    const togglePassword = document.getElementById('togglePassword');
-    
-    // إذا لم نكن في صفحة login — تجاهل
-    if (!loginForm) return;
-    
-    // ✅ إذا كان الأدمن مسجلاً بالفعل → انتقل للوحة
-    if (isLoggedIn()) {
-        window.location.href = 'dashboard.html';
-        return;
-    }
-    
-    // ───────────────────────────────────────────────────
-    // 👁️ Toggle Password Visibility
-    // ───────────────────────────────────────────────────
-    if (togglePassword) {
-        togglePassword.addEventListener('click', () => {
-            const type = passwordInput.type === 'password' ? 'text' : 'password';
-            passwordInput.type = type;
-            
-            // تغيير الأيقونة
-            const icon = togglePassword.querySelector('i');
-            if (icon) {
-                icon.setAttribute('data-lucide', type === 'password' ? 'eye' : 'eye-off');
-                if (window.lucide) lucide.createIcons();
-            }
-        });
-    }
-    
-    // ───────────────────────────────────────────────────
-    // 📝 Login Form Submit
-    // ───────────────────────────────────────────────────
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const password = passwordInput.value.trim();
-        
-        // تحقق
-        if (!password) {
-            showMessage('يرجى إدخال كلمة المرور', 'error');
-            return;
-        }
-        
-        // حالة تحميل
-        setLoading(true);
-        showMessage('جاري التحقق...', '');
-        
-        // تأخير وهمي (لتجربة أفضل)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // 🔐 التحقق من كلمة المرور
-        if (password === ADMIN_PASSWORD) {
-            // ✅ نجح
-            showMessage('✅ مرحباً! جاري التحويل...', 'success');
-            
-            // حفظ الجلسة
-            saveSession();
-            
-            // انتقل للوحة بعد 1 ثانية
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
-            
-        } else {
-            // ❌ فشل
-            showMessage('❌ كلمة المرور غير صحيحة', 'error');
-            setLoading(false);
-            
-            // اهتزاز الحقل
-            passwordInput.style.animation = 'shake 0.4s';
-            setTimeout(() => {
-                passwordInput.style.animation = '';
-            }, 400);
-            
-            // تفريغ الحقل
-            passwordInput.value = '';
-            passwordInput.focus();
-        }
-    });
-    
-    // ───────────────────────────────────────────────────
-    // 🔧 Helper Functions
-    // ───────────────────────────────────────────────────
-    function showMessage(text, type) {
-        if (!formMessage) return;
-        formMessage.textContent = text;
-        formMessage.className = 'form-message' + (type ? ' ' + type : '');
-    }
-    
-    function setLoading(loading) {
-        if (!loginBtn) return;
-        
-        if (loading) {
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span>⏳ جاري التحقق...</span>';
-        } else {
-            loginBtn.disabled = false;
-            loginBtn.innerHTML = '<i data-lucide="log-in"></i><span>تسجيل الدخول</span>';
-            if (window.lucide) lucide.createIcons();
-        }
-    }
-});
-
-// ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // 🔐 Session Management
-// ─────────────────────────────────────────────────────────
-function saveSession() {
-    const session = {
-        loggedIn: true,
-        loginTime: Date.now(),
-        expiresAt: Date.now() + SESSION_DURATION
-    };
+// ─────────────────────────────────────────────────────────────
+
+function saveSession(token, user) {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+function getCurrentUser() {
     try {
-        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        const userRaw = localStorage.getItem(USER_KEY);
+        return userRaw ? JSON.parse(userRaw) : null;
     } catch (e) {
-        console.error('Session save error:', e);
+        return null;
     }
 }
 
 function isLoggedIn() {
-    try {
-        const sessionData = localStorage.getItem(SESSION_KEY);
-        if (!sessionData) return false;
-        
-        const session = JSON.parse(sessionData);
-        
-        // تحقق من الانتهاء
-        if (Date.now() > session.expiresAt) {
-            localStorage.removeItem(SESSION_KEY);
-            return false;
-        }
-        
-        return session.loggedIn === true;
-    } catch (e) {
-        return false;
-    }
+    return !!(getToken() && getCurrentUser());
 }
 
 function logout() {
-    try {
-        localStorage.removeItem(SESSION_KEY);
-    } catch (e) {
-        console.error('Logout error:', e);
-    }
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     window.location.href = 'login.html';
 }
 
-// ─────────────────────────────────────────────────────────
-// 🌐 Global Error Handler
-// ─────────────────────────────────────────────────────────
-window.addEventListener('error', (e) => {
-    console.error('Global error:', e.error);
-});
+// ─────────────────────────────────────────────────────────────
+// 🛡️ Permissions
+// ─────────────────────────────────────────────────────────────
 
-// ─────────────────────────────────────────────────────────
-// 📊 Console Branding
-// ─────────────────────────────────────────────────────────
+function hasPermission(permission) {
+    const user = getCurrentUser();
+    if (!user) return false;
+    if (user.permissions && user.permissions.includes('*')) return true;
+    return user.permissions && user.permissions.includes(permission);
+}
+
+function isCEO() {
+    const user = getCurrentUser();
+    return user && (user.role === 'ceo' || (user.permissions && user.permissions.includes('*')));
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🌐 API Helper
+// ─────────────────────────────────────────────────────────────
+
+async function apiCall(endpoint, options = {}) {
+    const token = getToken();
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+    };
+    
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers
+    });
+    
+    if (response.status === 401) {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        window.location.href = 'login.html';
+        throw new Error('Session expired');
+    }
+    
+    return response;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🎬 Auto-Protect Pages
+// ─────────────────────────────────────────────────────────────
+
+(function autoProtect() {
+    const path = window.location.pathname;
+    const isLoginPage = path.includes('login.html') || 
+                        path.endsWith('/admin/') ||
+                        path.endsWith('/admin') ||
+                        path === '/' ||
+                        path.endsWith('/index.html');
+    
+    if (!isLoginPage && !isLoggedIn()) {
+        window.location.href = 'login.html';
+    }
+})();
+
+// ─────────────────────────────────────────────────────────────
+// 🍞 Toast Notification
+// ─────────────────────────────────────────────────────────────
+
+function showToast(message, type = 'info') {
+    const colors = {
+        info: '#0071e3',
+        success: '#34C759',
+        warning: '#FF9F0A',
+        error: '#FF3B30'
+    };
+    
+    let container = document.getElementById('ione-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'ione-toast-container';
+        container.style.cssText = `
+            position: fixed; bottom: 24px; left: 50%;
+            transform: translateX(-50%); z-index: 10000;
+            display: flex; flex-direction: column; gap: 8px;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        background: ${colors[type]}; color: white;
+        padding: 14px 24px; border-radius: 12px;
+        font-family: 'Cairo', sans-serif; font-weight: 600;
+        font-size: 0.95rem; box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        transform: translateY(100px); opacity: 0;
+        transition: all 0.3s ease;
+    `;
+    toast.textContent = message;
+    container.appendChild(toast);
+    
+    requestAnimationFrame(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    });
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateY(100px)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// 🎬 Console Branding
+// ─────────────────────────────────────────────────────────────
+
 console.log(
-    '%c IONECENTER Admin ',
-    'background: #E31E24; color: white; font-size: 16px; font-weight: bold; padding: 6px 12px; border-radius: 4px;'
+    '%c IONECENTER Admin v2.0 ',
+    'background: #E31E24; color: white; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;'
 );
-console.log(
-    '%c v1.0.0 — ' + new Date().toLocaleString('ar-EG'),
-    'color: #6e6e73; font-size: 11px; padding: 2px;'
-);
+
+// ─────────────────────────────────────────────────────────────
+// 🌐 Global Exports
+// ─────────────────────────────────────────────────────────────
+
+window.isLoggedIn = isLoggedIn;
+window.getCurrentUser = getCurrentUser;
+window.getToken = getToken;
+window.logout = logout;
+window.saveSession = saveSession;
+window.hasPermission = hasPermission;
+window.isCEO = isCEO;
+window.apiCall = apiCall;
+window.showToast = showToast;
