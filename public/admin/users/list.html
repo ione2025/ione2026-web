@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — إدارة المستخدمين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <link rel="stylesheet" href="users.css">
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="create.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="user-plus"></i>
+                <span>إضافة مستخدم</span>
+            </a>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">👥 إدارة المستخدمين</h1>
+                <p class="page-subtitle">الموظفون والصلاحيات</p>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="users-toolbar">
+            <div class="users-search">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث بالاسم أو البريد...">
+            </div>
+            <select class="action-btn" id="roleFilter" style="padding: 10px 16px;">
+                <option value="all">كل الأدوار</option>
+                <option value="ceo">CEO</option>
+                <option value="manager">Manager</option>
+                <option value="operator">Operator</option>
+                <option value="viewer">Viewer</option>
+            </select>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table" id="usersContainer">
+            <div class="users-empty">
+                <i data-lucide="loader"></i>
+                <h3>جاري التحميل...</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../admin.js"></script>
+    <script src="users.js"></script>
+    
+</body>
+</html>

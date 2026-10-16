@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — إضافة مستخدم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <link rel="stylesheet" href="users.css">
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="list.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع للقائمة</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">➕ إضافة مستخدم</h1>
+                <p class="page-subtitle">إنشاء حساب موظف جديد</p>
+            </div>
+        </div>
+
+        <form class="user-form" id="createUserForm">
+            
+            <!-- Basic Info -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="user"></i>
+                    <span>معلومات أساسية</span>
+                </h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="full_name">الاسم الكامل *</label>
+                        <input type="text" id="full_name" name="full_name" placeholder="مثال: مالك الحسن" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">البريد الإلكتروني *</label>
+                        <input type="email" id="email" name="email" placeholder="malek@ione.com" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">كلمة المرور *</label>
+                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">الدور *</label>
+                        <select id="role" name="role" required>
+                            <option value="operator">موظف (Operator)</option>
+                            <option value="manager">مدير (Manager)</option>
+                            <option value="viewer">مشاهد (Viewer)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="shield"></i>
+                    <span>الصلاحيات</span>
+                </h3>
+                
+                <div class="permissions-grid">
+                    <!-- Orders -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_orders">
+                        <span>عرض الطلبات</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="create_orders">
+                        <span>إنشاء طلبات</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="edit_orders">
+                        <span>تعديل طلبات</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="delete_orders">
+                        <span>حذف طلبات</span>
+                    </label>
+                    
+                    <!-- Suppliers -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_suppliers">
+                        <span>عرض الموردين</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="edit_suppliers">
+                        <span>تعديل الموردين</span>
+                    </label>
+                    
+                    <!-- Customers -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_customers">
+                        <span>عرض العملاء</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_customer_real_data">
+                        <span>عرض بيانات العملاء الحقيقية 🔒</span>
+                    </label>
+                    
+                    <!-- Finance -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_boxes">
+                        <span>عرض الصناديق</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_profit">
+                        <span>عرض هامش الربح 🔒</span>
+                    </label>
+                    
+                    <!-- Invoices -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_invoices">
+                        <span>عرض الفواتير</span>
+                    </label>
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="create_invoices">
+                        <span>إنشاء فواتير</span>
+                    </label>
+                    
+                    <!-- Reports -->
+                    <label class="permission-item">
+                        <input type="checkbox" name="permission" value="view_reports">
+                        <span>عرض التقارير</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="toggle-right"></i>
+                    <span>حالة الحساب</span>
+                </h3>
+                
+                <label class="permission-item">
+                    <input type="checkbox" id="active" name="active" checked>
+                    <span>الحساب نشط (يمكنه تسجيل الدخول)</span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <a href="list.html" class="action-btn" style="text-decoration: none;">
+                    <i data-lucide="x"></i>
+                    <span>إلغاء</span>
+                </a>
+                <button type="submit" class="action-btn primary" id="submitBtn">
+                    <i data-lucide="save"></i>
+                    <span>إنشاء المستخدم</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        if (!isLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+        lucide.createIcons();
+        
+        const API_BASE = 'https://ionecenter.com';
+        const TOKEN_KEY = 'ione_admin_token';
+        
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>جاري الإنشاء...</span>';
+            
+            // Collect permissions
+            const permissions = Array.from(
+                document.querySelectorAll('input[name="permission"]:checked')
+            ).map(cb => cb.value);
+            
+            const data = {
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value,
+                full_name: document.getElementById('full_name').value.trim(),
+                role: document.getElementById('role').value,
+                permissions: permissions,
+                active: document.getElementById('active').checked
+            };
+            
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                
+                const response = await fetch(`${API_BASE}/users/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    alert('فشل: ' + (result.error || 'خطأ'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
+                    lucide.createIcons();
+                    return;
+                }
+                
+                alert('✅ تم إنشاء المستخدم بنجاح!');
+                window.location.href = 'list.html';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('خطأ في الاتصال');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
+                lucide.createIcons();
+            }
+        });
+    </script>
+    
+</body>
+</html>

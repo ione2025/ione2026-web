@@ -1,0 +1,137 @@
+/* ═══════════════════════════════════════════════════════════ */
+/*  IONECENTER — Delete User API                               */
+/* ═══════════════════════════════════════════════════════════ */
+
+export async function onRequest(context) {
+    const { request, env } = context;
+    
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    };
+    
+    if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers });
+    }
+    
+    if (request.method !== 'POST') {
+        return new Response(JSON.stringify({
+            success: false,
+            error: 'Method not allowed'
+        }), { status: 405, headers });
+    }
+    
+    try {
+        // Verify CEO
+        const authHeader = request.headers.get('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'No token'
+            }), { status: 401, headers });
+        }
+        
+        const payload = await verifyToken(authHeader.substring(7), env);
+        
+        if (!payload) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Invalid token'
+            }), { status: 401, headers });
+        }
+        
+        const isCEO = payload.role === 'ceo' || 
+                      (payload.permissions && payload.permissions.includes('*'));
+        
+        if (!isCEO) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'CEO only'
+            }), { status: 403, headers });
+        }
+        
+        const body = await request.json();
+        const { email } = body;
+        
+        if (!email) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'Email required'
+            }), { status: 400, headers });
+        }
+        
+        const normalizedEmail = email.toLowerCase().trim();
+        
+        // Prevent deleting self
+        if (payload.email === normalizedEmail) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'لا يمكنك حذف حسابك'
+            }), { status: 400, headers });
+        }
+        
+        // Get user
+        const userKey = `user:${normalizedEmail}`;
+        const userRaw = await env.IONE_KV.get(userKey);
+        
+        if (!userRaw) {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'User not found'
+            }), { status: 404, headers });
+        }
+        
+        const user = JSON.parse(userRaw);
+        
+        // Prevent deleting other CEOs
+        if (user.role === 'ceo') {
+            return new Response(JSON.stringify({
+                success: false,
+                error: 'لا يمكن حذف CEO آخر'
+            }), { status: 403, headers });
+        }
+        
+        // Delete user
+        await env.IONE_KV.delete(userKey);
+        
+        // Remove from list
+        const listRaw = await env.IONE_KV.get('users:list');
+        if (listRaw) {
+            const list = JSON.parse(listRaw);
+            const newList = list.filter(e => e !== normalizedEmail);
+            await env.IONE_KV.put('users:list', JSON.stringify(newList));
+        }
+        
+        return new Response(JSON.stringify({
+            success: true,
+            message: 'تم حذف المستخدم'
+        }), { status: 200, headers });
+        
+    } catch (error) {
+        return new Response(JSON.stringify({
+            success: false,
+            error: error.message
+        }), { status: 500, headers });
+    }
+}
+
+async function verifyToken(token, env) {
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        const [h, p, s] = parts;
+        const encoder = new TextEncoder();
+        const secret = env.JWT_SECRET || 'ione_super_secret_2026';
+        const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+        const sigBin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+        const sig = new Uint8Array(sigBin.length);
+        for (let i = 0; i < sigBin.length; i++) sig[i] = sigBin.charCodeAt(i);
+        const valid = await crypto.subtle.verify('HMAC', key, sig, encoder.encode(`${h}.${p}`));
+        if (!valid) return null;
+        const payload = JSON.parse(atob(p.replace(/-/g, '+').replace(/_/g, '/')));
+        if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return null;
+        return payload;
+    } catch (e) { return null; }
+}
