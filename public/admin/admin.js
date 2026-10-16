@@ -1,6 +1,5 @@
 /* ═══════════════════════════════════════════════════════════ */
 /*  IONECENTER — Admin Core Script v2.0                        */
-/*  Authentication + Permissions + Utilities                   */
 /* ═══════════════════════════════════════════════════════════ */
 
 const TOKEN_KEY = 'ione_admin_token';
@@ -8,7 +7,7 @@ const USER_KEY = 'ione_admin_user';
 const API_BASE = 'https://ionecenter.com';
 
 // ─────────────────────────────────────────────────────────────
-// 🔐 Session Management
+// Session Management
 // ─────────────────────────────────────────────────────────────
 
 function saveSession(token, user) {
@@ -40,7 +39,7 @@ function logout() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 🛡️ Permissions
+// Permissions
 // ─────────────────────────────────────────────────────────────
 
 function hasPermission(permission) {
@@ -56,7 +55,7 @@ function isCEO() {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 🌐 API Helper
+// API Helper
 // ─────────────────────────────────────────────────────────────
 
 async function apiCall(endpoint, options = {}) {
@@ -87,40 +86,29 @@ async function apiCall(endpoint, options = {}) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 🎬 Auto-Protect Pages
+// Auto-Protect Pages
 // ─────────────────────────────────────────────────────────────
 
-(function (function autoProtect() {
+(function autoProtect() {
     const path = window.location.pathname;
     
-    // Login page — لا تحمي
+    // Login page — allow access
     const isLoginPage = path.includes('login.html');
     
-    // إذا كان في login + مسجّل → dashboard
+    // If on login + logged in → go to dashboard
     if (isLoginPage && isLoggedIn()) {
         window.location.href = 'dashboard.html';
         return;
     }
     
-    // إذا ليس login + غير مسجّل → login
-    if (!isLoginPage && !isLoggedIn()) {
-        window.location.href = 'login.html';
-    }
-})();() {
-    const path = window.location.pathname;
-    const isLoginPage = path.includes('login.html') || 
-                        path.endsWith('/admin/') ||
-                        path.endsWith('/admin') ||
-                        path === '/' ||
-                        path.endsWith('/index.html');
-    
+    // If NOT on login + NOT logged in → go to login
     if (!isLoginPage && !isLoggedIn()) {
         window.location.href = 'login.html';
     }
 })();
 
 // ─────────────────────────────────────────────────────────────
-// 🍞 Toast Notification
+// Toast Notification
 // ─────────────────────────────────────────────────────────────
 
 function showToast(message, type = 'info') {
@@ -168,7 +156,7 @@ function showToast(message, type = 'info') {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 🎬 Console Branding
+// Console Branding
 // ─────────────────────────────────────────────────────────────
 
 console.log(
@@ -177,7 +165,7 @@ console.log(
 );
 
 // ─────────────────────────────────────────────────────────────
-// 🌐 Global Exports
+// Global Exports
 // ─────────────────────────────────────────────────────────────
 
 window.isLoggedIn = isLoggedIn;
