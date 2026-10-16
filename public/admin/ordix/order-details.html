@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — تفاصيل الطلب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) {
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+        .detail-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        .detail-card h3 {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .detail-card h3 svg {
+            width: 18px;
+            height: 18px;
+            color: var(--ione-red);
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .detail-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            text-align: left;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .order-code-hero {
+            text-align: center;
+            padding: 24px;
+            background: linear-gradient(135deg, rgba(227,30,36,0.1), rgba(255,107,0,0.05));
+            border: 2px dashed rgba(227,30,36,0.3);
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+        .order-code-hero .code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--ione-red);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .order-code-hero .date {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .images-grid a {
+            display: block;
+            aspect-ratio: 1;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 2px solid var(--border);
+            transition: transform 0.2s;
+        }
+        .images-grid a:hover {
+            transform: scale(1.05);
+            border-color: var(--ione-red);
+        }
+        .images-grid img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .status-selector {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .status-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-family: var(--font-ar);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .status-btn:hover {
+            border-color: var(--ione-red);
+        }
+        .status-btn.active {
+            background: var(--ione-red);
+            border-color: var(--ione-red);
+            color: white;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .action-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            border: none;
+            font-family: var(--font-ar);
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all var(--transition);
+            text-decoration: none;
+        }
+        .action-btn-whatsapp {
+            background: #25D366;
+            color: white;
+        }
+        .action-btn-whatsapp:hover {
+            background: #1ebe57;
+        }
+        .action-btn-back {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .action-btn-back:hover {
+            background: var(--bg-card-hover);
+        }
+        .loading-state {
+            text-align: center;
+            padding: 100px 24px;
+            color: var(--text-secondary);
+        }
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--ione-red);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="orders.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="list"></i>
+                <span>كل الطلبات</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div id="content">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل الطلب...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        // ─────────────────────────────────────────────
+        // 📦 Get Order Code from URL
+        // ─────────────────────────────────────────────
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderCode = urlParams.get('code');
+        
+        // ─────────────────────────────────────────────
+        // 🌐 Load Order Details
+        // ─────────────────────────────────────────────
+        async function loadOrder() {
+            const container = document.getElementById('content');
+            
+            if (!orderCode) {
+                container.innerHTML = `
+                    <div class="loading-state">
+                        <i data-lucide="alert-circle" style="width: 64px; height: 64px; color: var(--accent-yellow);"></i>
+                        <h2 style="margin-top: 16px; color: var(--text-primary);">رقم الطلب مفقود</h2>
+                        <p>الرجاء العودة إلى قائمة الطلبات</p>
+                        <a href="orders.html" class="action-btn action-btn-back" style="display: inline-flex; margin-top: 20px; padding: 12px 24px; text-decoration: none;">
+                            <i data-lucide="arrow-right"></i>
+                            العودة للطلبات
+                        </a>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                if (!token) throw new Error('لم يتم العثور على رمز الدخول');
+                
+                const response = await fetch(`/api/orders/get?code=${encodeURIComponent(orderCode)}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'فشل تحميل الطلب');
+                
+                renderOrder(result.order);
+                
+            } catch (error) {
+                console.error('Load error:', error);
+                container.innerHTML = `
+                    <div class="loading-state">
+                        <i data-lucide="alert-circle" style="width: 64px; height: 64px; color: #FF3B30;"></i>
+                        <h2 style="margin-top: 16px; color: var(--text-primary);">فشل تحميل الطلب</h2>
+                        <p>${error.message}</p>
+                        <a href="orders.html" class="action-btn action-btn-back" style="display: inline-flex; margin-top: 20px; padding: 12px 24px; text-decoration: none;">
+                            <i data-lucide="arrow-right"></i>
+                            العودة للطلبات
+                        </a>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🎨 Render Order
+        // ─────────────────────────────────────────────
+        function renderOrder(order) {
+            const container = document.getElementById('content');
+            
+            const statusLabels = {
+                'new': 'جديد',
+                'pending': 'بانتظار العروض',
+                'progress': 'قيد التنفيذ',
+                'done': 'مكتمل',
+                'cancelled': 'ملغي'
+            };
+            
+            const imagesHTML = (order.image_urls && order.image_urls.length > 0)
+                ? `<div class="images-grid">
+                    ${order.image_urls.map(url => `
+                        <a href="${url}" target="_blank" rel="noopener">
+                            <img src="${url}" alt="صورة" loading="lazy">
+                        </a>
+                    `).join('')}
+                   </div>`
+                : `<p style="color: var(--text-secondary); text-align: center; padding: 20px;">لا توجد صور</p>`;
+            
+            const statusBtns = Object.entries(statusLabels).map(([key, label]) => `
+                <button class="status-btn ${order.status === key ? 'active' : ''}" 
+                        onclick="changeStatus('${key}')"
+                        data-status="${key}">
+                    ${label}
+                </button>
+            `).join('');
+            
+            // WhatsApp link
+            const phoneClean = (order.customer_phone || '').replace(/\D/g, '');
+            const whatsappLink = phoneClean 
+                ? `https://wa.me/${phoneClean}?text=${encodeURIComponent('مرحباً ' + order.customer_name + '، بخصوص طلبك ' + order.order_code)}`
+                : '#';
+            
+            container.innerHTML = `
+                <!-- Order Code Hero -->
+                <div class="order-code-hero">
+                    <div class="code">${order.order_code}</div>
+                    <div class="date">
+                        <i data-lucide="calendar" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i>
+                        ${formatDateTime(order.created_at)}
+                    </div>
+                </div>
+                
+                <div class="detail-grid">
+                    <!-- Left: Details -->
+                    <div>
+                        <div class="detail-card" style="margin-bottom: 20px;">
+                            <h3><i data-lucide="user"></i> بيانات العميل</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">الاسم</span>
+                                <span class="detail-value">${order.customer_name || '—'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">الجوال</span>
+                                <span class="detail-value">${order.customer_phone || '—'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">البلد</span>
+                                <span class="detail-value">${order.customer_country || '—'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card" style="margin-bottom: 20px;">
+                            <h3><i data-lucide="package"></i> تفاصيل المنتج</h3>
+                            <div class="detail-row">
+                                <span class="detail-label">الوصف</span>
+                                <span class="detail-value">${order.product_description || '—'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">الكمية</span>
+                                <span class="detail-value">${order.quantity || 1}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">بلد التسليم</span>
+                                <span class="detail-value">${order.target_country || '—'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">نوع الشحن</span>
+                                <span class="detail-value">${order.shipping_type === 'sea' ? 'بحري' : 'جوي'}</span>
+                            </div>
+                            ${order.notes ? `
+                            <div class="detail-row">
+                                <span class="detail-label">ملاحظات</span>
+                                <span class="detail-value">${order.notes}</span>
+                            </div>` : ''}
+                        </div>
+                        
+                        <div class="detail-card">
+                            <h3><i data-lucide="camera"></i> صور المنتج (${(order.image_urls || []).length})</h3>
+                            ${imagesHTML}
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Status + Actions -->
+                    <div>
+                        <div class="detail-card" style="margin-bottom: 20px;">
+                            <h3><i data-lucide="activity"></i> حالة الطلب</h3>
+                            <div class="status-selector" id="statusSelector">
+                                ${statusBtns}
+                            </div>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <h3><i data-lucide="zap"></i> إجراءات</h3>
+                            <div class="action-buttons" style="flex-direction: column;">
+                                ${phoneClean ? `
+                                <a href="${whatsappLink}" target="_blank" class="action-btn action-btn-whatsapp">
+                                    <i data-lucide="message-circle"></i>
+                                    WhatsApp مع العميل
+                                </a>` : ''}
+                                <a href="orders.html" class="action-btn action-btn-back">
+                                    <i data-lucide="arrow-right"></i>
+                                    العودة للطلبات
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            lucide.createIcons();
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🔄 Change Status
+        // ─────────────────────────────────────────────
+        async function changeStatus(newStatus) {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                
+                const response = await fetch('/api/orders/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        order_code: orderCode,
+                        status: newStatus
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'فشل التحديث');
+                
+                // Update UI
+                document.querySelectorAll('.status-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.status === newStatus);
+                });
+                
+                showToast('تم تحديث الحالة بنجاح ✅', 'success');
+                
+            } catch (error) {
+                console.error('Update error:', error);
+                showToast('فشل تحديث الحالة: ' + error.message, 'error');
+            }
+        }
+        window.changeStatus = changeStatus;
+        
+        // ─────────────────────────────────────────────
+        // 🔧 Helpers
+        // ─────────────────────────────────────────────
+        function formatDateTime(iso) {
+            if (!iso) return '—';
+            try {
+                return new Date(iso).toLocaleString('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch { return '—'; }
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🚀 Init
+        // ─────────────────────────────────────────────
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadOrder);
+        } else {
+            loadOrder();
+        }
+        
+        console.log(
+            '%c 📋 Order Details Page v1.0 ',
+            'background: #E31E24; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
+        );
+    </script>
+</body>
+</html>
