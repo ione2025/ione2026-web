@@ -1,23 +1,45 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Users Management Script                       */
+/*  IONECENTER — Users Management Script v2.0                  */
+/*  مستقل — لا يعتمد على admin.js                              */
 /* ═══════════════════════════════════════════════════════════ */
 
-// Config
 const API_BASE = 'https://ionecenter.com';
 const TOKEN_KEY = 'ione_admin_token';
+const USER_KEY = 'ione_admin_user';
 
-// State
 let allUsers = [];
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// Auth Check (مستقل)
+// ═══════════════════════════════════════════════════════════
+
+function hasToken() {
+    return !!localStorage.getItem(TOKEN_KEY);
+}
+
+function getUser() {
+    try {
+        const raw = localStorage.getItem(USER_KEY);
+        return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+}
+
+function logoutUser() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    window.location.replace('../login.html');
+}
+
+// ═══════════════════════════════════════════════════════════
 // Initialize
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
 document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
     
-    // Check auth
-    if (!isLoggedIn()) {
-        window.location.href = '../login.html';
+    // Auth check
+    if (!hasToken()) {
+        window.location.replace('../login.html');
         return;
     }
     
@@ -36,42 +58,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Load Users
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
 async function loadUsers() {
     const container = document.getElementById('usersContainer');
     
     try {
-        const token = getToken();
-        
-        if (!token) {
-            window.location.href = '../login.html';
-            return;
-        }
+        const token = localStorage.getItem(TOKEN_KEY);
         
         const response = await fetch(`${API_BASE}/users/list`, {
             method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         const data = await response.json();
         
         if (!data.success) {
             if (response.status === 401) {
-                // Token expired
-                localStorage.removeItem(TOKEN_KEY);
-                window.location.href = '../login.html';
+                logoutUser();
                 return;
             }
-            
             showError(data.error || 'فشل تحميل المستخدمين');
             return;
         }
         
-        allUsers = data.users;
+        allUsers = data.users || [];
         renderUsers(allUsers);
         
     } catch (error) {
@@ -80,13 +93,14 @@ async function loadUsers() {
     }
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Render Users
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
 function renderUsers(users) {
     const container = document.getElementById('usersContainer');
     
-    if (users.length === 0) {
+    if (!users || users.length === 0) {
         container.innerHTML = `
             <div class="users-empty">
                 <i data-lucide="users"></i>
@@ -122,9 +136,9 @@ function renderUsers(users) {
                     <tr>
                         <td>
                             <div class="user-cell">
-                                <div class="user-avatar">${user.username[0]}</div>
+                                <div class="user-avatar">${(user.username || 'U')[0].toUpperCase()}</div>
                                 <div class="user-info">
-                                    <span class="user-name">${user.full_name || user.username}</span>
+                                    <span class="user-name">${user.full_name || user.username || 'بدون اسم'}</span>
                                     <span class="user-email">${user.email}</span>
                                 </div>
                             </div>
@@ -136,8 +150,8 @@ function renderUsers(users) {
                         </td>
                         <td>
                             <span style="color: var(--text-secondary); font-size: 0.85rem;">
-                                ${user.permissions.includes('*') ? 'كل الصلاحيات' : 
-                                  user.permissions.length + ' صلاحية'}
+                                ${user.permissions && user.permissions.includes('*') ? 'كل الصلاحيات' : 
+                                  (user.permissions ? user.permissions.length + ' صلاحية' : '0')}
                             </span>
                         </td>
                         <td>
@@ -167,20 +181,21 @@ function renderUsers(users) {
     if (window.lucide) lucide.createIcons();
 }
 
-// ─────────────────────────────────────────────────────────────
-// Filter Users
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// Filter
+// ═══════════════════════════════════════════════════════════
+
 function filterUsers() {
-    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase();
     const roleFilter = document.getElementById('roleFilter')?.value || 'all';
     
     let filtered = allUsers;
     
     if (searchTerm) {
         filtered = filtered.filter(u => 
-            u.email.toLowerCase().includes(searchTerm) ||
+            (u.email || '').toLowerCase().includes(searchTerm) ||
             (u.full_name || '').toLowerCase().includes(searchTerm) ||
-            u.username.toLowerCase().includes(searchTerm)
+            (u.username || '').toLowerCase().includes(searchTerm)
         );
     }
     
@@ -191,16 +206,15 @@ function filterUsers() {
     renderUsers(filtered);
 }
 
-// ─────────────────────────────────────────────────────────────
-// Delete User
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// Delete
+// ═══════════════════════════════════════════════════════════
+
 async function deleteUser(email) {
-    if (!confirm(`هل أنت متأكد من حذف المستخدم؟\n\n${email}`)) {
-        return;
-    }
+    if (!confirm(`هل أنت متأكد من حذف المستخدم؟\n\n${email}`)) return;
     
     try {
-        const token = getToken();
+        const token = localStorage.getItem(TOKEN_KEY);
         
         const response = await fetch(`${API_BASE}/users/delete`, {
             method: 'POST',
@@ -218,7 +232,7 @@ async function deleteUser(email) {
             return;
         }
         
-        showToast('تم حذف المستخدم', 'success');
+        alert('✅ تم حذف المستخدم');
         loadUsers();
         
     } catch (error) {
@@ -227,12 +241,9 @@ async function deleteUser(email) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Helpers
-// ─────────────────────────────────────────────────────────────
-function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
-}
+// ═══════════════════════════════════════════════════════════
 
 function showError(message) {
     const container = document.getElementById('usersContainer');
@@ -248,40 +259,4 @@ function showError(message) {
     }
 }
 
-function showToast(message, type = 'info') {
-    const colors = {
-        info: '#0071e3',
-        success: '#34C759',
-        warning: '#FF9F0A',
-        error: '#FF3B30'
-    };
-    
-    const toast = document.createElement('div');
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 24px;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        background: ${colors[type]};
-        color: white;
-        padding: 14px 24px;
-        border-radius: 12px;
-        font-family: 'Cairo', sans-serif;
-        font-weight: 600;
-        font-size: 0.95rem;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        z-index: 10000;
-        transition: transform 0.3s ease;
-    `;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    requestAnimationFrame(() => {
-        toast.style.transform = 'translateX(-50%) translateY(0)';
-    });
-    
-    setTimeout(() => {
-        toast.style.transform = 'translateX(-50%) translateY(100px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+console.log('%c Users Page v2.0 ', 'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
