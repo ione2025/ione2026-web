@@ -1,33 +1,24 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Order Page Script v2.0                        */
-/*  WhatsApp Integration + Cloudinary Image Upload             */
+/*  IONECENTER — Order Page Script v3.0                        */
+/*  WhatsApp + Cloudinary + Orders API (KV Storage)            */
 /* ═══════════════════════════════════════════════════════════ */
 
 // ─────────────────────────────────────────────────────────────
 // ⚙️ Configuration
 // ─────────────────────────────────────────────────────────────
 
-// رقم WhatsApp Business لاستقبال الطلبات
 const IONE_WHATSAPP = '8619120215218';
-
-// ⚙️ Cloudinary Configuration
 const CLOUDINARY_CLOUD_NAME = 'xhfnelrf';
 const CLOUDINARY_UPLOAD_PRESET = 'ione_unsigned';
-
-// الحد الأقصى للصور
 const MAX_IMAGES = 10;
-
-// حجم الصورة الأقصى (5 MB)
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const API_SAVE_URL = '/api/orders/save';
 
 // ─────────────────────────────────────────────────────────────
 // 📦 State
 // ─────────────────────────────────────────────────────────────
 
-// الصور المرفوعة — تحتوي على { file, dataURL, cloudinaryUrl }
 let uploadedImages = [];
-
-// حالة الرفع
 let isUploading = false;
 
 // ─────────────────────────────────────────────────────────────
@@ -85,11 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             try {
                 const dataURL = await fileToDataURL(file);
-                uploadedImages.push({ 
-                    file, 
-                    dataURL,
-                    cloudinaryUrl: null // سيُملأ عند الرفع
-                });
+                uploadedImages.push({ file, dataURL, cloudinaryUrl: null });
                 renderPreview();
             } catch (error) {
                 console.error('Error reading file:', error);
@@ -111,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `).join('');
         
-        // Add remove handlers
         uploadPreview.querySelectorAll('.preview-remove').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -133,15 +119,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const response = await fetch(
             `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-            {
-                method: 'POST',
-                body: formData
-            }
+            { method: 'POST', body: formData }
         );
         
-        if (!response.ok) {
-            throw new Error('Upload failed');
-        }
+        if (!response.ok) throw new Error('Upload failed');
         
         const data = await response.json();
         return data.secure_url;
@@ -161,23 +142,94 @@ document.addEventListener('DOMContentLoaded', () => {
             const img = uploadedImages[i];
             
             try {
-                // إذا لم تكن الصورة مرفوعة بعد
                 if (!img.cloudinaryUrl) {
                     const url = await uploadToCloudinary(img.file);
                     img.cloudinaryUrl = url;
                 }
                 urls.push(img.cloudinaryUrl);
-                
                 showUploadProgress(i + 1, uploadedImages.length);
             } catch (error) {
                 console.error('Upload error for image', i, error);
                 showToast(`فشل رفع الصورة ${i + 1}`, 'error');
-                urls.push(null);
             }
         }
         
         hideUploadProgress();
-        return urls.filter(url => url !== null);
+        return urls.filter(url => url !== null && url !== undefined);
+    }
+    
+    // ───────────────────────────────────────────────────
+    // 💾 Save Order to API
+    // ───────────────────────────────────────────────────
+    async function saveOrderToAPI(data, imageUrls) {
+        const payload = {
+            customer_name: (data.name || '').trim(),
+            customer_phone: (data.phone || '').trim(),
+            customer_country: (data.country || '').trim(),
+            product_description: (data.product || '').trim(),
+            quantity: parseInt(data.quantity) || 1,
+            target_country: (data.targetCountry || '').trim(),
+            shipping_type: 'air',
+            notes: (data.notes || '').trim(),
+            raw_conversation: '',
+            image_urls: imageUrls,
+            source: 'pwa'
+        };
+        
+        let lastError;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                const response = await fetch(API_SAVE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Save failed');
+                
+                saveClientOrder(result.order_code, payload);
+                return result;
+                
+            } catch (error) {
+                lastError = error;
+                console.warn(`Save attempt ${attempt} failed:`, error.message);
+                if (attempt < 3) await new Promise(r => setTimeout(r, 1000 * attempt));
+            }
+        }
+        
+        throw lastError;
+    }
+    
+    // ───────────────────────────────────────────────────
+    // 💾 Save Client Order Locally
+    // ───────────────────────────────────────────────────
+    function saveClientOrder(orderCode, payload) {
+        try {
+            let clientId = localStorage.getItem('ione_client_id');
+            if (!clientId) {
+                clientId = 'client_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('ione_client_id', clientId);
+            }
+            
+            const historyRaw = localStorage.getItem('ione_order_history') || '[]';
+            const history = JSON.parse(historyRaw);
+            
+            history.unshift({
+                order_code: orderCode,
+                customer_name: payload.customer_name,
+                product_description: payload.product_description.substring(0, 80),
+                image_count: payload.image_urls.length,
+                status: 'new',
+                created_at: new Date().toISOString()
+            });
+            
+            localStorage.setItem('ione_order_history', JSON.stringify(history.slice(0, 50)));
+        } catch (e) {
+            console.warn('localStorage save failed:', e);
+        }
     }
     
     // ───────────────────────────────────────────────────
@@ -201,10 +253,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // التحقق من رقم الواتساب
         const phoneCleaned = (data.phone || '').replace(/\D/g, '');
         if (phoneCleaned.length < 8) {
-            showToast('يرجى إدخال رقم واتساب صحيح (8 أرقام على الأقل)', 'error');
+            showToast('يرجى إدخال رقم واتساب صحيح', 'error');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
@@ -215,16 +266,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // ─────── Upload Images to Cloudinary ───────
+        // ─────── Start ───────
         isUploading = true;
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-            <span class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-            <span>جاري رفع الصور...</span>
-        `;
+        
+        const spinner = `<span class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>`;
+        
+        // Step 1: Upload Images
+        submitBtn.innerHTML = `${spinner}<span>جاري رفع الصور...</span>`;
         
         let imageUrls = [];
-        
         try {
             imageUrls = await uploadAllImages();
         } catch (error) {
@@ -236,24 +287,35 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // ─────── Build WhatsApp Message ───────
-        submitBtn.innerHTML = `
-            <span class="loading-spinner" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
-            <span>جاري فتح WhatsApp...</span>
-        `;
+        // Step 2: Save to API
+        submitBtn.innerHTML = `${spinner}<span>جاري حفظ الطلب...</span>`;
+        
+        let apiResult = null;
+        let apiFailed = false;
         
         try {
-            const message = buildWhatsAppMessage(data, imageUrls);
+            apiResult = await saveOrderToAPI(data, imageUrls);
+            console.log('✅ Order saved:', apiResult.order_code);
+        } catch (error) {
+            console.error('❌ API save failed:', error);
+            apiFailed = true;
+            showToast('تعذّر حفظ الطلب — سيُرسل عبر WhatsApp', 'warning');
+        }
+        
+        // Step 3: Open WhatsApp
+        submitBtn.innerHTML = `${spinner}<span>جاري فتح WhatsApp...</span>`;
+        
+        try {
+            const orderCode = apiResult ? apiResult.order_code : null;
+            const message = buildWhatsAppMessage(data, imageUrls, orderCode);
             const encodedMessage = encodeURIComponent(message);
             const whatsappURL = `https://wa.me/${IONE_WHATSAPP}?text=${encodedMessage}`;
             
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
+            await new Promise(resolve => setTimeout(resolve, 400));
             window.open(whatsappURL, '_blank');
             
-            showSuccess(imageUrls.length);
+            showSuccess(orderCode, imageUrls.length, apiFailed);
             
-            // Reset after delay
             setTimeout(() => {
                 form.reset();
                 uploadedImages = [];
@@ -264,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 3000);
             
         } catch (error) {
-            console.error('Submit error:', error);
+            console.error('WhatsApp error:', error);
             showToast('حدث خطأ. حاول مرة أخرى', 'error');
             isUploading = false;
             submitBtn.disabled = false;
@@ -275,10 +337,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ───────────────────────────────────────────────────
     // 📝 Build WhatsApp Message
     // ───────────────────────────────────────────────────
-    function buildWhatsAppMessage(data, imageUrls = []) {
+    function buildWhatsAppMessage(data, imageUrls = [], orderCode = null) {
         const lines = [];
         
         lines.push('🌟 *طلب جديد — IONECENTER*');
+        if (orderCode) lines.push(`🔖 *رقم الطلب:* ${orderCode}`);
         lines.push('');
         lines.push('━━━━━━━━━━━━━━━━━━━━━');
         lines.push('👤 *بيانات العميل*');
@@ -292,17 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
         lines.push('📦 *تفاصيل الطلب*');
         lines.push('━━━━━━━━━━━━━━━━━━━━━');
         lines.push(`• المنتج: ${data.product}`);
-        if (data.quantity && data.quantity !== '1') {
-            lines.push(`• الكمية: ${data.quantity}`);
-        }
-        if (data.targetCountry) {
-            lines.push(`• بلد التسليم: ${data.targetCountry}`);
-        }
-        if (data.notes) {
-            lines.push(`• ملاحظات: ${data.notes}`);
-        }
+        if (data.quantity && data.quantity !== '1') lines.push(`• الكمية: ${data.quantity}`);
+        if (data.targetCountry) lines.push(`• بلد التسليم: ${data.targetCountry}`);
+        if (data.notes) lines.push(`• ملاحظات: ${data.notes}`);
         
-        // ═══════ Cloudinary Image URLs ═══════
         if (imageUrls.length > 0) {
             lines.push('');
             lines.push('━━━━━━━━━━━━━━━━━━━━━');
@@ -312,8 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
             imageUrls.forEach((url, index) => {
                 lines.push(`${index + 1}. ${url}`);
             });
-            lines.push('');
-            lines.push('اضغط على الرابط لعرض الصورة');
         }
         
         lines.push('');
@@ -336,9 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             progressEl.id = 'uploadProgress';
             progressEl.style.cssText = `
                 position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
+                top: 0; left: 0; right: 0;
                 background: rgba(0, 0, 0, 0.85);
                 backdrop-filter: blur(10px);
                 color: white;
@@ -352,13 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(progressEl);
         }
         
-        const percentage = Math.round((current / total) * 100);
+        const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
         
         progressEl.innerHTML = `
             <div style="margin-bottom: 8px;">☁️ جاري رفع الصور... ${current} / ${total}</div>
             <div style="
-                width: 200px;
-                height: 6px;
+                width: 200px; height: 6px;
                 background: rgba(255, 255, 255, 0.2);
                 border-radius: 3px;
                 margin: 0 auto;
@@ -377,25 +428,46 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function hideUploadProgress() {
         const progressEl = document.getElementById('uploadProgress');
-        if (progressEl) {
-            progressEl.remove();
-        }
+        if (progressEl) progressEl.remove();
     }
     
     // ───────────────────────────────────────────────────
     // ✨ Success Overlay
     // ───────────────────────────────────────────────────
-    function showSuccess(imageCount) {
+    function showSuccess(orderCode, imageCount, apiFailed = false) {
         const overlay = document.createElement('div');
         overlay.className = 'success-overlay active';
+        
+        const codeDisplay = orderCode
+            ? `<div style="
+                    margin: 16px auto;
+                    padding: 12px 24px;
+                    background: rgba(255,255,255,0.15);
+                    border: 2px dashed rgba(255,255,255,0.5);
+                    border-radius: 12px;
+                    font-family: 'Courier New', monospace;
+                    font-size: 1.3rem;
+                    font-weight: 700;
+                    letter-spacing: 2px;
+                    display: inline-block;
+                ">${orderCode}</div>
+                <p style="font-size: 0.85rem; opacity: 0.8; margin-top: -8px;">
+                    احتفظ برقم الطلب للمتابعة
+                </p>`
+            : '';
+        
         overlay.innerHTML = `
             <div class="success-icon">
-                <i data-lucide="check-circle"></i>
+                <i data-lucide="${apiFailed ? 'alert-circle' : 'check-circle'}"></i>
             </div>
-            <h2 class="success-title">تم بنجاح!</h2>
+            <h2 class="success-title">${apiFailed ? 'تم الإرسال!' : 'تم بنجاح!'}</h2>
+            ${codeDisplay}
             <p class="success-text">
-                تم فتح WhatsApp مع رسالتك.<br>
-                ${imageCount > 0 ? `تم رفع ${imageCount} صورة بنجاح! ☁️` : ''}
+                ${apiFailed 
+                    ? 'تم فتح WhatsApp. يرجى إكمال الإرسال.' 
+                    : 'تم استلام طلبك وحفظه في النظام.'}
+                <br>
+                ${imageCount > 0 ? `📸 تم رفع ${imageCount} صورة` : ''}
             </p>
             <button onclick="this.parentElement.remove()" style="
                 margin-top: 20px;
@@ -417,7 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         setTimeout(() => {
             if (overlay.parentElement) overlay.remove();
-        }, 8000);
+        }, 10000);
     }
     
     // ───────────────────────────────────────────────────
@@ -434,8 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const toast = document.createElement('div');
         toast.style.cssText = `
             position: fixed;
-            top: 20px;
-            left: 50%;
+            top: 20px; left: 50%;
             transform: translateX(-50%) translateY(-100px);
             background: ${colors[type]};
             color: white;
@@ -487,21 +558,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // 🎬 Console Branding
     // ───────────────────────────────────────────────────
     console.log(
-        '%c 📱 IONECENTER Order Page v2.0 ',
+        '%c 📱 IONECENTER Order Page v3.0 ',
         'background: #E31E24; color: white; font-size: 14px; font-weight: bold; padding: 6px 12px; border-radius: 4px;'
     );
-    console.log(
-        '%c WhatsApp: +' + IONE_WHATSAPP,
-        'color: #34C759; font-size: 12px; font-weight: bold;'
-    );
-    console.log(
-        '%c Cloudinary: ' + CLOUDINARY_CLOUD_NAME,
-        'color: #0071e3; font-size: 12px; font-weight: bold;'
-    );
-    console.log(
-        '%c Max Images: ' + MAX_IMAGES,
-        'color: #6e6e73; font-size: 12px;'
-    );
+    console.log('%c API: ' + API_SAVE_URL, 'color: #0071e3; font-size: 12px; font-weight: bold;');
+    console.log('%c WhatsApp: +' + IONE_WHATSAPP, 'color: #34C759; font-size: 12px; font-weight: bold;');
+    console.log('%c Cloudinary: ' + CLOUDINARY_CLOUD_NAME, 'color: #6e6e73; font-size: 12px;');
 });
 
 // Spin animation
