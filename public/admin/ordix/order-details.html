@@ -182,6 +182,120 @@
             margin-bottom: 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* ═══ Custom Modal ═══ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+        
+        .modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: pulse-warn 2s ease-in-out infinite;
+        }
+        .modal-icon svg {
+            width: 36px;
+            height: 36px;
+        }
+        @keyframes pulse-warn {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.3); }
+            50% { box-shadow: 0 0 0 16px rgba(255, 59, 48, 0); }
+        }
+        
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .modal-message {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .modal-message strong {
+            color: var(--ione-red);
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .modal-btn-cancel:hover {
+            background: var(--bg-card-hover);
+        }
+        .modal-btn-confirm {
+            background: #FF3B30;
+            color: white;
+        }
+        .modal-btn-confirm:hover {
+            background: #d32f2f;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(255, 59, 48, 0.3);
+        }
+        .modal-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -418,6 +532,71 @@
         }
         
         // ─────────────────────────────────────────────
+        // 🎨 Custom Confirm Modal
+        // ─────────────────────────────────────────────
+        function showConfirmModal(options) {
+            return new Promise((resolve) => {
+                const { title, message, confirmText = 'تأكيد', cancelText = 'إلغاء' } = options;
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `
+                    <div class="modal-box" onclick="event.stopPropagation()">
+                        <div class="modal-icon">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <h2 class="modal-title">${title}</h2>
+                        <p class="modal-message">${message}</p>
+                        <div class="modal-buttons">
+                            <button class="modal-btn modal-btn-cancel" data-action="cancel">
+                                ${cancelText}
+                            </button>
+                            <button class="modal-btn modal-btn-confirm" data-action="confirm">
+                                ${confirmText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(overlay);
+                if (window.lucide) lucide.createIcons();
+                
+                // Animate in
+                requestAnimationFrame(() => {
+                    overlay.classList.add('active');
+                });
+                
+                // Handle buttons
+                overlay.querySelectorAll('.modal-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const action = btn.dataset.action;
+                        closeModal(action === 'confirm');
+                    });
+                });
+                
+                // Click outside → cancel
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal(false);
+                });
+                
+                // ESC → cancel
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') closeModal(false);
+                };
+                document.addEventListener('keydown', escHandler);
+                
+                function closeModal(result) {
+                    overlay.classList.remove('active');
+                    document.removeEventListener('keydown', escHandler);
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve(result);
+                    }, 250);
+                }
+            });
+        }
+        
+        // ─────────────────────────────────────────────
         // 🔄 Change Status
         // ─────────────────────────────────────────────
         async function changeStatus(newStatus) {
@@ -458,7 +637,14 @@
         // 🗑️ Delete Order
         // ─────────────────────────────────────────────
         async function deleteOrder() {
-            if (!confirm('هل أنت متأكد من حذف هذا الطلب؟\nلا يمكن التراجع عن هذه العملية.')) return;
+            const confirmed = await showConfirmModal({
+                title: 'تأكيد الحذف',
+                message: `هل أنت متأكد من حذف الطلب <strong>${orderCode}</strong>؟<br>لا يمكن التراجع عن هذه العملية.`,
+                confirmText: 'نعم، احذف',
+                cancelText: 'إلغاء'
+            });
+            
+            if (!confirmed) return;
             
             try {
                 const token = localStorage.getItem('ione_admin_token');
@@ -530,7 +716,7 @@
         }
         
         console.log(
-            '%c 📋 Order Details Page v1.0 ',
+            '%c 📋 Order Details Page v1.1 ',
             'background: #E31E24; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
         );
     </script>
