@@ -59,7 +59,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">كلمة المرور *</label>
-                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية (8 أحرف)" required minlength="8">
+                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية" required minlength="8">
                     </div>
                     <div class="form-group">
                         <label for="role">الدور *</label>
@@ -162,17 +162,14 @@
     </div>
 
     <script>
-        /* ═══════════════════════════════════════════════════════════ */
-        /*  Create User Script                                          */
-        /* ═══════════════════════════════════════════════════════════ */
-
-        const API_BASE = 'https://ionecenter.com';
-        const TOKEN_KEY = 'ione_admin_token';
+        const CREATE_API = 'https://ionecenter.com';
+        const CREATE_TOKEN = 'ione_admin_token';
+        const CREATE_USER = 'ione_admin_user';
 
         if (window.lucide) lucide.createIcons();
 
         // Auth check
-        if (!localStorage.getItem(TOKEN_KEY)) {
+        if (!localStorage.getItem(CREATE_TOKEN)) {
             window.location.replace('../login.html');
         }
 
@@ -197,9 +194,9 @@
             };
             
             try {
-                const token = localStorage.getItem(TOKEN_KEY);
+                const token = localStorage.getItem(CREATE_TOKEN);
                 
-                const response = await fetch(`${API_BASE}/users/create`, {
+                const response = await fetch(`${CREATE_API}/users/create`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -230,7 +227,7 @@
             }
         });
 
-        console.log('%c Create User Page ', 'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
+        console.log('%c Create User Page v2.0 ', 'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
     </script>
     
 </body>

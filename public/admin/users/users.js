@@ -1,32 +1,26 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Users Management Script v2.0                  */
-/*  مستقل — لا يعتمد على admin.js                              */
+/*  IONECENTER — Users Management Script v3.0                  */
+/*  Aucun conflit avec admin.js                                */
 /* ═══════════════════════════════════════════════════════════ */
 
-const API_BASE = 'https://ionecenter.com';
-const TOKEN_KEY = 'ione_admin_token';
-const USER_KEY = 'ione_admin_user';
+// استخدم أسماء مختلفة لتجنب التعارض
+const USERS_API = 'https://ionecenter.com';
+const USERS_TOKEN_KEY = 'ione_admin_token';
+const USERS_USER_KEY = 'ione_admin_user';
 
 let allUsers = [];
 
 // ═══════════════════════════════════════════════════════════
-// Auth Check (مستقل)
+// Auth Check
 // ═══════════════════════════════════════════════════════════
 
-function hasToken() {
-    return !!localStorage.getItem(TOKEN_KEY);
+function usersHasToken() {
+    return !!localStorage.getItem(USERS_TOKEN_KEY);
 }
 
-function getUser() {
-    try {
-        const raw = localStorage.getItem(USER_KEY);
-        return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
-}
-
-function logoutUser() {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+function usersLogout() {
+    localStorage.removeItem(USERS_TOKEN_KEY);
+    localStorage.removeItem(USERS_USER_KEY);
     window.location.replace('../login.html');
 }
 
@@ -38,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) lucide.createIcons();
     
     // Auth check
-    if (!hasToken()) {
+    if (!usersHasToken()) {
         window.location.replace('../login.html');
         return;
     }
@@ -66,9 +60,9 @@ async function loadUsers() {
     const container = document.getElementById('usersContainer');
     
     try {
-        const token = localStorage.getItem(TOKEN_KEY);
+        const token = localStorage.getItem(USERS_TOKEN_KEY);
         
-        const response = await fetch(`${API_BASE}/users/list`, {
+        const response = await fetch(`${USERS_API}/users/list`, {
             method: 'GET',
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -77,7 +71,7 @@ async function loadUsers() {
         
         if (!data.success) {
             if (response.status === 401) {
-                logoutUser();
+                usersLogout();
                 return;
             }
             showError(data.error || 'فشل تحميل المستخدمين');
@@ -94,7 +88,7 @@ async function loadUsers() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// Render Users
+// Render
 // ═══════════════════════════════════════════════════════════
 
 function renderUsers(users) {
@@ -214,9 +208,9 @@ async function deleteUser(email) {
     if (!confirm(`هل أنت متأكد من حذف المستخدم؟\n\n${email}`)) return;
     
     try {
-        const token = localStorage.getItem(TOKEN_KEY);
+        const token = localStorage.getItem(USERS_TOKEN_KEY);
         
-        const response = await fetch(`${API_BASE}/users/delete`, {
+        const response = await fetch(`${USERS_API}/users/delete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -259,4 +253,4 @@ function showError(message) {
     }
 }
 
-console.log('%c Users Page v2.0 ', 'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
+console.log('%c Users Page v3.0 ', 'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');

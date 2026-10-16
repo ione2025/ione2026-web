@@ -41,7 +41,6 @@
             
             <input type="hidden" id="editEmail">
             
-            <!-- Basic Info -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="user"></i>
@@ -76,19 +75,15 @@
                 </div>
             </div>
 
-            <!-- Permissions -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="shield"></i>
                     <span>الصلاحيات</span>
                 </h3>
                 
-                <div class="permissions-grid" id="permissionsGrid">
-                    <!-- Will be filled by JS -->
-                </div>
+                <div class="permissions-grid" id="permissionsGrid"></div>
             </div>
 
-            <!-- Status -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="toggle-right"></i>
@@ -101,7 +96,6 @@
                 </label>
             </div>
 
-            <!-- Actions -->
             <div class="form-actions">
                 <a href="list.html" class="action-btn" style="text-decoration: none;">
                     <i data-lucide="x"></i>
@@ -117,17 +111,18 @@
 
     </div>
 
-    <script src="../admin.js"></script>
     <script>
-        if (!isLoggedIn()) {
-            window.location.href = '../login.html';
+        const EDIT_API = 'https://ionecenter.com';
+        const EDIT_TOKEN = 'ione_admin_token';
+        const EDIT_USER = 'ione_admin_user';
+
+        if (window.lucide) lucide.createIcons();
+
+        if (!localStorage.getItem(EDIT_TOKEN)) {
+            window.location.replace('../login.html');
         }
-        lucide.createIcons();
-        
-        const API_BASE = 'https://ionecenter.com';
-        const TOKEN_KEY = 'ione_admin_token';
-        
-        const ALL_PERMISSIONS = [
+
+        const EDIT_ALL_PERMISSIONS = [
             { value: 'view_orders', label: 'عرض الطلبات' },
             { value: 'create_orders', label: 'إنشاء طلبات' },
             { value: 'edit_orders', label: 'تعديل طلبات' },
@@ -142,20 +137,20 @@
             { value: 'create_invoices', label: 'إنشاء فواتير' },
             { value: 'view_reports', label: 'عرض التقارير' }
         ];
-        
-        const params = new URLSearchParams(window.location.search);
-        const userEmail = params.get('email');
-        
-        if (!userEmail) {
+
+        const editParams = new URLSearchParams(window.location.search);
+        const editUserEmail = editParams.get('email');
+
+        if (!editUserEmail) {
             alert('لم يتم تحديد المستخدم');
-            window.location.href = 'list.html';
+            window.location.replace('list.html');
         }
-        
-        function renderPermissions(userPermissions = []) {
+
+        function renderEditPermissions(userPermissions = []) {
             const grid = document.getElementById('permissionsGrid');
             const isAll = userPermissions.includes('*');
             
-            grid.innerHTML = ALL_PERMISSIONS.map(p => `
+            grid.innerHTML = EDIT_ALL_PERMISSIONS.map(p => `
                 <label class="permission-item">
                     <input type="checkbox" name="permission" value="${p.value}" 
                            ${isAll || userPermissions.includes(p.value) ? 'checked' : ''}>
@@ -163,11 +158,11 @@
                 </label>
             `).join('');
         }
-        
-        async function loadUser() {
+
+        async function loadEditUser() {
             try {
-                const token = localStorage.getItem(TOKEN_KEY);
-                const response = await fetch(`${API_BASE}/users/list`, {
+                const token = localStorage.getItem(EDIT_TOKEN);
+                const response = await fetch(`${EDIT_API}/users/list`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -178,11 +173,11 @@
                     return;
                 }
                 
-                const user = data.users.find(u => u.email === userEmail);
+                const user = data.users.find(u => u.email === editUserEmail);
                 
                 if (!user) {
                     alert('المستخدم غير موجود');
-                    window.location.href = 'list.html';
+                    window.location.replace('list.html');
                     return;
                 }
                 
@@ -193,16 +188,16 @@
                 document.getElementById('role').value = user.role;
                 document.getElementById('active').checked = user.active;
                 
-                renderPermissions(user.permissions);
+                renderEditPermissions(user.permissions || []);
                 
             } catch (error) {
                 console.error(error);
                 alert('خطأ في الاتصال');
             }
         }
-        
-        loadUser();
-        
+
+        loadEditUser();
+
         document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -229,8 +224,8 @@
             }
             
             try {
-                const token = localStorage.getItem(TOKEN_KEY);
-                const response = await fetch(`${API_BASE}/users/update`, {
+                const token = localStorage.getItem(EDIT_TOKEN);
+                const response = await fetch(`${EDIT_API}/users/update`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -245,21 +240,23 @@
                     alert('فشل: ' + (result.error || 'خطأ'));
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i data-lucide="save"></i><span>حفظ التعديلات</span>';
-                    lucide.createIcons();
+                    if (window.lucide) lucide.createIcons();
                     return;
                 }
                 
                 alert('✅ تم حفظ التعديلات!');
-                window.location.href = 'list.html';
+                window.location.replace('list.html');
                 
             } catch (error) {
                 console.error(error);
                 alert('خطأ في الاتصال');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i data-lucide="save"></i><span>حفظ التعديلات</span>';
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         });
+
+        console.log('%c Edit User Page v2.0 ', 'background: #8B5CF6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
     </script>
     
 </body>
