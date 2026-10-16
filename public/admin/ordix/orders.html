@@ -96,10 +96,11 @@
             font-size: 0.75rem;
             font-weight: 700;
         }
-        .status-new { background: rgba(52,199,89,0.15); color: var(--accent-green); }
-        .status-pending { background: rgba(255,159,10,0.15); color: var(--accent-yellow); }
-        .status-progress { background: rgba(0,113,227,0.15); color: var(--accent-blue); }
-        .status-done { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+        .status-new { background: rgba(52,199,89,0.15); color: #34C759; }
+        .status-pending { background: rgba(255,159,10,0.15); color: #FF9F0A; }
+        .status-progress { background: rgba(0,113,227,0.15); color: #0071e3; }
+        .status-done { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+        .status-cancelled { background: rgba(255,59,48,0.15); color: #FF3B30; }
         .empty-state {
             text-align: center;
             padding: 80px 24px;
@@ -132,6 +133,42 @@
             border-color: var(--ione-red);
             color: white;
         }
+        .loading-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: var(--text-secondary);
+        }
+        .spinner {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--ione-red);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .stat-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-chip {
+            padding: 10px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .stat-chip strong {
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-left: 6px;
+        }
     </style>
 </head>
 <body class="dashboard-page">
@@ -161,6 +198,18 @@
                 <h1 class="page-title">📋 قائمة الطلبات</h1>
                 <p class="page-subtitle">جميع طلبات العملاء</p>
             </div>
+            <button class="btn-small" id="refreshBtn" style="padding: 10px 16px;">
+                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+                تحديث
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-bar" id="statBar" style="display: none;">
+            <div class="stat-chip">الكل <strong id="statTotal">0</strong></div>
+            <div class="stat-chip">جديد <strong id="statNew">0</strong></div>
+            <div class="stat-chip">قيد التنفيذ <strong id="statProgress">0</strong></div>
+            <div class="stat-chip">مكتمل <strong id="statDone">0</strong></div>
         </div>
 
         <!-- Toolbar -->
@@ -175,15 +224,15 @@
                 <option value="pending">بانتظار العروض</option>
                 <option value="progress">قيد التنفيذ</option>
                 <option value="done">مكتمل</option>
+                <option value="cancelled">ملغي</option>
             </select>
         </div>
 
-        <!-- Orders Table -->
-        <div class="orders-table" id="ordersContainer">
-            <div class="empty-state">
-                <i data-lucide="inbox"></i>
-                <h3>لا توجد طلبات بعد</h3>
-                <p>ابدأ بإنشاء طلب جديد من الزر في الأعلى</p>
+        <!-- Orders Container -->
+        <div id="ordersContainer">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>جاري تحميل الطلبات...</p>
             </div>
         </div>
 
@@ -191,23 +240,116 @@
 
     <script src="../admin.js"></script>
     <script>
-        // Auth
+        // ─────────────────────────────────────────────
+        // 🔐 Auth Guard
+        // ─────────────────────────────────────────────
         if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
             window.location.href = '../login.html';
         }
+        
         lucide.createIcons();
-
-        // Load orders
-        function loadOrders() {
-            const orders = JSON.parse(localStorage.getItem('ione_orders') || '[]');
+        
+        // ─────────────────────────────────────────────
+        // 📦 State
+        // ─────────────────────────────────────────────
+        let allOrders = [];
+        let filteredOrders = [];
+        
+        // ─────────────────────────────────────────────
+        // 🌐 Load Orders from API
+        // ─────────────────────────────────────────────
+        async function loadOrders() {
             const container = document.getElementById('ordersContainer');
             
-            if (orders.length === 0) {
+            container.innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>جاري تحميل الطلبات...</p>
+                </div>
+            `;
+            
+            try {
+                // ✅ استخدام مفتاح التوكن الصحيح من admin.js
+                const token = localStorage.getItem('ione_admin_token');
+                
+                if (!token) {
+                    throw new Error('لم يتم العثور على رمز الدخول');
+                }
+                
+                const response = await fetch('/api/orders/list', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    localStorage.removeItem('ione_admin_token');
+                    localStorage.removeItem('ione_admin_user');
+                    window.location.href = '../login.html';
+                    return;
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'فشل تحميل الطلبات');
+                }
+                
+                allOrders = result.orders || [];
+                filteredOrders = [...allOrders];
+                
+                updateStats();
+                renderOrders();
+                
+            } catch (error) {
+                console.error('Load error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="alert-circle"></i>
+                        <h3>فشل تحميل الطلبات</h3>
+                        <p>${error.message}</p>
+                        <button class="btn-small" onclick="loadOrders()" style="margin-top: 16px; padding: 10px 20px;">
+                            حاول مرة أخرى
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+        
+        // ─────────────────────────────────────────────
+        // 📊 Update Stats
+        // ─────────────────────────────────────────────
+        function updateStats() {
+            const statBar = document.getElementById('statBar');
+            statBar.style.display = 'flex';
+            
+            document.getElementById('statTotal').textContent = allOrders.length;
+            document.getElementById('statNew').textContent = 
+                allOrders.filter(o => o.status === 'new').length;
+            document.getElementById('statProgress').textContent = 
+                allOrders.filter(o => o.status === 'progress').length;
+            document.getElementById('statDone').textContent = 
+                allOrders.filter(o => o.status === 'done').length;
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🎨 Render Orders Table
+        // ─────────────────────────────────────────────
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+            
+            if (filteredOrders.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
                         <i data-lucide="inbox"></i>
-                        <h3>لا توجد طلبات بعد</h3>
-                        <p>ابدأ بإنشاء طلب جديد من الزر في الأعلى</p>
+                        <h3>${allOrders.length === 0 ? 'لا توجد طلبات بعد' : 'لا توجد نتائج مطابقة'}</h3>
+                        <p>${allOrders.length === 0 ? 'ستظهر الطلبات هنا عند وصولها من الزبائن' : 'جرّب تغيير كلمة البحث أو الفلتر'}</p>
                     </div>
                 `;
                 lucide.createIcons();
@@ -218,47 +360,105 @@
                 'new': 'جديد',
                 'pending': 'بانتظار العروض',
                 'progress': 'قيد التنفيذ',
-                'done': 'مكتمل'
+                'done': 'مكتمل',
+                'cancelled': 'ملغي'
             };
             
             container.innerHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>رقم الطلب</th>
-                            <th>العميل</th>
-                            <th>المنتج</th>
-                            <th>البلد</th>
-                            <th>الحالة</th>
-                            <th>التاريخ</th>
-                            <th>إجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${orders.map((order, i) => `
+                <div class="orders-table">
+                    <table>
+                        <thead>
                             <tr>
-                                <td><strong>${order.orderCode || 'N/A'}</strong></td>
-                                <td>${order.customerName || 'N/A'}</td>
-                                <td>${(order.productDescription || '').substring(0, 40)}...</td>
-                                <td>${order.targetCountry || 'N/A'}</td>
-                                <td><span class="status-badge status-${order.status || 'new'}">${statusLabels[order.status] || 'جديد'}</span></td>
-                                <td>${new Date(order.createdAt).toLocaleDateString('ar-EG')}</td>
-                                <td><button class="btn-small" onclick="viewOrder(${i})">عرض</button></td>
+                                <th>رقم الطلب</th>
+                                <th>العميل</th>
+                                <th>المنتج</th>
+                                <th>الوجهة</th>
+                                <th>الحالة</th>
+                                <th>التاريخ</th>
+                                <th>إجراء</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            ${filteredOrders.map((order, i) => `
+                                <tr>
+                                    <td><strong style="color: var(--ione-red); font-family: monospace;">${order.order_code || 'N/A'}</strong></td>
+                                    <td>${order.customer_name || 'N/A'}</td>
+                                    <td>${(order.product_description || '').substring(0, 40)}${order.product_description && order.product_description.length > 40 ? '...' : ''}</td>
+                                    <td>${order.target_country || '—'}</td>
+                                    <td><span class="status-badge status-${order.status || 'new'}">${statusLabels[order.status] || 'جديد'}</span></td>
+                                    <td>${formatDate(order.created_at)}</td>
+                                    <td>
+                                        <button class="btn-small" onclick="viewOrder('${order.order_code}')">
+                                            <i data-lucide="eye" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
+                                            عرض
+                                        </button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
             `;
+            
+            lucide.createIcons();
         }
-
-        function viewOrder(index) {
-            alert('عرض تفاصيل الطلب رقم ' + (index + 1) + '\n\n(قيد التطوير)');
+        
+        // ─────────────────────────────────────────────
+        // 🔍 Search + Filter
+        // ─────────────────────────────────────────────
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+            
+            filteredOrders = allOrders.filter(order => {
+                const matchStatus = status === 'all' || order.status === status;
+                const matchQuery = !query || 
+                    (order.order_code || '').toLowerCase().includes(query) ||
+                    (order.customer_name || '').toLowerCase().includes(query) ||
+                    (order.product_description || '').toLowerCase().includes(query);
+                return matchStatus && matchQuery;
+            });
+            
+            renderOrders();
         }
-
+        
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            loadOrders();
+        });
+        
+        // ─────────────────────────────────────────────
+        // 👁️ View Order
+        // ─────────────────────────────────────────────
+        function viewOrder(orderCode) {
+            window.location.href = `order-details.html?code=${encodeURIComponent(orderCode)}`;
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🔧 Helpers
+        // ─────────────────────────────────────────────
+        function formatDate(iso) {
+            if (!iso) return '—';
+            try {
+                const d = new Date(iso);
+                return d.toLocaleDateString('ar-EG', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            } catch { return '—'; }
+        }
+        
+        // ─────────────────────────────────────────────
+        // 🚀 Init
+        // ─────────────────────────────────────────────
         loadOrders();
-
+        
         console.log(
-            '%c 📋 Orders Page ',
+            '%c 📋 Orders Page v2.0 ',
             'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
         );
     </script>
