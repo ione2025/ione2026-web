@@ -1,14 +1,15 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Admin Core Script v2.0                        */
+/*  IONECENTER — Admin Core v3.0                               */
+/*  NO AUTO-REDIRECT — صفحة login تتولى التوجيه بنفسها        */
 /* ═══════════════════════════════════════════════════════════ */
 
 const TOKEN_KEY = 'ione_admin_token';
 const USER_KEY = 'ione_admin_user';
 const API_BASE = 'https://ionecenter.com';
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Session Management
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 function saveSession(token, user) {
     localStorage.setItem(TOKEN_KEY, token);
@@ -35,12 +36,12 @@ function isLoggedIn() {
 function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.location.href = 'login.html';
+    window.location.replace('login.html');
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Permissions
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 function hasPermission(permission) {
     const user = getCurrentUser();
@@ -54,9 +55,9 @@ function isCEO() {
     return user && (user.role === 'ceo' || (user.permissions && user.permissions.includes('*')));
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // API Helper
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 async function apiCall(endpoint, options = {}) {
     const token = getToken();
@@ -78,38 +79,44 @@ async function apiCall(endpoint, options = {}) {
     if (response.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         throw new Error('Session expired');
     }
     
     return response;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Auto-Protect Pages
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// Page Protection — فقط للصفحات المحمية (ليس login.html)
+// ═══════════════════════════════════════════════════════════
 
-(function autoProtect() {
-    const path = window.location.pathname;
-    
-    // Login page — allow access
+function protectPage() {
+    const path = window.location.pathname.toLowerCase();
     const isLoginPage = path.includes('login.html');
     
-    // If on login + logged in → go to dashboard
-    if (isLoginPage && isLoggedIn()) {
-        window.location.href = 'dashboard.html';
-        return;
-    }
+    // إذا كان المستخدم في login.html — لا نحمي
+    if (isLoginPage) return;
     
-    // If NOT on login + NOT logged in → go to login
+    // إذا كان مسجلاً — اتركه يكمل
+    if (isLoggedIn()) return;
+    
+    // غير مسجل + في صفحة محمية → انتقل لـ login
+    window.location.replace('login.html');
+}
+
+// تشغيل الحماية (فقط للصفحات غير login)
+(function runProtection() {
+    const path = window.location.pathname.toLowerCase();
+    const isLoginPage = path.includes('login.html');
+    
     if (!isLoginPage && !isLoggedIn()) {
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
     }
 })();
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Toast Notification
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 function showToast(message, type = 'info') {
     const colors = {
@@ -155,18 +162,18 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Console Branding
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 console.log(
-    '%c IONECENTER Admin v2.0 ',
+    '%c IONECENTER Admin v3.0 ',
     'background: #E31E24; color: white; font-size: 14px; font-weight: bold; padding: 4px 8px; border-radius: 4px;'
 );
 
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 // Global Exports
-// ─────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
 
 window.isLoggedIn = isLoggedIn;
 window.getCurrentUser = getCurrentUser;
@@ -177,3 +184,4 @@ window.hasPermission = hasPermission;
 window.isCEO = isCEO;
 window.apiCall = apiCall;
 window.showToast = showToast;
+window.protectPage = protectPage;
