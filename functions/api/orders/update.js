@@ -1,6 +1,13 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Update Order Status API                       */
+/*  IONECENTER — Update Order API v2.0                         */
 /*  POST /api/orders/update                                    */
+/*  Body: { order_code, action, ...data }                      */
+/*                                                             */
+/*  Actions:                                                   */
+/*  - set_status: { status }                                   */
+/*  - soft_delete                                              */
+/*  - restore                                                  */
+/*  - update_notes: { notes }                                  */
 /* ═══════════════════════════════════════════════════════════ */
 
 export async function onRequest(context) {
@@ -24,7 +31,7 @@ export async function onRequest(context) {
     }
     
     try {
-        // Auth
+        // ─────── Auth ───────
         const authHeader = request.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return new Response(JSON.stringify({
@@ -39,30 +46,20 @@ export async function onRequest(context) {
             }), { status: 401, headers });
         }
         
-        const hasAccess = payload.role === 'ceo' || 
-                          (payload.permissions && (
-                              payload.permissions.includes('*') ||
-                              payload.permissions.includes('edit_orders')
-                          ));
-        
-        if (!hasAccess) {
-            return new Response(JSON.stringify({
-                success: false, error: 'Forbidden — need edit_orders'
-            }), { status: 403, headers });
-        }
-        
-        // Get data
+        // ─────── Parse Body ───────
         const body = await request.json();
-        const { order_code, status, notes } = body;
+        const { order_code, action } = body;
         
-        if (!order_code) {
+        if (!order_code || !action) {
             return new Response(JSON.stringify({
-                success: false, error: 'order_code required'
+                success: false, error: 'order_code and action required'
             }), { status: 400, headers });
         }
         
-        // Fetch order
-        const orderRaw = await env.IONE_KV.get(`order:${order_code}`);
+        // ─────── Get Order ───────
+        const orderKey = `order:${order_code}`;
+        const orderRaw = await env.IONE_KV.get(orderKey);
+        
         if (!orderRaw) {
             return new Response(JSON.stringify({
                 success: false, error: 'Order not found'
@@ -71,29 +68,73 @@ export async function onRequest(context) {
         
         const order = JSON.parse(orderRaw);
         
-        // Update fields
-        if (status) order.status = status;
-        if (notes !== undefined) order.notes = notes;
-        order.updated_at = new Date().toISOString();
-        order.updated_by = payload.email;
-        
-        // Save order
-        await env.IONE_KV.put(`order:${order_code}`, JSON.stringify(order));
-        
-        // Update in list
-        const listRaw = await env.IONE_KV.get('orders:list');
-        if (listRaw) {
-            const list = JSON.parse(listRaw);
-            const idx = list.findIndex(o => o.order_code === order_code);
-            if (idx !== -1) {
-                list[idx].status = order.status;
-                await env.IONE_KV.put('orders:list', JSON.stringify(list));
+        // ─────── Handle Action ───────
+        switch (action) {
+            case 'set_status': {
+                const { status } = body;
+                const validStatuses = ['new', 'pending', 'progress', 'done', 'cancelled'];
+                
+                if (!validStatuses.includes(status)) {
+                    return new Response(JSON.stringify({
+                        success: false, error: 'Invalid status'
+                    }), { status: 400, headers });
+                }
+                
+                order.status = status;
+                order.updated_at = new Date().toISOString();
+                order.updated_by = payload.email || payload.username || 'unknown';
+                break;
             }
+            
+            case 'soft_delete': {
+                order.status = 'deleted';
+                order.deleted_at = new Date().toISOString();
+                order.deleted_by = payload.email || payload.username || 'unknown';
+                order.updated_at = new Date().toISOString();
+                break;
+            }
+            
+            case 'restore': {
+                order.status = order.previous_status || 'new';
+                delete order.deleted_at;
+                delete order.deleted_by;
+                delete order.previous_status;
+                order.updated_at = new Date().toISOString();
+                break;
+            }
+            
+            case 'update_notes': {
+                const { notes } = body;
+                order.notes = notes || '';
+                order.updated_at = new Date().toISOString();
+                order.updated_by = payload.email || payload.username || 'unknown';
+                break;
+            }
+            
+            default:
+                return new Response(JSON.stringify({
+                    success: false, error: `Unknown action: ${action}`
+                }), { status: 400, headers });
+        }
+        
+        // ─────── Save Order ───────
+        await env.IONE_KV.put(orderKey, JSON.stringify(order));
+        
+        // ─────── Update List ───────
+        const listRaw = await env.IONE_KV.get('orders:list');
+        const ordersList = listRaw ? JSON.parse(listRaw) : [];
+        
+        const idx = ordersList.findIndex(o => o.order_code === order_code);
+        if (idx !== -1) {
+            ordersList[idx].status = order.status;
+            ordersList[idx].updated_at = order.updated_at;
+            await env.IONE_KV.put('orders:list', JSON.stringify(ordersList));
         }
         
         return new Response(JSON.stringify({
             success: true,
-            message: 'تم تحديث الطلب',
+            message: 'تم التحديث بنجاح',
+            action,
             order
         }), { status: 200, headers });
         
@@ -104,6 +145,9 @@ export async function onRequest(context) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────
+// 🔐 Verify JWT
+// ─────────────────────────────────────────────────────────────
 async function verifyToken(token, env) {
     try {
         const parts = token.split('.');

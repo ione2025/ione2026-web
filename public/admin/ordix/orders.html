@@ -11,10 +11,48 @@
     <link rel="stylesheet" href="../admin.css">
     <link rel="stylesheet" href="../_assets/dashboard.css">
     <style>
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-chip {
+            padding: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            text-align: center;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .stat-chip:hover {
+            transform: translateY(-2px);
+        }
+        .stat-chip.active {
+            border-color: var(--ione-red);
+            box-shadow: 0 0 0 2px rgba(227,30,36,0.2);
+        }
+        .stat-chip .num {
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+        .stat-chip .lbl {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .stat-chip.yellow .num { color: #FF9F0A; }
+        .stat-chip.red .num { color: #FF3B30; }
+        .stat-chip.green .num { color: #34C759; }
+        .stat-chip.gray .num { color: #8E8E93; }
+        
         .orders-toolbar {
             display: flex;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
         .search-box {
@@ -29,10 +67,10 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-family: var(--font-ar);
+            font-family: inherit;
             font-size: 0.95rem;
             outline: none;
-            transition: all var(--transition);
+            transition: all 0.2s;
         }
         .search-box input:focus {
             border-color: var(--ione-red);
@@ -52,33 +90,34 @@
             border: 1.5px solid var(--border);
             border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-family: var(--font-ar);
+            font-family: inherit;
             font-size: 0.95rem;
             cursor: pointer;
             outline: none;
         }
-        .orders-table {
-            width: 100%;
+        
+        .orders-table-wrap {
             background: var(--bg-card);
             border-radius: var(--radius-lg);
             border: 1px solid var(--border);
             overflow: hidden;
         }
-        .orders-table table {
+        .orders-table {
             width: 100%;
             border-collapse: collapse;
         }
         .orders-table th {
             background: var(--bg-secondary);
-            padding: 16px;
+            padding: 14px 16px;
             text-align: right;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border);
+            white-space: nowrap;
         }
         .orders-table td {
-            padding: 16px;
+            padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             color: var(--text-primary);
             font-size: 0.9rem;
@@ -86,21 +125,111 @@
         .orders-table tr:last-child td {
             border-bottom: none;
         }
+        .orders-table tr {
+            transition: background 0.15s;
+        }
         .orders-table tr:hover {
             background: var(--bg-card-hover);
+        }
+        
+        /* Row colors */
+        .orders-table tr.row-yellow {
+            border-right: 4px solid #FF9F0A;
+        }
+        .orders-table tr.row-red {
+            border-right: 4px solid #FF3B30;
+        }
+        .orders-table tr.row-green {
+            border-right: 4px solid #34C759;
+        }
+        .orders-table tr.row-gray {
+            border-right: 4px solid #8E8E93;
+            opacity: 0.6;
+        }
+        
+        .seq-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            font-family: 'Courier New', monospace;
+        }
+        .order-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--ione-red);
+            font-size: 0.85rem;
+            direction: ltr;
+            text-align: right;
         }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
+            white-space: nowrap;
         }
-        .status-new { background: rgba(52,199,89,0.15); color: #34C759; }
+        .status-new { background: rgba(255,159,10,0.15); color: #FF9F0A; }
         .status-pending { background: rgba(255,159,10,0.15); color: #FF9F0A; }
         .status-progress { background: rgba(0,113,227,0.15); color: #0071e3; }
-        .status-done { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+        .status-done { background: rgba(52,199,89,0.15); color: #34C759; }
         .status-cancelled { background: rgba(255,59,48,0.15); color: #FF3B30; }
+        .status-deleted { background: rgba(142,142,147,0.15); color: #8E8E93; }
+        
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            flex-wrap: nowrap;
+        }
+        .action-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .action-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+        .action-icon:hover {
+            transform: scale(1.1);
+        }
+        .action-icon.view:hover {
+            background: #0071e3;
+            border-color: #0071e3;
+            color: white;
+        }
+        .action-icon.pay:hover {
+            background: #34C759;
+            border-color: #34C759;
+            color: white;
+        }
+        .action-icon.whatsapp:hover {
+            background: #25D366;
+            border-color: #25D366;
+            color: white;
+        }
+        .action-icon.delete:hover {
+            background: #FF3B30;
+            border-color: #FF3B30;
+            color: white;
+        }
+        
         .empty-state {
             text-align: center;
             padding: 80px 24px;
@@ -116,22 +245,6 @@
             font-size: 1.25rem;
             margin-bottom: 8px;
             color: var(--text-primary);
-        }
-        .btn-small {
-            padding: 6px 12px;
-            font-size: 0.8rem;
-            border-radius: 6px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            cursor: pointer;
-            font-family: var(--font-ar);
-            transition: all var(--transition);
-        }
-        .btn-small:hover {
-            background: var(--ione-red);
-            border-color: var(--ione-red);
-            color: white;
         }
         .loading-state {
             text-align: center;
@@ -149,25 +262,99 @@
             margin-bottom: 12px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .stat-bar {
+        
+        /* ═══ Custom Modal ═══ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
         }
-        .stat-chip {
-            padding: 10px 16px;
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-box {
             background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--text-secondary);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .stat-chip strong {
+        .modal-overlay.active .modal-box {
+            transform: scale(1) translateY(0);
+        }
+        .modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .modal-icon svg { width: 36px; height: 36px; }
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
             color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+        .modal-message {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+        .modal-message strong {
+            color: var(--ione-red);
+            font-family: 'Courier New', monospace;
+            font-weight: 800;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
             font-size: 1rem;
-            margin-left: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        .modal-btn-cancel:hover { background: var(--bg-card-hover); }
+        .modal-btn-confirm {
+            background: #FF3B30;
+            color: white;
+        }
+        .modal-btn-confirm:hover {
+            background: #d32f2f;
+            transform: translateY(-1px);
         }
     </style>
 </head>
@@ -198,25 +385,19 @@
                 <h1 class="page-title">📋 قائمة الطلبات</h1>
                 <p class="page-subtitle">جميع طلبات العملاء</p>
             </div>
-            <button class="btn-small" id="refreshBtn" style="padding: 10px 16px;">
-                <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
-                تحديث
+            <button class="action-icon view" onclick="loadOrders()" title="تحديث" style="width: 42px; height: 42px;">
+                <i data-lucide="refresh-cw"></i>
             </button>
         </div>
 
         <!-- Stats -->
-        <div class="stat-bar" id="statBar" style="display: none;">
-            <div class="stat-chip">الكل <strong id="statTotal">0</strong></div>
-            <div class="stat-chip">جديد <strong id="statNew">0</strong></div>
-            <div class="stat-chip">قيد التنفيذ <strong id="statProgress">0</strong></div>
-            <div class="stat-chip">مكتمل <strong id="statDone">0</strong></div>
-        </div>
+        <div class="stats-row" id="statsRow"></div>
 
         <!-- Toolbar -->
         <div class="orders-toolbar">
             <div class="search-box">
                 <i data-lucide="search"></i>
-                <input type="text" id="searchInput" placeholder="ابحث برقم الطلب أو اسم العميل...">
+                <input type="text" id="searchInput" placeholder="ابحث برقم الطلب / اسم العميل / الجوال...">
             </div>
             <select class="filter-select" id="statusFilter">
                 <option value="all">كل الحالات</option>
@@ -228,7 +409,7 @@
             </select>
         </div>
 
-        <!-- Orders Container -->
+        <!-- Container -->
         <div id="ordersContainer">
             <div class="loading-state">
                 <div class="spinner"></div>
@@ -241,13 +422,19 @@
     <script src="../admin.js"></script>
     <script>
         // ─────────────────────────────────────────────
+        // 📞 Constants
+        // ─────────────────────────────────────────────
+        const IONE_WHATSAPP = '8619120215218';
+        
+        // ─────────────────────────────────────────────
         // 📦 State
         // ─────────────────────────────────────────────
         let allOrders = [];
         let filteredOrders = [];
+        let currentFilter = 'all';
         
         // ─────────────────────────────────────────────
-        // 🌐 Load Orders from API
+        // 🌐 Load Orders
         // ─────────────────────────────────────────────
         async function loadOrders() {
             const container = document.getElementById('ordersContainer');
@@ -261,39 +448,27 @@
             
             try {
                 const token = localStorage.getItem('ione_admin_token');
-                
-                if (!token) {
-                    throw new Error('لم يتم العثور على رمز الدخول');
-                }
+                if (!token) throw new Error('لم يتم العثور على رمز الدخول');
                 
                 const response = await fetch('/api/orders/list', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if (response.status === 401 || response.status === 403) {
                     localStorage.removeItem('ione_admin_token');
-                    localStorage.removeItem('ione_admin_user');
                     window.location.href = '../login.html';
                     return;
                 }
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error || 'فشل تحميل الطلبات');
-                }
+                if (!result.success) throw new Error(result.error);
                 
                 allOrders = result.orders || [];
                 filteredOrders = [...allOrders];
                 
-                updateStats();
+                renderStats(result.stats || {});
                 renderOrders();
                 
             } catch (error) {
@@ -303,33 +478,51 @@
                         <i data-lucide="alert-circle"></i>
                         <h3>فشل تحميل الطلبات</h3>
                         <p>${error.message}</p>
-                        <button class="btn-small" onclick="loadOrders()" style="margin-top: 16px; padding: 10px 20px;">
-                            حاول مرة أخرى
+                        <button class="action-icon view" onclick="loadOrders()" style="margin-top: 16px; width: 42px; height: 42px;">
+                            <i data-lucide="refresh-cw"></i>
                         </button>
                     </div>
                 `;
                 lucide.createIcons();
             }
         }
+        window.loadOrders = loadOrders;
         
         // ─────────────────────────────────────────────
-        // 📊 Update Stats
+        // 📊 Render Stats
         // ─────────────────────────────────────────────
-        function updateStats() {
-            const statBar = document.getElementById('statBar');
-            statBar.style.display = 'flex';
+        function renderStats(stats) {
+            const row = document.getElementById('statsRow');
             
-            document.getElementById('statTotal').textContent = allOrders.length;
-            document.getElementById('statNew').textContent = 
-                allOrders.filter(o => o.status === 'new').length;
-            document.getElementById('statProgress').textContent = 
-                allOrders.filter(o => o.status === 'progress').length;
-            document.getElementById('statDone').textContent = 
-                allOrders.filter(o => o.status === 'done').length;
+            const statsConfig = [
+                { key: 'total',   label: 'الكل',          color: '' },
+                { key: 'new',     label: 'جديد',          color: 'yellow' },
+                { key: 'pending', label: 'بانتظار',       color: 'yellow' },
+                { key: 'progress',label: 'قيد التنفيذ',   color: 'yellow' },
+                { key: 'done',    label: 'مكتمل',         color: 'green' },
+                { key: 'cancelled',label: 'ملغي',         color: 'red' }
+            ];
+            
+            row.innerHTML = statsConfig.map(s => `
+                <div class="stat-chip ${s.color} ${currentFilter === s.key ? 'active' : ''}" 
+                     onclick="filterByStat('${s.key}')">
+                    <div class="num">${stats[s.key] || 0}</div>
+                    <div class="lbl">${s.label}</div>
+                </div>
+            `).join('');
         }
         
+        function filterByStat(key) {
+            currentFilter = key;
+            document.getElementById('statusFilter').value = key === 'total' ? 'all' : key;
+            applyFilters();
+            document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+        window.filterByStat = filterByStat;
+        
         // ─────────────────────────────────────────────
-        // 🎨 Render Orders Table
+        // 🎨 Render Orders
         // ─────────────────────────────────────────────
         function renderOrders() {
             const container = document.getElementById('ordersContainer');
@@ -348,40 +541,55 @@
             
             const statusLabels = {
                 'new': 'جديد',
-                'pending': 'بانتظار العروض',
+                'pending': 'بانتظار',
                 'progress': 'قيد التنفيذ',
                 'done': 'مكتمل',
-                'cancelled': 'ملغي'
+                'cancelled': 'ملغي',
+                'deleted': 'محذوف'
             };
             
             container.innerHTML = `
-                <div class="orders-table">
-                    <table>
+                <div class="orders-table-wrap">
+                    <table class="orders-table">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>رقم الطلب</th>
                                 <th>العميل</th>
+                                <th>الجوال</th>
                                 <th>المنتج</th>
-                                <th>الوجهة</th>
                                 <th>الحالة</th>
                                 <th>التاريخ</th>
                                 <th>إجراء</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${filteredOrders.map((order, i) => `
-                                <tr>
-                                    <td><strong style="color: var(--ione-red); font-family: monospace;">${order.order_code || 'N/A'}</strong></td>
-                                    <td>${order.customer_name || 'N/A'}</td>
-                                    <td>${(order.product_description || '').substring(0, 40)}${order.product_description && order.product_description.length > 40 ? '...' : ''}</td>
-                                    <td>${order.target_country || '—'}</td>
-                                    <td><span class="status-badge status-${order.status || 'new'}">${statusLabels[order.status] || 'جديد'}</span></td>
-                                    <td>${formatDate(order.created_at)}</td>
+                            ${filteredOrders.map(order => `
+                                <tr class="row-${order.color || 'yellow'}">
+                                    <td><span class="seq-num">${order.seq}</span></td>
+                                    <td><span class="order-code">${order.order_code || 'N/A'}</span></td>
+                                    <td>${escapeHtml(order.customer_name) || '—'}</td>
+                                    <td style="direction: ltr; text-align: right; font-size: 0.8rem;">${escapeHtml(order.customer_phone) || '—'}</td>
+                                    <td title="${escapeHtml(order.product_description)}">${escapeHtml((order.product_description || '').substring(0, 40))}${order.product_description && order.product_description.length > 40 ? '...' : ''}</td>
+                                    <td><span class="status-badge status-${order.status}">${statusLabels[order.status] || order.status}</span></td>
+                                    <td style="font-size: 0.8rem;">${formatDate(order.created_at)}</td>
                                     <td>
-                                        <button class="btn-small" onclick="viewOrder('${order.order_code}')">
-                                            <i data-lucide="eye" style="width: 14px; height: 14px; display: inline-block; vertical-align: middle;"></i>
-                                            عرض
-                                        </button>
+                                        <div class="actions-cell">
+                                            <button class="action-icon view" onclick="viewOrder('${order.order_code}')" title="عرض">
+                                                <i data-lucide="eye"></i>
+                                            </button>
+                                            ${order.status === 'new' || order.status === 'pending' ? `
+                                            <button class="action-icon pay" onclick="confirmPayment('${order.order_code}')" title="تأكيد الدفع">
+                                                <i data-lucide="dollar-sign"></i>
+                                            </button>` : ''}
+                                            ${order.customer_phone ? `
+                                            <button class="action-icon whatsapp" onclick="openWhatsApp('${escapeHtml(order.customer_phone)}', '${order.order_code}')" title="WhatsApp">
+                                                <i data-lucide="message-circle"></i>
+                                            </button>` : ''}
+                                            <button class="action-icon delete" onclick="deleteOrder('${order.order_code}')" title="حذف">
+                                                <i data-lucide="trash-2"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -394,17 +602,20 @@
         }
         
         // ─────────────────────────────────────────────
-        // 🔍 Search + Filter
+        // 🔍 Filters
         // ─────────────────────────────────────────────
         function applyFilters() {
             const query = document.getElementById('searchInput').value.trim().toLowerCase();
             const status = document.getElementById('statusFilter').value;
+            
+            currentFilter = status;
             
             filteredOrders = allOrders.filter(order => {
                 const matchStatus = status === 'all' || order.status === status;
                 const matchQuery = !query || 
                     (order.order_code || '').toLowerCase().includes(query) ||
                     (order.customer_name || '').toLowerCase().includes(query) ||
+                    (order.customer_phone || '').toLowerCase().includes(query) ||
                     (order.product_description || '').toLowerCase().includes(query);
                 return matchStatus && matchQuery;
             });
@@ -415,59 +626,172 @@
         // ─────────────────────────────────────────────
         // 👁️ View Order
         // ─────────────────────────────────────────────
-        function viewOrder(orderCode) {
-            window.location.href = `order-details.html?code=${encodeURIComponent(orderCode)}`;
+        function viewOrder(code) {
+            window.location.href = `order-details.html?code=${encodeURIComponent(code)}`;
+        }
+        window.viewOrder = viewOrder;
+        
+        // ─────────────────────────────────────────────
+        // 💰 Confirm Payment (Placeholder)
+        // ─────────────────────────────────────────────
+        function confirmPayment(code) {
+            showToast('سيتم تفعيل تأكيد الدفع قريباً', 'info');
+            // TODO: confirm.js integration
+        }
+        window.confirmPayment = confirmPayment;
+        
+        // ─────────────────────────────────────────────
+        // 📱 Open WhatsApp
+        // ─────────────────────────────────────────────
+        function openWhatsApp(phone, orderCode) {
+            const clean = cleanPhone(phone);
+            if (!clean) {
+                showToast('لا يوجد رقم صحيح', 'warning');
+                return;
+            }
+            const msg = `مرحباً، بخصوص طلبك ${orderCode} من IONECENTER`;
+            window.open(`https://wa.me/${clean}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+        window.openWhatsApp = openWhatsApp;
+        
+        // ─────────────────────────────────────────────
+        // 🗑️ Delete Order
+        // ─────────────────────────────────────────────
+        async function deleteOrder(code) {
+            const confirmed = await showConfirmModal({
+                title: 'تأكيد الحذف',
+                message: `هل أنت متأكد من حذف الطلب <strong>${code}</strong>؟<br>لا يمكن التراجع عن هذه العملية.`,
+                confirmText: 'نعم، احذف',
+                cancelText: 'إلغاء'
+            });
+            
+            if (!confirmed) return;
+            
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const response = await fetch('/api/orders/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ order_code: code })
+                });
+                
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                
+                showToast(result.message || 'تم الحذف ✅', 'success');
+                loadOrders();
+                
+            } catch (error) {
+                showToast('فشل الحذف: ' + error.message, 'error');
+            }
+        }
+        window.deleteOrder = deleteOrder;
+        
+        // ─────────────────────────────────────────────
+        // 🎨 Custom Confirm Modal
+        // ─────────────────────────────────────────────
+        function showConfirmModal(options) {
+            return new Promise((resolve) => {
+                const { title, message, confirmText = 'تأكيد', cancelText = 'إلغاء' } = options;
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `
+                    <div class="modal-box" onclick="event.stopPropagation()">
+                        <div class="modal-icon">
+                            <i data-lucide="alert-triangle"></i>
+                        </div>
+                        <h2 class="modal-title">${title}</h2>
+                        <p class="modal-message">${message}</p>
+                        <div class="modal-buttons">
+                            <button class="modal-btn modal-btn-cancel" data-action="cancel">${cancelText}</button>
+                            <button class="modal-btn modal-btn-confirm" data-action="confirm">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(overlay);
+                if (window.lucide) lucide.createIcons();
+                
+                requestAnimationFrame(() => overlay.classList.add('active'));
+                
+                overlay.querySelectorAll('.modal-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        closeModal(btn.dataset.action === 'confirm');
+                    });
+                });
+                
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay) closeModal(false);
+                });
+                
+                const escHandler = (e) => {
+                    if (e.key === 'Escape') closeModal(false);
+                };
+                document.addEventListener('keydown', escHandler);
+                
+                function closeModal(result) {
+                    overlay.classList.remove('active');
+                    document.removeEventListener('keydown', escHandler);
+                    setTimeout(() => {
+                        overlay.remove();
+                        resolve(result);
+                    }, 250);
+                }
+            });
         }
         
         // ─────────────────────────────────────────────
         // 🔧 Helpers
         // ─────────────────────────────────────────────
+        function cleanPhone(phone, defaultCountry = '970') {
+            let clean = (phone || '').replace(/\D/g, '');
+            if (clean.startsWith('00')) clean = clean.substring(2);
+            if (clean.startsWith('0')) clean = defaultCountry + clean.substring(1);
+            if (clean && clean.length < 10 && !clean.startsWith(defaultCountry)) {
+                clean = defaultCountry + clean;
+            }
+            return clean;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
         function formatDate(iso) {
             if (!iso) return '—';
             try {
-                const d = new Date(iso);
-                return d.toLocaleDateString('ar-EG', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
+                return new Date(iso).toLocaleDateString('ar-EG', {
+                    year: 'numeric', month: 'short', day: 'numeric'
                 });
             } catch { return '—'; }
         }
         
         // ─────────────────────────────────────────────
-        // 🚀 Init — Run after DOM ready
+        // 🚀 Init
         // ─────────────────────────────────────────────
         function init() {
-            // Bind events
-            const searchInput = document.getElementById('searchInput');
-            const statusFilter = document.getElementById('statusFilter');
-            const refreshBtn = document.getElementById('refreshBtn');
-            
-            if (searchInput) searchInput.addEventListener('input', applyFilters);
-            if (statusFilter) statusFilter.addEventListener('change', applyFilters);
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', () => {
-                    searchInput.value = '';
-                    statusFilter.value = 'all';
-                    loadOrders();
-                });
-            }
-            
-            // Initial load
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
             loadOrders();
-            
-            console.log(
-                '%c 📋 Orders Page v3.0 ',
-                'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
-            );
         }
         
-        // Wait for DOM
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
             init();
         }
+        
+        console.log(
+            '%c 📋 Orders Page v3.0 ',
+            'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
+        );
     </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Save Order API                                */
+/*  IONECENTER — Save Order API v2.0                           */
 /*  POST /api/orders/save                                      */
+/*  Order Code: ORD-{YYYYMMDD}-{random4}                       */
 /* ═══════════════════════════════════════════════════════════ */
 
 export async function onRequest(context) {
@@ -19,8 +20,7 @@ export async function onRequest(context) {
     
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ 
-            success: false, 
-            error: 'Method not allowed' 
+            success: false, error: 'Method not allowed' 
         }), { status: 405, headers });
     }
     
@@ -40,7 +40,7 @@ export async function onRequest(context) {
             source
         } = body;
         
-        // Validation
+        // ─────── Validation ───────
         if (!customer_name || !product_description) {
             return new Response(JSON.stringify({
                 success: false,
@@ -48,12 +48,20 @@ export async function onRequest(context) {
             }), { status: 400, headers });
         }
         
-        // Generate Order Code
-        const year = new Date().getFullYear();
-        const random = Math.floor(Math.random() * 9000) + 1000;
-        const orderCode = `ORD-${year}-${random}`;
+        // ─────── Generate Order Code ───────
+        // Format: ORD-YYYYMMDD-XXXX
+        const now = new Date();
+        const beijing = new Date(now.getTime() + (8 * 60 * 60 * 1000));
         
-        // Order data
+        const year = beijing.getUTCFullYear();
+        const month = String(beijing.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(beijing.getUTCDate()).padStart(2, '0');
+        const dateKey = `${year}${month}${day}`;
+        
+        const random = Math.floor(Math.random() * 9000) + 1000;
+        const orderCode = `ORD-${dateKey}-${random}`;
+        
+        // ─────── Order Data ───────
         const orderId = `order:${orderCode}`;
         const orderData = {
             order_code: orderCode,
@@ -69,28 +77,32 @@ export async function onRequest(context) {
             image_urls: image_urls || [],
             source: source || 'pwa',
             status: 'new',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
+            created_at: now.toISOString(),
+            updated_at: now.toISOString()
         };
         
-        // Save order
+        // ─────── Save Order ───────
         await env.IONE_KV.put(orderId, JSON.stringify(orderData));
         
-        // Add to orders list
+        // ─────── Add to List ───────
         const listRaw = await env.IONE_KV.get('orders:list');
         const ordersList = listRaw ? JSON.parse(listRaw) : [];
         
         ordersList.unshift({
             order_code: orderCode,
             customer_name,
+            customer_phone: customer_phone || '',
             product_description: product_description.substring(0, 60),
             target_country: target_country || '',
             status: 'new',
             created_at: orderData.created_at
         });
         
+        if (ordersList.length > 500) ordersList.length = 500;
+        
         await env.IONE_KV.put('orders:list', JSON.stringify(ordersList));
         
+        // ─────── Response ───────
         return new Response(JSON.stringify({
             success: true,
             message: 'تم حفظ الطلب بنجاح',
