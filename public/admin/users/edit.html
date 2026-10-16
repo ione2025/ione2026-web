@@ -127,7 +127,6 @@
         const API_BASE = 'https://ionecenter.com';
         const TOKEN_KEY = 'ione_admin_token';
         
-        // All available permissions
         const ALL_PERMISSIONS = [
             { value: 'view_orders', label: 'عرض الطلبات' },
             { value: 'create_orders', label: 'إنشاء طلبات' },
@@ -136,7 +135,7 @@
             { value: 'view_suppliers', label: 'عرض الموردين' },
             { value: 'edit_suppliers', label: 'تعديل الموردين' },
             { value: 'view_customers', label: 'عرض العملاء' },
-            { value: 'view_customer_real_data', label: 'عرض بيانات العملاء 🔒' },
+            { value: 'view_customer_real_data', label: 'بيانات العملاء الحقيقية 🔒' },
             { value: 'view_boxes', label: 'عرض الصناديق' },
             { value: 'view_profit', label: 'عرض هامش الربح 🔒' },
             { value: 'view_invoices', label: 'عرض الفواتير' },
@@ -144,7 +143,6 @@
             { value: 'view_reports', label: 'عرض التقارير' }
         ];
         
-        // Load user data
         const params = new URLSearchParams(window.location.search);
         const userEmail = params.get('email');
         
@@ -153,7 +151,6 @@
             window.location.href = 'list.html';
         }
         
-        // Render permissions grid
         function renderPermissions(userPermissions = []) {
             const grid = document.getElementById('permissionsGrid');
             const isAll = userPermissions.includes('*');
@@ -167,7 +164,6 @@
             `).join('');
         }
         
-        // Load user
         async function loadUser() {
             try {
                 const token = localStorage.getItem(TOKEN_KEY);
@@ -207,7 +203,6 @@
         
         loadUser();
         
-        // Submit
         document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -229,7 +224,6 @@
                 active: document.getElementById('active').checked
             };
             
-            // Add password only if provided
             if (password) {
                 data.password = password;
             }

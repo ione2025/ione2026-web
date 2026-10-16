@@ -39,7 +39,6 @@
 
         <form class="user-form" id="createUserForm">
             
-            <!-- Basic Info -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="user"></i>
@@ -60,7 +59,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="password">كلمة المرور *</label>
-                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية" required minlength="8">
+                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية (8 أحرف)" required minlength="8">
                     </div>
                     <div class="form-group">
                         <label for="role">الدور *</label>
@@ -73,7 +72,6 @@
                 </div>
             </div>
 
-            <!-- Permissions -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="shield"></i>
@@ -81,7 +79,6 @@
                 </h3>
                 
                 <div class="permissions-grid">
-                    <!-- Orders -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_orders">
                         <span>عرض الطلبات</span>
@@ -98,8 +95,6 @@
                         <input type="checkbox" name="permission" value="delete_orders">
                         <span>حذف طلبات</span>
                     </label>
-                    
-                    <!-- Suppliers -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_suppliers">
                         <span>عرض الموردين</span>
@@ -108,18 +103,14 @@
                         <input type="checkbox" name="permission" value="edit_suppliers">
                         <span>تعديل الموردين</span>
                     </label>
-                    
-                    <!-- Customers -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_customers">
                         <span>عرض العملاء</span>
                     </label>
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_customer_real_data">
-                        <span>عرض بيانات العملاء الحقيقية 🔒</span>
+                        <span>بيانات العملاء الحقيقية 🔒</span>
                     </label>
-                    
-                    <!-- Finance -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_boxes">
                         <span>عرض الصناديق</span>
@@ -128,8 +119,6 @@
                         <input type="checkbox" name="permission" value="view_profit">
                         <span>عرض هامش الربح 🔒</span>
                     </label>
-                    
-                    <!-- Invoices -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_invoices">
                         <span>عرض الفواتير</span>
@@ -138,8 +127,6 @@
                         <input type="checkbox" name="permission" value="create_invoices">
                         <span>إنشاء فواتير</span>
                     </label>
-                    
-                    <!-- Reports -->
                     <label class="permission-item">
                         <input type="checkbox" name="permission" value="view_reports">
                         <span>عرض التقارير</span>
@@ -147,7 +134,6 @@
                 </div>
             </div>
 
-            <!-- Status -->
             <div class="form-section">
                 <h3 class="form-section-title">
                     <i data-lucide="toggle-right"></i>
@@ -160,7 +146,6 @@
                 </label>
             </div>
 
-            <!-- Actions -->
             <div class="form-actions">
                 <a href="list.html" class="action-btn" style="text-decoration: none;">
                     <i data-lucide="x"></i>
@@ -176,16 +161,21 @@
 
     </div>
 
-    <script src="../admin.js"></script>
     <script>
-        if (!isLoggedIn()) {
-            window.location.href = '../login.html';
-        }
-        lucide.createIcons();
-        
+        /* ═══════════════════════════════════════════════════════════ */
+        /*  Create User Script                                          */
+        /* ═══════════════════════════════════════════════════════════ */
+
         const API_BASE = 'https://ionecenter.com';
         const TOKEN_KEY = 'ione_admin_token';
-        
+
+        if (window.lucide) lucide.createIcons();
+
+        // Auth check
+        if (!localStorage.getItem(TOKEN_KEY)) {
+            window.location.replace('../login.html');
+        }
+
         document.getElementById('createUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -193,13 +183,12 @@
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span>جاري الإنشاء...</span>';
             
-            // Collect permissions
             const permissions = Array.from(
                 document.querySelectorAll('input[name="permission"]:checked')
             ).map(cb => cb.value);
             
             const data = {
-                email: document.getElementById('email').value.trim(),
+                email: document.getElementById('email').value.trim().toLowerCase(),
                 password: document.getElementById('password').value,
                 full_name: document.getElementById('full_name').value.trim(),
                 role: document.getElementById('role').value,
@@ -225,21 +214,23 @@
                     alert('فشل: ' + (result.error || 'خطأ'));
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
-                    lucide.createIcons();
+                    if (window.lucide) lucide.createIcons();
                     return;
                 }
                 
                 alert('✅ تم إنشاء المستخدم بنجاح!');
-                window.location.href = 'list.html';
+                window.location.replace('list.html');
                 
             } catch (error) {
                 console.error('Error:', error);
                 alert('خطأ في الاتصال');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
-                lucide.createIcons();
+                if (window.lucide) lucide.createIcons();
             }
         });
+
+        console.log('%c Create User Page ', 'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
     </script>
     
 </body>

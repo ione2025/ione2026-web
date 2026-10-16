@@ -1,10 +1,5 @@
 /* ═══════════════════════════════════════════════════════════ */
 /*  IONECENTER — Users Management Styles                       */
-/*  (يعتمد على dashboard.css الموجود)                         */
-/* ═══════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════ */
-/*  Users Toolbar                                              */
 /* ═══════════════════════════════════════════════════════════ */
 
 .users-toolbar {
@@ -49,10 +44,6 @@
     color: var(--text-secondary);
 }
 
-/* ═══════════════════════════════════════════════════════════ */
-/*  Users Table                                                */
-/* ═══════════════════════════════════════════════════════════ */
-
 .users-table {
     width: 100%;
     background: var(--bg-card);
@@ -92,7 +83,6 @@
     background: var(--bg-card-hover);
 }
 
-/* User Avatar Cell */
 .user-cell {
     display: flex;
     align-items: center;
@@ -131,7 +121,6 @@
     color: var(--text-secondary);
 }
 
-/* Role Badges */
 .role-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -139,7 +128,6 @@
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
 .role-ceo {
@@ -162,7 +150,6 @@
     color: var(--text-secondary);
 }
 
-/* Status Badge */
 .status-badge {
     display: inline-flex;
     align-items: center;
@@ -198,7 +185,6 @@
     background: var(--ione-red);
 }
 
-/* Action Buttons */
 .user-actions {
     display: flex;
     gap: 8px;
@@ -217,31 +203,25 @@
     align-items: center;
     justify-content: center;
     transition: all var(--transition);
-}
-
-.action-icon-btn:hover {
-    background: var(--ione-red);
-    border-color: var(--ione-red);
-    color: white;
-}
-
-.action-icon-btn.delete:hover {
-    background: var(--ione-red);
+    text-decoration: none;
 }
 
 .action-icon-btn.edit:hover {
     background: var(--accent-blue);
     border-color: var(--accent-blue);
+    color: white;
+}
+
+.action-icon-btn.delete:hover {
+    background: var(--ione-red);
+    border-color: var(--ione-red);
+    color: white;
 }
 
 .action-icon-btn svg {
     width: 16px;
     height: 16px;
 }
-
-/* ═══════════════════════════════════════════════════════════ */
-/*  Empty State                                                */
-/* ═══════════════════════════════════════════════════════════ */
 
 .users-empty {
     text-align: center;
@@ -262,10 +242,6 @@
     margin-bottom: 8px;
     color: var(--text-primary);
 }
-
-/* ═══════════════════════════════════════════════════════════ */
-/*  Form (Create / Edit)                                       */
-/* ═══════════════════════════════════════════════════════════ */
 
 .user-form {
     background: var(--bg-card);
@@ -311,10 +287,6 @@
     margin-bottom: 16px;
 }
 
-.form-row.full {
-    grid-template-columns: 1fr;
-}
-
 .form-group {
     display: flex;
     flex-direction: column;
@@ -347,7 +319,6 @@
     box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1);
 }
 
-/* Permissions Checkboxes */
 .permissions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -385,7 +356,6 @@
     flex-shrink: 0;
 }
 
-/* Form Actions */
 .form-actions {
     display: flex;
     gap: 12px;
@@ -395,7 +365,6 @@
     border-top: 1px solid var(--border);
 }
 
-/* Responsive */
 @media (max-width: 640px) {
     .form-row {
         grid-template-columns: 1fr;
