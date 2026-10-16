@@ -24,14 +24,13 @@
 </head>
 <body>
     
-    <!-- Background Blobs (Animated) -->
+    <!-- Background Blobs -->
     <div class="blobs">
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
         <div class="blob blob-3"></div>
     </div>
 
-    <!-- Main Content -->
     <main class="container">
         
         <!-- Logo with Pulse -->
@@ -48,25 +47,33 @@
         <p class="subtitle">نظام وسيط الخدمات الذكي قادم قريباً</p>
         <p class="subtitle-en">The smart service intermediary system is coming soon</p>
 
-        <!-- Countdown Timer -->
+        <!-- Animated Countdown -->
         <div class="countdown" id="countdown">
             <div class="countdown-item">
-                <span class="countdown-number" id="days">30</span>
+                <div class="digit-wrapper">
+                    <span class="countdown-number" data-digit="days" id="days">30</span>
+                </div>
                 <span class="countdown-label">يوم</span>
             </div>
             <div class="countdown-separator">:</div>
             <div class="countdown-item">
-                <span class="countdown-number" id="hours">12</span>
+                <div class="digit-wrapper">
+                    <span class="countdown-number" data-digit="hours" id="hours">12</span>
+                </div>
                 <span class="countdown-label">ساعة</span>
             </div>
             <div class="countdown-separator">:</div>
             <div class="countdown-item">
-                <span class="countdown-number" id="minutes">45</span>
+                <div class="digit-wrapper">
+                    <span class="countdown-number" data-digit="minutes" id="minutes">45</span>
+                </div>
                 <span class="countdown-label">دقيقة</span>
             </div>
             <div class="countdown-separator">:</div>
             <div class="countdown-item">
-                <span class="countdown-number" id="seconds">22</span>
+                <div class="digit-wrapper">
+                    <span class="countdown-number" data-digit="seconds" id="seconds">22</span>
+                </div>
                 <span class="countdown-label">ثانية</span>
             </div>
         </div>
@@ -108,7 +115,7 @@
     <script src="countdown.js"></script>
     <script src="app.js"></script>
     <script>
-        lucide.createIcons();
+        if (window.lucide) lucide.createIcons();
     </script>
 </body>
 </html>

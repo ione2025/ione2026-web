@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#E31E24">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="IONE Order">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="../manifest.json">
+    
+    <!-- Title -->
+    <title>IONE CENTER — أرسل طلبك</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/logo.png">
+    <link rel="apple-touch-icon" href="../assets/logo.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="order.css">
+</head>
+<body>
+    
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-logo">
+            <img src="../assets/logo.png" alt="IONE CENTER">
+        </div>
+        <h1 class="header-title">أرسل طلبك</h1>
+        <p class="header-subtitle">IONECENTER — نُنجز طلبك بسرعة</p>
+    </header>
+
+    <!-- Form -->
+    <form id="orderForm" class="order-form" novalidate>
+        
+        <!-- Section: Customer Info -->
+        <section class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-icon">
+                    <i data-lucide="user"></i>
+                </div>
+                <h2>بياناتك</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="name">
+                    <i data-lucide="user-circle"></i>
+                    الاسم الكامل *
+                </label>
+                <input 
+                    type="text" 
+                    id="name" 
+                    name="name" 
+                    placeholder="أبو إسماعيل"
+                    autocomplete="name"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="phone">
+                    <i data-lucide="phone"></i>
+                    رقم الواتساب *
+                </label>
+                <input 
+                    type="tel" 
+                    id="phone" 
+                    name="phone" 
+                    placeholder="+970-XXX-XXXX"
+                    autocomplete="tel"
+                    required
+                >
+                <small class="form-hint">سنستخدمه للتواصل معك</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="country">
+                    <i data-lucide="globe"></i>
+                    بلدك
+                </label>
+                <input 
+                    type="text" 
+                    id="country" 
+                    name="country" 
+                    placeholder="فلسطين"
+                    autocomplete="country-name"
+                >
+            </div>
+        </section>
+
+        <!-- Section: Product Info -->
+        <section class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-icon">
+                    <i data-lucide="package"></i>
+                </div>
+                <h2>تفاصيل الطلب</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="product">
+                    <i data-lucide="box"></i>
+                    وصف المنتج *
+                </label>
+                <textarea 
+                    id="product" 
+                    name="product" 
+                    placeholder="مثال: قطع غيار Charmilles ROBOFIL 310..."
+                    rows="2"
+                    required
+                ></textarea>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="quantity">
+                        <i data-lucide="hash"></i>
+                        الكمية
+                    </label>
+                    <input 
+                        type="number" 
+                        id="quantity" 
+                        name="quantity" 
+                        placeholder="1"
+                        min="1"
+                        value="1"
+                    >
+                </div>
+                
+                <div class="form-group">
+                    <label for="targetCountry">
+                        <i data-lucide="map-pin"></i>
+                        بلد التسليم
+                    </label>
+                    <input 
+                        type="text" 
+                        id="targetCountry" 
+                        name="targetCountry" 
+                        placeholder="دبي / جوانزو"
+                    >
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">
+                    <i data-lucide="message-square"></i>
+                    ملاحظات إضافية
+                </label>
+                <textarea 
+                    id="notes" 
+                    name="notes" 
+                    placeholder="أي تفاصيل إضافية..."
+                    rows="2"
+                ></textarea>
+            </div>
+        </section>
+
+        <!-- Section: Images Upload -->
+        <section class="form-card">
+            <div class="form-card-header">
+                <div class="form-card-icon">
+                    <i data-lucide="camera"></i>
+                </div>
+                <h2>صور المنتج</h2>
+            </div>
+            
+            <div class="upload-zone" id="uploadZone">
+                <input 
+                    type="file" 
+                    id="fileInput" 
+                    accept="image/*" 
+                    multiple
+                    style="display: none;"
+                >
+                
+                <div class="upload-buttons">
+                    <button type="button" class="upload-btn" id="cameraBtn">
+                        <i data-lucide="camera"></i>
+                        <span>التقط صورة</span>
+                    </button>
+                    <button type="button" class="upload-btn" id="galleryBtn">
+                        <i data-lucide="image"></i>
+                        <span>من المعرض</span>
+                    </button>
+                </div>
+                
+                <div class="upload-preview" id="uploadPreview"></div>
+            </div>
+        </section>
+
+        <!-- Submit Button -->
+        <div class="submit-container">
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i data-lucide="send"></i>
+                <span>إرسال الطلب عبر WhatsApp</span>
+            </button>
+            
+            <p class="submit-hint">
+                <i data-lucide="info"></i>
+                سيُفتح WhatsApp مع رسالة جاهزة
+            </p>
+        </div>
+
+    </form>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <p>© 2026 IONE CENTER — نظام وسيط الخدمات الذكي</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="order.js"></script>
+    
+</body>
+</html>

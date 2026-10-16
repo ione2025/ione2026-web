@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — طلب جديد</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+</head>
+<body class="dashboard-page">
+    
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📦 طلب جديد</h1>
+                <p class="page-subtitle">إدخال طلب عميل جديد يدوياً</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="newOrderForm" class="order-form">
+            
+            <!-- Section: Customer Info -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i data-lucide="user"></i>
+                    <span>بيانات العميل</span>
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="customerName">اسم العميل *</label>
+                        <input 
+                            type="text" 
+                            id="customerName" 
+                            name="customerName"
+                            placeholder="أبو إسماعيل"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customerPhone">رقم الهاتف / واتساب</label>
+                        <input 
+                            type="tel" 
+                            id="customerPhone" 
+                            name="customerPhone"
+                            placeholder="+970-XXX-XXXX"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customerCountry">البلد</label>
+                        <input 
+                            type="text" 
+                            id="customerCountry" 
+                            name="customerCountry"
+                            placeholder="فلسطين"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Order Details -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i data-lucide="package"></i>
+                    <span>تفاصيل الطلب</span>
+                </h2>
+                
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="productDescription">وصف المنتج *</label>
+                        <textarea 
+                            id="productDescription" 
+                            name="productDescription"
+                            placeholder="مثال: قطع غيار Charmilles ROBOFIL 310..."
+                            rows="3"
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity">الكمية</label>
+                        <input 
+                            type="number" 
+                            id="quantity" 
+                            name="quantity"
+                            value="1"
+                            min="1"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="unit">الوحدة</label>
+                        <select id="unit" name="unit">
+                            <option value="piece">قطعة</option>
+                            <option value="set">طقم</option>
+                            <option value="kg">كيلوغرام</option>
+                            <option value="meter">متر</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="targetCountry">بلد التسليم *</label>
+                        <input 
+                            type="text" 
+                            id="targetCountry" 
+                            name="targetCountry"
+                            placeholder="دبي / جوانزو / ..."
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shippingType">نوع الشحن</label>
+                        <select id="shippingType" name="shippingType">
+                            <option value="air">✈️ جوي</option>
+                            <option value="sea">🚢 بحري</option>
+                            <option value="land">🚚 بري</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section: Conversation -->
+            <div class="form-section">
+                <h2 class="form-section-title">
+                    <i data-lucide="message-square"></i>
+                    <span>المحادثة الأصلية</span>
+                </h2>
+                
+                <div class="form-group full-width">
+                    <label for="rawConversation">نص المحادثة (اختياري — للصق)</label>
+                    <textarea 
+                        id="rawConversation" 
+                        name="rawConversation"
+                        placeholder="الصق هنا محادثة الواتساب مع العميل..."
+                        rows="6"
+                    ></textarea>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="notes">ملاحظات إضافية</label>
+                    <textarea 
+                        id="notes" 
+                        name="notes"
+                        placeholder="أي ملاحظات مهمة..."
+                        rows="3"
+                    ></textarea>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="button" class="action-btn" onclick="history.back()">
+                    <i data-lucide="x"></i>
+                    <span>إلغاء</span>
+                </button>
+                <button type="submit" class="action-btn primary">
+                    <i data-lucide="save"></i>
+                    <span>حفظ الطلب</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="../admin.js"></script>
+    <script>
+        // Auth Check
+        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+
+        // Icons
+        lucide.createIcons();
+
+        // Logout handler from admin.js
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn && typeof logout === 'function') {
+                logoutBtn.addEventListener('click', () => {
+                    if (confirm('تسجيل الخروج؟')) logout();
+                });
+            }
+        });
+
+        // Form submit
+        document.getElementById('newOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Generate order code
+            const orderCode = 'ORD-' + new Date().getFullYear() + '-' + 
+                              String(Math.floor(Math.random() * 9000) + 1000);
+            
+            data.orderCode = orderCode;
+            data.createdAt = new Date().toISOString();
+            data.status = 'new';
+            
+            console.log('📦 New Order Data:', data);
+            
+            // TODO: Save to Cloudflare KV
+            // For now, save to localStorage
+            const orders = JSON.parse(localStorage.getItem('ione_orders') || '[]');
+            orders.push(data);
+            localStorage.setItem('ione_orders', JSON.stringify(orders));
+            
+            alert(`✅ تم حفظ الطلب!\n\nرقم الطلب: ${orderCode}\n\nسيتم نقلك لقائمة الطلبات...`);
+            
+            // Redirect
+            window.location.href = 'orders.html';
+        });
+
+        // Console branding
+        console.log(
+            '%c 📦 New Order Page ',
+            'background: #E31E24; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
+        );
+    </script>
+    
+    <!-- Form Styles -->
+    <style>
+        .order-form {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .form-section {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .form-section:last-of-type {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-section-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--ione-red);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-ar);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all var(--transition);
+            resize: vertical;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--ione-red);
+            box-shadow: 0 0 0 4px rgba(227, 30, 36, 0.1);
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+    
+</body>
+</html>

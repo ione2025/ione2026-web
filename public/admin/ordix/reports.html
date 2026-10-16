@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER — التقارير</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .empty-page { text-align: center; padding: 120px 24px; color: var(--text-secondary); }
+        .empty-page svg { width: 80px; height: 80px; margin-bottom: 24px; opacity: 0.4; color: var(--accent-pink); }
+        .empty-page h2 { font-size: 1.75rem; color: var(--text-primary); margin-bottom: 12px; }
+        .empty-page p { font-size: 1rem; margin-bottom: 32px; }
+    </style>
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📊 التقارير</h1>
+                <p class="page-subtitle">إحصائيات وتحليلات النظام</p>
+            </div>
+        </div>
+
+        <div class="empty-page">
+            <i data-lucide="bar-chart"></i>
+            <h2>قيد التطوير</h2>
+            <p>سيتم إضافة التقارير في الجلسة القادمة</p>
+        </div>
+
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+        lucide.createIcons();
+        console.log('%c 📊 Reports Page ', 'background: #EC4899; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
+    </script>
+</body>
+</html>

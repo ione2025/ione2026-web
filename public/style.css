@@ -465,3 +465,113 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+/* ═══════════════════════════════════════════════════════════ */
+/*  Animated Countdown — Number Drop Effect                    */
+/*  Added: 2026-10-15                                          */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* Digit wrapper — clips overflow */
+.digit-wrapper {
+    position: relative;
+    height: 60px;
+    min-width: 60px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 400px;
+}
+
+/* The countdown number — base styles */
+.countdown-number {
+    font-family: var(--font-en);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--ione-black);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    will-change: transform, opacity, filter;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Old digit exits downward with blur */
+.digit-exit {
+    animation: digitExitDown 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+@keyframes digitExitDown {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+    100% {
+        transform: translate(-50%, 100%) scale(0.7);
+        opacity: 0;
+        filter: blur(8px);
+    }
+}
+
+/* New digit enters from above with blur */
+.digit-enter {
+    animation: digitEnterDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes digitEnterDown {
+    0% {
+        transform: translate(-50%, -200%) scale(0.7);
+        opacity: 0;
+        filter: blur(8px);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Special effect on seconds digit (gradient) */
+.countdown-item:last-child .countdown-number {
+    background: linear-gradient(180deg, var(--ione-black) 0%, var(--ione-red) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Countdown item adjustments */
+.countdown-item .digit-wrapper {
+    margin-bottom: 8px;
+}
+
+/* Ensure countdown item contains the wrapper */
+.countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Responsive — mobile adjustments */
+@media (max-width: 640px) {
+    .digit-wrapper {
+        height: 40px;
+        min-width: 40px;
+    }
+    
+    .countdown-number {
+        font-size: 1.75rem;
+    }
+    
+    .countdown-item .digit-wrapper {
+        margin-bottom: 4px;
+    }
+}

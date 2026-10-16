@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — قائمة الطلبات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .orders-toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-ar);
+            font-size: 0.95rem;
+            outline: none;
+            transition: all var(--transition);
+        }
+        .search-box input:focus {
+            border-color: var(--ione-red);
+        }
+        .search-box svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+        .filter-select {
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-ar);
+            font-size: 0.95rem;
+            cursor: pointer;
+            outline: none;
+        }
+        .orders-table {
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .orders-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .orders-table th {
+            background: var(--bg-secondary);
+            padding: 16px;
+            text-align: right;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+        .orders-table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .orders-table tr:last-child td {
+            border-bottom: none;
+        }
+        .orders-table tr:hover {
+            background: var(--bg-card-hover);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .status-new { background: rgba(52,199,89,0.15); color: var(--accent-green); }
+        .status-pending { background: rgba(255,159,10,0.15); color: var(--accent-yellow); }
+        .status-progress { background: rgba(0,113,227,0.15); color: var(--accent-blue); }
+        .status-done { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--text-secondary);
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: var(--font-ar);
+            transition: all var(--transition);
+        }
+        .btn-small:hover {
+            background: var(--ione-red);
+            border-color: var(--ione-red);
+            color: white;
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;">
+                <img src="../../assets/logo.png" alt="IONE CENTER">
+            </a>
+        </div>
+        <div class="top-bar-user">
+            <a href="new-order.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="plus"></i>
+                <span>طلب جديد</span>
+            </a>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📋 قائمة الطلبات</h1>
+                <p class="page-subtitle">جميع طلبات العملاء</p>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="orders-toolbar">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث برقم الطلب أو اسم العميل...">
+            </div>
+            <select class="filter-select" id="statusFilter">
+                <option value="all">كل الحالات</option>
+                <option value="new">جديد</option>
+                <option value="pending">بانتظار العروض</option>
+                <option value="progress">قيد التنفيذ</option>
+                <option value="done">مكتمل</option>
+            </select>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="orders-table" id="ordersContainer">
+            <div class="empty-state">
+                <i data-lucide="inbox"></i>
+                <h3>لا توجد طلبات بعد</h3>
+                <p>ابدأ بإنشاء طلب جديد من الزر في الأعلى</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        // Auth
+        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+        lucide.createIcons();
+
+        // Load orders
+        function loadOrders() {
+            const orders = JSON.parse(localStorage.getItem('ione_orders') || '[]');
+            const container = document.getElementById('ordersContainer');
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="inbox"></i>
+                        <h3>لا توجد طلبات بعد</h3>
+                        <p>ابدأ بإنشاء طلب جديد من الزر في الأعلى</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+            
+            const statusLabels = {
+                'new': 'جديد',
+                'pending': 'بانتظار العروض',
+                'progress': 'قيد التنفيذ',
+                'done': 'مكتمل'
+            };
+            
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الطلب</th>
+                            <th>العميل</th>
+                            <th>المنتج</th>
+                            <th>البلد</th>
+                            <th>الحالة</th>
+                            <th>التاريخ</th>
+                            <th>إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map((order, i) => `
+                            <tr>
+                                <td><strong>${order.orderCode || 'N/A'}</strong></td>
+                                <td>${order.customerName || 'N/A'}</td>
+                                <td>${(order.productDescription || '').substring(0, 40)}...</td>
+                                <td>${order.targetCountry || 'N/A'}</td>
+                                <td><span class="status-badge status-${order.status || 'new'}">${statusLabels[order.status] || 'جديد'}</span></td>
+                                <td>${new Date(order.createdAt).toLocaleDateString('ar-EG')}</td>
+                                <td><button class="btn-small" onclick="viewOrder(${i})">عرض</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function viewOrder(index) {
+            alert('عرض تفاصيل الطلب رقم ' + (index + 1) + '\n\n(قيد التطوير)');
+        }
+
+        loadOrders();
+
+        console.log(
+            '%c 📋 Orders Page ',
+            'background: #0071e3; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
+        );
+    </script>
+</body>
+</html>
