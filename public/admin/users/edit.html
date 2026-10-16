@@ -21,4 +21,252 @@
             </a>
         </div>
         <div class="top-bar-user">
-            <a href
+            <a href="list.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i>
+                <span>رجوع للقائمة</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">✏️ تعديل مستخدم</h1>
+                <p class="page-subtitle" id="userEmail">جاري التحميل...</p>
+            </div>
+        </div>
+
+        <form class="user-form" id="editUserForm">
+            
+            <input type="hidden" id="editEmail">
+            
+            <!-- Basic Info -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="user"></i>
+                    <span>معلومات أساسية</span>
+                </h3>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="full_name">الاسم الكامل *</label>
+                        <input type="text" id="full_name" name="full_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">البريد الإلكتروني</label>
+                        <input type="email" id="email" name="email" readonly style="opacity: 0.6; cursor: not-allowed;">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">كلمة المرور الجديدة (اتركها فارغة إذا لا تريد تغييرها)</label>
+                        <input type="password" id="password" name="password" placeholder="••••••••" minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">الدور *</label>
+                        <select id="role" name="role" required>
+                            <option value="ceo">CEO</option>
+                            <option value="manager">مدير (Manager)</option>
+                            <option value="operator">موظف (Operator)</option>
+                            <option value="viewer">مشاهد (Viewer)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permissions -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="shield"></i>
+                    <span>الصلاحيات</span>
+                </h3>
+                
+                <div class="permissions-grid" id="permissionsGrid">
+                    <!-- Will be filled by JS -->
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-section">
+                <h3 class="form-section-title">
+                    <i data-lucide="toggle-right"></i>
+                    <span>حالة الحساب</span>
+                </h3>
+                
+                <label class="permission-item">
+                    <input type="checkbox" id="active" name="active">
+                    <span>الحساب نشط (يمكنه تسجيل الدخول)</span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <a href="list.html" class="action-btn" style="text-decoration: none;">
+                    <i data-lucide="x"></i>
+                    <span>إلغاء</span>
+                </a>
+                <button type="submit" class="action-btn primary" id="submitBtn">
+                    <i data-lucide="save"></i>
+                    <span>حفظ التعديلات</span>
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        if (!isLoggedIn()) {
+            window.location.href = '../login.html';
+        }
+        lucide.createIcons();
+        
+        const API_BASE = 'https://ionecenter.com';
+        const TOKEN_KEY = 'ione_admin_token';
+        
+        // All available permissions
+        const ALL_PERMISSIONS = [
+            { value: 'view_orders', label: 'عرض الطلبات' },
+            { value: 'create_orders', label: 'إنشاء طلبات' },
+            { value: 'edit_orders', label: 'تعديل طلبات' },
+            { value: 'delete_orders', label: 'حذف طلبات' },
+            { value: 'view_suppliers', label: 'عرض الموردين' },
+            { value: 'edit_suppliers', label: 'تعديل الموردين' },
+            { value: 'view_customers', label: 'عرض العملاء' },
+            { value: 'view_customer_real_data', label: 'عرض بيانات العملاء 🔒' },
+            { value: 'view_boxes', label: 'عرض الصناديق' },
+            { value: 'view_profit', label: 'عرض هامش الربح 🔒' },
+            { value: 'view_invoices', label: 'عرض الفواتير' },
+            { value: 'create_invoices', label: 'إنشاء فواتير' },
+            { value: 'view_reports', label: 'عرض التقارير' }
+        ];
+        
+        // Load user data
+        const params = new URLSearchParams(window.location.search);
+        const userEmail = params.get('email');
+        
+        if (!userEmail) {
+            alert('لم يتم تحديد المستخدم');
+            window.location.href = 'list.html';
+        }
+        
+        // Render permissions grid
+        function renderPermissions(userPermissions = []) {
+            const grid = document.getElementById('permissionsGrid');
+            const isAll = userPermissions.includes('*');
+            
+            grid.innerHTML = ALL_PERMISSIONS.map(p => `
+                <label class="permission-item">
+                    <input type="checkbox" name="permission" value="${p.value}" 
+                           ${isAll || userPermissions.includes(p.value) ? 'checked' : ''}>
+                    <span>${p.label}</span>
+                </label>
+            `).join('');
+        }
+        
+        // Load user
+        async function loadUser() {
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                const response = await fetch(`${API_BASE}/users/list`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert('فشل التحميل');
+                    return;
+                }
+                
+                const user = data.users.find(u => u.email === userEmail);
+                
+                if (!user) {
+                    alert('المستخدم غير موجود');
+                    window.location.href = 'list.html';
+                    return;
+                }
+                
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('email').value = user.email;
+                document.getElementById('full_name').value = user.full_name || '';
+                document.getElementById('role').value = user.role;
+                document.getElementById('active').checked = user.active;
+                
+                renderPermissions(user.permissions);
+                
+            } catch (error) {
+                console.error(error);
+                alert('خطأ في الاتصال');
+            }
+        }
+        
+        loadUser();
+        
+        // Submit
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>جاري الحفظ...</span>';
+            
+            const permissions = Array.from(
+                document.querySelectorAll('input[name="permission"]:checked')
+            ).map(cb => cb.value);
+            
+            const password = document.getElementById('password').value;
+            
+            const data = {
+                email: document.getElementById('editEmail').value,
+                full_name: document.getElementById('full_name').value.trim(),
+                role: document.getElementById('role').value,
+                permissions: permissions,
+                active: document.getElementById('active').checked
+            };
+            
+            // Add password only if provided
+            if (password) {
+                data.password = password;
+            }
+            
+            try {
+                const token = localStorage.getItem(TOKEN_KEY);
+                const response = await fetch(`${API_BASE}/users/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    alert('فشل: ' + (result.error || 'خطأ'));
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="save"></i><span>حفظ التعديلات</span>';
+                    lucide.createIcons();
+                    return;
+                }
+                
+                alert('✅ تم حفظ التعديلات!');
+                window.location.href = 'list.html';
+                
+            } catch (error) {
+                console.error(error);
+                alert('خطأ في الاتصال');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i data-lucide="save"></i><span>حفظ التعديلات</span>';
+                lucide.createIcons();
+            }
+        });
+    </script>
+    
+</body>
+</html>
