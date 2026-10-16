@@ -87,6 +87,7 @@ export async function onRequest(context) {
             }
             
             case 'soft_delete': {
+                order.previous_status = order.status;
                 order.status = 'deleted';
                 order.deleted_at = new Date().toISOString();
                 order.deleted_by = payload.email || payload.username || 'unknown';

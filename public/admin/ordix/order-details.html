@@ -611,6 +611,7 @@
                     },
                     body: JSON.stringify({
                         order_code: orderCode,
+                        action: 'set_status',
                         status: newStatus
                     })
                 });
@@ -631,8 +632,7 @@
                 showToast('فشل تحديث الحالة: ' + error.message, 'error');
             }
         }
-        window.changeStatus = changeStatus;
-        
+        window.changeStatus = changeStatus;        
         // ─────────────────────────────────────────────
         // 🗑️ Delete Order
         // ─────────────────────────────────────────────
