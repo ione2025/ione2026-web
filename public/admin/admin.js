@@ -90,7 +90,23 @@ async function apiCall(endpoint, options = {}) {
 // 🎬 Auto-Protect Pages
 // ─────────────────────────────────────────────────────────────
 
-(function autoProtect() {
+(function (function autoProtect() {
+    const path = window.location.pathname;
+    
+    // Login page — لا تحمي
+    const isLoginPage = path.includes('login.html');
+    
+    // إذا كان في login + مسجّل → dashboard
+    if (isLoginPage && isLoggedIn()) {
+        window.location.href = 'dashboard.html';
+        return;
+    }
+    
+    // إذا ليس login + غير مسجّل → login
+    if (!isLoginPage && !isLoggedIn()) {
+        window.location.href = 'login.html';
+    }
+})();() {
     const path = window.location.pathname;
     const isLoginPage = path.includes('login.html') || 
                         path.endsWith('/admin/') ||
