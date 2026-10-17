@@ -1,0 +1,20 @@
+export async function onRequest(context) {
+    const { request, env } = context;
+    const headers = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, OPTIONS' };
+    if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
+    try {
+        const settingsRaw = await env.IONE_KV.get('settings:data');
+        const settings = settingsRaw ? JSON.parse(settingsRaw) : {
+            company_name: 'IONECENTER',
+            company_name_2: '',
+            address: '',
+            email: '',
+            phone: '',
+            logo_url: '',
+            info: ''
+        };
+        return new Response(JSON.stringify({ success: true, settings }), { status: 200, headers });
+    } catch (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
+    }
+}

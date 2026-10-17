@@ -1,61 +1,94 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IONECENTER — الإعدادات</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8"><title>IONECENTER — الإعدادات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../../assets/logo.png">
-    <link rel="stylesheet" href="../admin.css">
-    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <link rel="stylesheet" href="../admin.css"><link rel="stylesheet" href="../_assets/dashboard.css">
     <style>
-        .empty-page { text-align: center; padding: 120px 24px; color: var(--text-secondary); }
-        .empty-page svg { width: 80px; height: 80px; margin-bottom: 24px; opacity: 0.4; color: var(--accent-yellow); }
-        .empty-page h2 { font-size: 1.75rem; color: var(--text-primary); margin-bottom: 12px; }
-        .empty-page p { font-size: 1rem; margin-bottom: 32px; }
+        .settings-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 30px; max-width: 700px; margin: 0 auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-secondary); }
+        .form-control { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; }
+        .btn-save { background: #34C759; color: white; border: none; padding: 14px 24px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 1rem; }
     </style>
 </head>
 <body class="dashboard-page">
-    
     <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="../dashboard.html" style="text-decoration: none;">
-                <img src="../../assets/logo.png" alt="IONE CENTER">
-            </a>
-        </div>
-        <div class="top-bar-user">
-            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
-                <i data-lucide="arrow-right"></i>
-                <span>رجوع</span>
-            </a>
-        </div>
+        <div class="top-bar-logo"><a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;"></a></div>
+        <div class="top-bar-user"><a href="../dashboard.html" class="logout-btn" style="text-decoration:none;">رجوع</a></div>
     </div>
-
     <div class="dashboard-container">
+        <h1 class="page-title" style="text-align:center; margin-bottom:30px;">⚙️ إعدادات الشركة</h1>
         
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">⚙️ الإعدادات</h1>
-                <p class="page-subtitle">إعدادات النظام العامة</p>
-            </div>
+        <div class="settings-box">
+            <form id="settingsForm" onsubmit="saveSettings(event)">
+                <div class="form-group">
+                    <label>اسم الشركة (الأساسي)</label>
+                    <input type="text" id="company_name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>اسم الشركة (الفرعي)</label>
+                    <input type="text" id="company_name_2" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" id="address" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="email" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="text" id="phone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>معلومات إضافية</label>
+                    <textarea id="info" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn-save">حفظ الإعدادات</button>
+            </form>
         </div>
-
-        <div class="empty-page">
-            <i data-lucide="settings"></i>
-            <h2>قيد التطوير</h2>
-            <p>سيتم إضافة الإعدادات في الجلسة القادمة</p>
-        </div>
-
     </div>
-
     <script src="../admin.js"></script>
     <script>
-        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
-            window.location.href = '../login.html';
+        async function loadSettings() {
+            const token = localStorage.getItem('ione_admin_token');
+            const res = await fetch('/api/settings/get', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const s = data.settings;
+                document.getElementById('company_name').value = s.company_name || '';
+                document.getElementById('company_name_2').value = s.company_name_2 || '';
+                document.getElementById('address').value = s.address || '';
+                document.getElementById('email').value = s.email || '';
+                document.getElementById('phone').value = s.phone || '';
+                document.getElementById('info').value = s.info || '';
+            }
         }
-        lucide.createIcons();
-        console.log('%c ⚙️ Settings Page ', 'background: #FF9F0A; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('ione_admin_token');
+            const payload = {
+                company_name: document.getElementById('company_name').value,
+                company_name_2: document.getElementById('company_name_2').value,
+                address: document.getElementById('address').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                info: document.getElementById('info').value
+            };
+            const res = await fetch('/api/settings/save', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) { showToast('تم حفظ الإعدادات بنجاح', 'success'); }
+            else { showToast(data.error, 'error'); }
+        }
+
+        window.onload = () => { lucide.createIcons(); loadSettings(); };
     </script>
 </body>
 </html>
