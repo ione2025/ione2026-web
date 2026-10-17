@@ -11,8 +11,7 @@
     <style>
         :root {
             --bg-main: #020205;
-            --glass-bg: rgba(255, 255, 255, 0.02);
-            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
         }
         
         body {
@@ -25,7 +24,7 @@
             display: flex; flex-direction: column;
         }
 
-        /* 🌟 حركة الخلفية (Animation) */
+        /* حركة الخلفية */
         .bg-animation {
             position: fixed; inset: 0; z-index: -1;
             background: linear-gradient(45deg, #020205, #0a0a15, #150520, #020205);
@@ -65,10 +64,11 @@
         .card-tall { grid-column: span 1; grid-row: span 2; }
         .card-small { grid-column: span 1; grid-row: span 1; }
 
+        /* 🌈 الكرت الأساسي - شفاف ليظهر لون الخلفية */
         .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 20px;
@@ -80,11 +80,23 @@
         }
         
         .card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255,255,255,0.2);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+            transform: translateY(-4px) scale(1.02);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.6);
         }
         .card:active { cursor: grabbing; }
+
+        /* 🎨 الألوان المتدرجة لكل كرت (Gradient) */
+        .card[data-id="orders"] { background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(0, 240, 255, 0.02)); border-color: rgba(0, 240, 255, 0.3); }
+        .card[data-id="banks"] { background: linear-gradient(135deg, rgba(52, 199, 89, 0.15), rgba(52, 199, 89, 0.02)); border-color: rgba(52, 199, 89, 0.3); }
+        .card[data-id="vouchers"] { background: linear-gradient(135deg, rgba(255, 59, 48, 0.15), rgba(255, 59, 48, 0.02)); border-color: rgba(255, 59, 48, 0.3); }
+        .card[data-id="journal"] { background: linear-gradient(135deg, rgba(255, 159, 10, 0.15), rgba(255, 159, 10, 0.02)); border-color: rgba(255, 159, 10, 0.3); }
+        .card[data-id="expenses"] { background: linear-gradient(135deg, rgba(255, 0, 127, 0.15), rgba(255, 0, 127, 0.02)); border-color: rgba(255, 0, 127, 0.3); }
+        .card[data-id="suppliers"] { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.02)); border-color: rgba(139, 92, 246, 0.3); }
+        .card[data-id="customers"] { background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.02)); border-color: rgba(16, 185, 129, 0.3); }
+        .card[data-id="reports"] { background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.02)); border-color: rgba(245, 158, 11, 0.3); }
+        .card[data-id="status"] { background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.02)); border-color: rgba(99, 102, 241, 0.3); }
+        .card[data-id="users"] { background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.02)); border-color: rgba(236, 72, 153, 0.3); }
 
         .card-icon-wrap {
             width: 48px; height: 48px; border-radius: 12px;
@@ -93,15 +105,8 @@
             background: rgba(255,255,255,0.05);
         }
 
-        .card i {
-            font-size: 1.8rem;
-            filter: drop-shadow(0 0 12px currentColor); /* 💡 إضاءة أقوى للأيقونة */
-        }
+        .card i { font-size: 1.8rem; filter: drop-shadow(0 0 10px currentColor); }
         
-        .card-title { font-size: 1.2rem; font-weight: 800; margin: 0; }
-        .card-subtitle { font-size: 0.85rem; color: rgba(255,255,255,0.5); font-weight: 500; margin-top: 4px; }
-
-        /* 🎨 الألوان المحسنة (نيون) */
         .card[data-id="orders"] i { color: #00F0FF; }
         .card[data-id="banks"] i { color: #34C759; }
         .card[data-id="vouchers"] i { color: #FF3B30; }
@@ -113,23 +118,23 @@
         .card[data-id="status"] i { color: #6366F1; }
         .card[data-id="users"] i { color: #EC4899; }
 
+        .card-title { font-size: 1.2rem; font-weight: 800; margin: 0; }
+        .card-subtitle { font-size: 0.85rem; color: rgba(255,255,255,0.6); font-weight: 500; margin-top: 4px; }
+
         .btn {
             padding: 10px 20px; border-radius: 14px; border: 1px solid var(--glass-border);
-            background: var(--glass-bg); color: #fff; cursor: pointer; font-family: inherit;
+            background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-family: inherit;
             backdrop-filter: blur(10px); transition: 0.2s; font-weight: 700; font-size: 0.9rem;
         }
         .btn:hover { background: rgba(255,255,255,0.1); }
-        .sortable-ghost { opacity: 0.3; border: 2px dashed #00F0FF; }
+        .sortable-ghost { opacity: 0.3; border: 2px dashed #fff; }
     </style>
 </head>
 <body>
-    <!-- حركة الخلفية -->
     <div class="bg-animation"></div>
 
     <div class="top-bar">
-        <!-- 🖼️ الشعار الأصلي عاد -->
         <a href="../dashboard.html"><img src="../../assets/logo.png" alt="IONE CENTER" style="height: 45px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));"></a>
-        
         <div style="display: flex; gap: 12px;">
             <button class="btn" onclick="saveLayout()">حفظ الترتيب</button>
             <button class="btn" onclick="logout()">خروج</button>
