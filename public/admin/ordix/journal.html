@@ -51,7 +51,12 @@
             </div>
         </div>
 
-        <div id="journalContainer"></div>
+        <div id="journalContainer">
+            <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                <div class="spinner" style="margin: 0 auto 12px;"></div>
+                <p>جاري التحميل...</p>
+            </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -98,6 +103,21 @@
         let allJournal = [];
         let allAccounts = [];
 
+        // دالة التهيئة المحصنة ضد أخطاء الإضافات الخارجية
+        function init() {
+            try {
+                if (window.lucide) lucide.createIcons();
+                loadJournal();
+            } catch(e) {
+                console.error('Init Error:', e);
+            }
+        }
+
+        // تشغيل التهيئة بعد تحميل الصفحة بالكامل
+        window.addEventListener('load', () => {
+            setTimeout(init, 100);
+        });
+
         async function loadJournal() {
             try {
                 const token = localStorage.getItem('ione_admin_token');
@@ -107,13 +127,16 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    allJournal = data.journal;
-                    allAccounts = data.accounts; // تخزين الحسابات للقائمة المنسدلة
+                    allJournal = data.journal || [];
+                    allAccounts = data.accounts || [];
                     renderJournal();
                     populateSelects();
+                } else {
+                    showToast(data.error || 'فشل تحميل البيانات', 'error');
                 }
             } catch (err) {
-                showToast('فشل تحميل البيانات', 'error');
+                showToast('فشل الاتصال بالخادم', 'error');
+                console.error(err);
             }
         }
 
@@ -209,7 +232,7 @@
                 if (data.success) {
                     showToast('تم القيد وتحديث الصناديق', 'success');
                     closeModal();
-                    loadJournal(); // إعادة تحميل اليومية (والأرصدة ستكون تغيرت في صفحة الصناديق)
+                    loadJournal(); 
                 } else {
                     throw new Error(data.error);
                 }
@@ -218,16 +241,10 @@
             }
         }
 
-        // فتح تفاصيل القيد (يمكنك إضافة نافذة تفاصيل لاحقاً)
+        // فتح تفاصيل القيد (سيتم إضافتها في المرحلة القادمة)
         function viewEntry(id) {
-            // سيتم إضافتها في المرحلة القادمة
-            // showToast('عرض التفاصيل: ' + id, 'info');
+            showToast('عرض التفاصيل قيد التطوير', 'info');
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            loadJournal();
-        });
     </script>
 </body>
 </html>
