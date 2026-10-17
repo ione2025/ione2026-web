@@ -16,30 +16,57 @@
         .status-paid { color: #34C759; font-weight: bold; }
         .status-unpaid { color: #FF3B30; font-weight: bold; }
         .status-partial { color: #FF9F0A; font-weight: bold; }
-        .btn-add { background: #34C759; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
-        .btn-payment { background: #0071e3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+        .btn-add { background: #0071e3; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-payment { background: #34C759; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
+
+        /* Modal Styles */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; background: var(--bg-secondary); padding: 10px; border-radius: 8px; }
+        .form-row input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); color: white; }
+        .total-display { font-size: 1.5rem; font-weight: bold; color: #0071e3; text-align: left; margin: 20px 0; }
     </style>
 </head>
 <body class="dashboard-page">
     <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;" alt="Logo"></a>
-        </div>
-        <div class="top-bar-user" style="display: flex; align-items: center; gap: 10px;">
-            <button class="btn-add" onclick="createInvoice()">
-                <i data-lucide="plus"></i> فاتورة بيع جديدة
-            </button>
+        <div class="top-bar-logo"><a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;"></a></div>
+        <div class="top-bar-user" style="display: flex; gap: 10px;">
+            <button class="btn-add" onclick="openModal()"><i data-lucide="plus"></i> فاتورة بيع جديدة</button>
             <a href="../dashboard.html" class="logout-btn" style="text-decoration:none;">رجوع</a>
         </div>
     </div>
     <div class="dashboard-container">
         <h1 class="page-title">💵 فواتير البيع (S)</h1>
-        <div id="container" class="table-wrap">
-            <div style="padding: 20px; text-align: center; color: var(--text-secondary);">جاري التحميل...</div>
+        <div id="container" class="table-wrap"><p style="padding:20px; text-align:center;">جاري التحميل...</p></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal-box">
+            <h2 style="margin-bottom:20px;">إنشاء فاتورة بيع</h2>
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; color:var(--text-secondary);">اسم العميل</label>
+                <input type="text" id="customerName" style="width:100%; padding:12px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; color:white;">
+            </div>
+            
+            <div id="itemsContainer"></div>
+            <button type="button" onclick="addItemRow()" style="background:transparent; border:1px dashed var(--border); color:white; width:100%; padding:12px; border-radius:8px; cursor:pointer; margin-bottom:20px;">+ إضافة صنف</button>
+            
+            <div class="total-display">الإجمالي: <span id="grandTotal">0.00</span> USD</div>
+            
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button onclick="closeModal()" style="padding:10px 20px; border-radius:8px; border:none; background:transparent; color:white; cursor:pointer;">إلغاء</button>
+                <button onclick="saveInvoice()" style="padding:10px 20px; border-radius:8px; border:none; background:#0071e3; color:white; font-weight:bold; cursor:pointer;">حفظ الفاتورة</button>
+            </div>
         </div>
     </div>
+
     <script src="../admin.js"></script>
     <script>
+        const CLOUDINARY_CLOUD = 'xhfnelrf';
+        const CLOUDINARY_PRESET = 'ione_unsigned';
+
         async function loadData() {
             const token = localStorage.getItem('ione_admin_token');
             try {
@@ -52,62 +79,121 @@
                     return;
                 }
                 
-                let html = '<table><thead><tr><th>رقم الفاتورة</th><th>العميل</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>';
+                let html = '<table><thead><tr><th>رقم الفاتورة</th><th>العميل</th><th>الأصناف</th><th>الإجمالي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>';
                 data.sales.forEach(s => {
                     let cls = s.status === 'paid' ? 'status-paid' : (s.status === 'partial' ? 'status-partial' : 'status-unpaid');
                     let txt = s.status === 'paid' ? 'مدفوع' : (s.status === 'partial' ? 'جزئي' : 'غير مدفوع');
+                    let itemsCount = s.items ? s.items.length : 0;
                     html += `<tr>
                         <td><strong>${s.code}</strong></td>
                         <td>${s.customer_name || '—'}</td>
+                        <td>${itemsCount} صنف</td>
                         <td>${s.total.toLocaleString()} ${s.currency}</td>
-                        <td>${(s.paid_amount||0).toLocaleString()}</td>
-                        <td>${(s.balance||s.total).toLocaleString()}</td>
                         <td class="${cls}">${txt}</td>
                         <td>${s.status !== 'paid' ? `<button class="btn-payment" onclick="addPayment('${s.code}')">إضافة دفعة</button>` : '—'}</td>
                     </tr>`;
                 });
                 container.innerHTML = html + '</tbody></table>';
-            } catch(e) {
-                document.getElementById('container').innerHTML = '<p style="padding:20px; text-align:center; color:red;">خطأ في تحميل البيانات.</p>';
-            }
+            } catch(e) { container.innerHTML = '<p style="padding:20px; text-align:center; color:red;">خطأ في التحميل.</p>'; }
         }
 
-        async function createInvoice() {
-            const customer = prompt('اسم العميل:'); if (!customer) return;
-            const total = prompt('المبلغ الإجمالي (USD):'); if (!total) return;
-            const token = localStorage.getItem('ione_admin_token');
+        function openModal() {
+            document.getElementById('customerName').value = '';
+            document.getElementById('itemsContainer').innerHTML = '';
+            document.getElementById('grandTotal').textContent = '0.00';
+            addItemRow();
+            document.getElementById('invoiceModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('invoiceModal').classList.remove('active'); }
+
+        function addItemRow() {
+            const container = document.getElementById('itemsContainer');
+            const row = document.createElement('div');
+            row.className = 'form-row';
+            row.innerHTML = `
+                <input type="text" placeholder="اسم الصنف" class="item-name" required>
+                <input type="number" placeholder="الكمية" class="item-qty" value="1" min="1" style="max-width:80px;" oninput="calcTotal()">
+                <input type="number" placeholder="السعر" class="item-price" value="0" min="0" style="max-width:100px;" oninput="calcTotal()">
+                <input type="file" class="item-img" accept="image/*" style="max-width:120px; font-size:0.7rem;">
+                <button type="button" onclick="this.parentElement.remove(); calcTotal();" style="background:#FF3B30; color:white; border:none; border-radius:6px; padding:8px; cursor:pointer;">X</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function calcTotal() {
+            let total = 0;
+            document.querySelectorAll('.form-row').forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                total += (qty * price);
+            });
+            document.getElementById('grandTotal').textContent = total.toFixed(2);
+        }
+
+        async function saveInvoice() {
+            const customer = document.getElementById('customerName').value;
+            if (!customer) { showToast('أدخل اسم العميل', 'error'); return; }
             
-            try {
-                const res = await fetch('/api/sales/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ customer_name: customer, total: parseFloat(total), currency: 'USD' })
-                });
-                const data = await res.json();
-                if (data.success) { showToast('تم الإنشاء', 'success'); loadData(); }
-                else { showToast(data.error, 'error'); }
-            } catch(e) { showToast('فشل الاتصال', 'error'); }
+            const items = [];
+            const rows = document.querySelectorAll('.form-row');
+            if (rows.length === 0) { showToast('أضف صنفاً واحداً على الأقل', 'error'); return; }
+
+            showToast('جاري رفع الصور وحفظ الفاتورة...', 'info');
+
+            for (let row of rows) {
+                const name = row.querySelector('.item-name').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 1;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const fileInput = row.querySelector('.item-img');
+                
+                let imageUrl = '';
+                if (fileInput.files.length > 0) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    formData.append('upload_preset', CLOUDINARY_PRESET);
+                    try {
+                        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: formData });
+                        const data = await res.json();
+                        imageUrl = data.secure_url;
+                    } catch(e) { console.error('Image upload failed'); }
+                }
+
+                if (name && qty > 0) {
+                    items.push({ name, qty, price, total: qty * price, image: imageUrl });
+                }
+            }
+
+            const total = items.reduce((sum, item) => sum + item.total, 0);
+
+            const token = localStorage.getItem('ione_admin_token');
+            const res = await fetch('/api/sales/create', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ customer_name: customer, total: total, currency: 'USD', items: items })
+            });
+            const data = await res.json();
+            if (data.success) { 
+                showToast('تم حفظ الفاتورة', 'success'); 
+                closeModal(); 
+                loadData(); 
+            } else { showToast(data.error, 'error'); }
         }
 
         async function addPayment(code) {
             const amount = prompt('المبلغ المدفوع:'); if (!amount) return;
             const token = localStorage.getItem('ione_admin_token');
-            
-            try {
-                const resBank = await fetch('/api/banks/list', { headers: { 'Authorization': `Bearer ${token}` } });
-                const dataBank = await resBank.json();
-                if (!dataBank.banks || dataBank.banks.length === 0) { showToast('لا توجد صناديق', 'error'); return; }
-                const bank_id = dataBank.banks[0].box_id; // نستخدم أول صندوق كافتراضي
+            const resBank = await fetch('/api/banks/list', { headers: { 'Authorization': `Bearer ${token}` } });
+            const dataBank = await resBank.json();
+            if (!dataBank.banks || dataBank.banks.length === 0) { showToast('لا توجد صناديق', 'error'); return; }
+            const bank_id = dataBank.banks[0].box_id;
 
-                const res = await fetch('/api/sales/save', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ code, amount: parseFloat(amount), bank_id })
-                });
-                const data = await res.json();
-                if (data.success) { showToast('تمت إضافة الدفعة', 'success'); loadData(); }
-                else { showToast(data.error, 'error'); }
-            } catch(e) { showToast('فشل الاتصال', 'error'); }
+            const res = await fetch('/api/sales/save', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ code, amount: parseFloat(amount), bank_id })
+            });
+            const data = await res.json();
+            if (data.success) { showToast('تمت إضافة الدفعة', 'success'); loadData(); }
+            else { showToast(data.error, 'error'); }
         }
 
         window.onload = () => { lucide.createIcons(); loadData(); };
