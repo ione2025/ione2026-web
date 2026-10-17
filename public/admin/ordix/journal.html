@@ -27,6 +27,9 @@
         .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
         .btn-primary { background: #E31E24; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; }
         .btn-danger { background: #FF3B30; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
+        
+        .spinner { display: inline-block; width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: #E31E24; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="dashboard-page">
@@ -57,7 +60,7 @@
 
         <div id="journalContainer">
             <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
-                <div class="spinner" style="margin: 0 auto 12px;"></div>
+                <div class="spinner"></div>
                 <p>جاري التحميل...</p>
             </div>
         </div>
@@ -107,13 +110,13 @@
         let allJournal = [];
         let allAccounts = [];
 
-        function init() {
-            try {
+        // تهيئة الصفحة
+        window.addEventListener('load', () => {
+            setTimeout(() => {
                 if (window.lucide) lucide.createIcons();
                 loadJournal();
-            } catch(e) { console.error('Init Error:', e); }
-        }
-        window.addEventListener('load', () => setTimeout(init, 100));
+            }, 100);
+        });
 
         async function loadJournal() {
             try {
@@ -126,52 +129,13 @@
                 if (data.success) {
                     allJournal = data.journal || [];
                     allAccounts = data.accounts || [];
-                            function renderJournal() {
-            const container = document.getElementById('journalContainer');
-            if (allJournal.length === 0) {
-                container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-secondary);">لا توجد قيود بعد.</div>`;
-                return;
-            }
-
-            let html = '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>البيان</th><th>مدين (Dr)</th><th>دائن (Cr)</th><th>المبلغ</th><th>إجراء</th></tr></thead><tbody>';
-            
-            allJournal.forEach(entry => {
-                const date = new Date(entry.date).toLocaleDateString('ar-EG');
-                const rowCount = entry.debits.length + entry.credits.length;
-
-                entry.debits.forEach((dr, i) => {
-                    html += `<tr>`;
-                    if (i === 0) {
-                        html += `<td rowspan="${rowCount}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
-                        html += `<td rowspan="${rowCount}">${entry.description}</td>`;
-                    }
-                    // التحقق من وجود الاسم
-                    const drName = dr.account_name || dr.account || 'حساب غير معروف';
-                    html += `<td class="dr">${drName}</td><td></td><td class="dr">${parseFloat(dr.amount || 0).toLocaleString()}</td>`;
-                    if (i === 0) {
-                        html += `<td rowspan="${rowCount}">
-                            <button class="btn-danger" onclick="deleteEntry('${entry.entry_id}')">حذف القيد</button>
-                        </td>`;
-                    }
-                    html += `</tr>`;
-                });
-
-                entry.credits.forEach((cr, i) => {
-                    html += `<tr>`;
-                    const crName = cr.account_name || cr.account || 'حساب غير معروف';
-                    html += `<td></td><td class="cr">${crName}</td><td class="cr">${parseFloat(cr.amount || 0).toLocaleString()}</td></tr>`;
-                });
-            });
-
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-        }();
+                    renderJournal();
                     populateSelects();
                 } else {
-                    showToast(data.error || 'فشل تحميل البيانات', 'error');
+                    document.getElementById('journalContainer').innerHTML = `<div style="padding: 40px; text-align: center; color: #FF3B30;">${data.error || 'فشل التحميل'}</div>`;
                 }
             } catch (err) {
-                showToast('فشل الاتصال بالخادم', 'error');
+                document.getElementById('journalContainer').innerHTML = `<div style="padding: 40px; text-align: center; color: #FF3B30;">خطأ في الاتصال بالخادم</div>`;
                 console.error(err);
             }
         }
@@ -208,7 +172,8 @@
                         html += `<td rowspan="${rowCount}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
                         html += `<td rowspan="${rowCount}">${entry.description}</td>`;
                     }
-                    html += `<td class="dr">${dr.account_name}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td>`;
+                    const drName = dr.account_name || dr.account || 'حساب غير معروف';
+                    html += `<td class="dr">${drName}</td><td></td><td class="dr">${parseFloat(dr.amount || 0).toLocaleString()}</td>`;
                     if (i === 0) {
                         html += `<td rowspan="${rowCount}">
                             <button class="btn-danger" onclick="deleteEntry('${entry.entry_id}')">حذف القيد</button>
@@ -219,7 +184,8 @@
 
                 entry.credits.forEach((cr, i) => {
                     html += `<tr>`;
-                    html += `<td></td><td class="cr">${cr.account_name}</td><td class="cr">${cr.amount.toLocaleString()}</td></tr>`;
+                    const crName = cr.account_name || cr.account || 'حساب غير معروف';
+                    html += `<td></td><td class="cr">${crName}</td><td class="cr">${parseFloat(cr.amount || 0).toLocaleString()}</td></tr>`;
                 });
             });
 
