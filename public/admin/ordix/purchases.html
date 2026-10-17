@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8"><title>IONECENTER — فواتير الشراء</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER — فواتير الشراء</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../admin.css"><link rel="stylesheet" href="../_assets/dashboard.css">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
     <style>
         .table-wrap { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; }
@@ -13,60 +16,98 @@
         .status-paid { color: #34C759; font-weight: bold; }
         .status-unpaid { color: #FF3B30; font-weight: bold; }
         .status-partial { color: #FF9F0A; font-weight: bold; }
-        .btn-add { background: #34C759; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+        .btn-add { background: #34C759; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: bold; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-payment { background: #0071e3; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-family: inherit; }
     </style>
 </head>
 <body class="dashboard-page">
     <div class="top-bar">
-        <div class="top-bar-logo"><a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;"></a></div>
-        <div class="top-bar-user"><a href="../dashboard.html" class="logout-btn" style="text-decoration:none;">رجوع</a></div>
+        <div class="top-bar-logo">
+            <a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;" alt="Logo"></a>
+        </div>
+        <div class="top-bar-user" style="display: flex; align-items: center; gap: 10px;">
+            <button class="btn-add" onclick="createInvoice()">
+                <i data-lucide="plus"></i> فاتورة شراء جديدة
+            </button>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration:none;">رجوع</a>
+        </div>
     </div>
     <div class="dashboard-container">
         <h1 class="page-title">🛒 فواتير الشراء (PR)</h1>
-        <div id="container" class="table-wrap"></div>
+        <div id="container" class="table-wrap">
+            <div style="padding: 20px; text-align: center; color: var(--text-secondary);">جاري التحميل...</div>
+        </div>
     </div>
     <script src="../admin.js"></script>
     <script>
         async function loadData() {
             const token = localStorage.getItem('ione_admin_token');
-            const res = await fetch('/api/purchases/list', { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            const container = document.getElementById('container');
-            if (!data.success || data.purchases.length === 0) { container.innerHTML = '<p style="padding:20px; text-align:center;">لا توجد فواتير شراء.</p>'; return; }
+            try {
+                const res = await fetch('/api/purchases/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const container = document.getElementById('container');
+                
+                if (!data.success || data.purchases.length === 0) {
+                    container.innerHTML = '<p style="padding:20px; text-align:center; color:var(--text-secondary);">لا توجد فواتير شراء.</p>';
+                    return;
+                }
+                
+                let html = '<table><thead><tr><th>رقم الفاتورة</th><th>المورد</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>';
+                data.purchases.forEach(p => {
+                    let cls = p.status === 'paid' ? 'status-paid' : (p.status === 'partial' ? 'status-partial' : 'status-unpaid');
+                    let txt = p.status === 'paid' ? 'مدفوع' : (p.status === 'partial' ? 'جزئي' : 'غير مدفوع');
+                    html += `<tr>
+                        <td><strong>${p.code}</strong></td>
+                        <td>${p.supplier_name || '—'}</td>
+                        <td>${p.total.toLocaleString()} ${p.currency}</td>
+                        <td>${(p.paid_amount||0).toLocaleString()}</td>
+                        <td>${(p.balance||p.total).toLocaleString()}</td>
+                        <td class="${cls}">${txt}</td>
+                        <td>${p.status !== 'paid' ? `<button class="btn-payment" onclick="addPayment('${p.code}')">إضافة دفعة</button>` : '—'}</td>
+                    </tr>`;
+                });
+                container.innerHTML = html + '</tbody></table>';
+            } catch(e) {
+                document.getElementById('container').innerHTML = '<p style="padding:20px; text-align:center; color:red;">خطأ في تحميل البيانات.</p>';
+            }
+        }
+
+        async function createInvoice() {
+            const supplier = prompt('اسم المورد:'); if (!supplier) return;
+            const total = prompt('المبلغ الإجمالي (CNY):'); if (!total) return;
+            const token = localStorage.getItem('ione_admin_token');
             
-            let html = '<table><thead><tr><th>رقم الفاتورة</th><th>المورد</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>';
-            data.purchases.forEach(p => {
-                let cls = p.status === 'paid' ? 'status-paid' : (p.status === 'partial' ? 'status-partial' : 'status-unpaid');
-                let txt = p.status === 'paid' ? 'مدفوع' : (p.status === 'partial' ? 'جزئي' : 'غير مدفوع');
-                html += `<tr>
-                    <td><strong>${p.code}</strong></td>
-                    <td>${p.supplier_name || '—'}</td>
-                    <td>${p.total.toLocaleString()} ${p.currency}</td>
-                    <td>${(p.paid_amount||0).toLocaleString()}</td>
-                    <td>${(p.balance||p.total).toLocaleString()}</td>
-                    <td class="${cls}">${txt}</td>
-                    <td>${p.status !== 'paid' ? `<button class="btn-add" onclick="addPayment('${p.code}')">إضافة دفعة</button>` : '—'}</td>
-                </tr>`;
-            });
-            container.innerHTML = html + '</tbody></table>';
+            try {
+                const res = await fetch('/api/purchases/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ supplier_name: supplier, total: parseFloat(total), currency: 'CNY' })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('تم الإنشاء', 'success'); loadData(); }
+                else { showToast(data.error, 'error'); }
+            } catch(e) { showToast('فشل الاتصال', 'error'); }
         }
 
         async function addPayment(code) {
-            const amount = prompt('المبلغ المدفوع:');
-            if (!amount) return;
+            const amount = prompt('المبلغ المدفوع:'); if (!amount) return;
             const token = localStorage.getItem('ione_admin_token');
-            // سنستخدم أول صندوق كافتراضي
-            const resBank = await fetch('/api/banks/list', { headers: { 'Authorization': `Bearer ${token}` } });
-            const dataBank = await resBank.json();
-            const bank_id = dataBank.banks[0].box_id;
+            
+            try {
+                const resBank = await fetch('/api/banks/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const dataBank = await resBank.json();
+                if (!dataBank.banks || dataBank.banks.length === 0) { showToast('لا توجد صناديق', 'error'); return; }
+                const bank_id = dataBank.banks[0].box_id; // نستخدم أول صندوق كافتراضي
 
-            const res = await fetch('/api/purchases/save', {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ code, amount: parseFloat(amount), bank_id })
-            });
-            const data = await res.json();
-            if (data.success) { showToast('تمت إضافة الدفعة', 'success'); loadData(); }
-            else { showToast(data.error, 'error'); }
+                const res = await fetch('/api/purchases/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ code, amount: parseFloat(amount), bank_id })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('تمت إضافة الدفعة', 'success'); loadData(); }
+                else { showToast(data.error, 'error'); }
+            } catch(e) { showToast('فشل الاتصال', 'error'); }
         }
 
         window.onload = () => { lucide.createIcons(); loadData(); };

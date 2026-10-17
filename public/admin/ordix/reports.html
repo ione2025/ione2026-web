@@ -4,58 +4,110 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IONECENTER — التقارير</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../../assets/logo.png">
-    <link rel="stylesheet" href="../admin.css">
-    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../admin.css"><link rel="stylesheet" href="../_assets/dashboard.css">
     <style>
-        .empty-page { text-align: center; padding: 120px 24px; color: var(--text-secondary); }
-        .empty-page svg { width: 80px; height: 80px; margin-bottom: 24px; opacity: 0.4; color: var(--accent-pink); }
-        .empty-page h2 { font-size: 1.75rem; color: var(--text-primary); margin-bottom: 12px; }
-        .empty-page p { font-size: 1rem; margin-bottom: 32px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-card h3 { font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 10px; }
+        .stat-card .value { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); }
+        .stat-card.sales .value { color: #34C759; }
+        .stat-card.purchases .value { color: #FF9F0A; }
+        .stat-card.expenses .value { color: #FF3B30; }
+        
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .chart-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; height: 300px; position: relative; }
     </style>
 </head>
 <body class="dashboard-page">
-    
     <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="../dashboard.html" style="text-decoration: none;">
-                <img src="../../assets/logo.png" alt="IONE CENTER">
-            </a>
-        </div>
-        <div class="top-bar-user">
-            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
-                <i data-lucide="arrow-right"></i>
-                <span>رجوع</span>
-            </a>
-        </div>
+        <div class="top-bar-logo"><a href="../dashboard.html"><img src="../../assets/logo.png" style="height:40px;"></a></div>
+        <div class="top-bar-user"><a href="../dashboard.html" class="logout-btn" style="text-decoration:none;">رجوع</a></div>
     </div>
-
     <div class="dashboard-container">
+        <h1 class="page-title">📊 التقارير المالية</h1>
         
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">📊 التقارير</h1>
-                <p class="page-subtitle">إحصائيات وتحليلات النظام</p>
-            </div>
+        <!-- بطاقات الإحصائيات -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><h3>إجمالي المبيعات (S)</h3><div class="value" id="valSales">0</div></div>
+            <div class="stat-card purchases"><h3>إجمالي المشتريات (PR)</h3><div class="value" id="valPurchases">0</div></div>
+            <div class="stat-card expenses"><h3>إجمالي المصروفات</h3><div class="value" id="valExpenses">0</div></div>
+            <div class="stat-card"><h3>العملاء</h3><div class="value" id="valCustomers">0</div></div>
         </div>
 
-        <div class="empty-page">
-            <i data-lucide="bar-chart"></i>
-            <h2>قيد التطوير</h2>
-            <p>سيتم إضافة التقارير في الجلسة القادمة</p>
+        <!-- الرسوم البيانية -->
+        <div class="charts-grid">
+            <div class="chart-box"><canvas id="chartBanks"></canvas></div>
+            <div class="chart-box"><canvas id="chartInvoices"></canvas></div>
         </div>
-
     </div>
-
+    
     <script src="../admin.js"></script>
     <script>
-        if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
-            window.location.href = '../login.html';
+        async function loadReports() {
+            const token = localStorage.getItem('ione_admin_token');
+            try {
+                const res = await fetch('/api/reports/summary', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const d = data.data;
+                    
+                    // تحديث البطاقات
+                    document.getElementById('valSales').textContent = d.totalSales.toLocaleString() + ' USD';
+                    document.getElementById('valPurchases').textContent = d.totalPurchases.toLocaleString() + ' CNY';
+                    
+                    // حساب إجمالي المصروفات (نجمع كل العملات كتقريب)
+                    let expTotal = 0;
+                    for (let c in d.expenses) { expTotal += d.expenses[c]; }
+                    document.getElementById('valExpenses').textContent = expTotal.toLocaleString();
+                    
+                    document.getElementById('valCustomers').textContent = d.customers;
+
+                    // رسم بياني للصناديق
+                    const bankCtx = document.getElementById('chartBanks').getContext('2d');
+                    new Chart(bankCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(d.banks),
+                            datasets: [{
+                                data: Object.values(d.banks),
+                                backgroundColor: ['#34C759', '#FF3B30', '#0071e3', '#FF9F0A', '#8B5CF6'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: { plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } }, maintainAspectRatio: false }
+                    });
+
+                    // رسم بياني للفواتير (عدد)
+                    const invCtx = document.getElementById('chartInvoices').getContext('2d');
+                    new Chart(invCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['فواتير البيع', 'فواتير الشراء'],
+                            datasets: [{
+                                label: 'العدد',
+                                data: [d.invoices.sales, d.invoices.purchases],
+                                backgroundColor: ['#34C759', '#FF9F0A'],
+                                borderRadius: 8
+                            }]
+                        },
+                        options: { 
+                            plugins: { legend: { display: false } },
+                            scales: { 
+                                y: { beginAtZero: true, ticks: { color: '#aaa' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                                x: { ticks: { color: '#fff' }, grid: { display: false } }
+                            }, 
+                            maintainAspectRatio: false 
+                        }
+                    });
+                }
+            } catch (e) { showToast('فشل تحميل التقارير', 'error'); }
         }
-        lucide.createIcons();
-        console.log('%c 📊 Reports Page ', 'background: #EC4899; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
+
+        window.onload = () => { lucide.createIcons(); loadReports(); };
     </script>
 </body>
 </html>
