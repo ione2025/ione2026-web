@@ -11,98 +11,94 @@
     <style>
         /* الألوان الأساسية المستوحاة من الصور */
         :root {
-            --bg-main: #050505;
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --bg-main: #0a0a0f;
+            --glass-bg: rgba(255, 255, 255, 0.04);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-main: #ffffff;
         }
         
         body {
-            margin: 0; padding: 0;
+            margin: 0; padding: 0; box-sizing: border-box;
             background-color: var(--bg-main);
+            /* توهج خلفي خفيف */
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(0, 240, 255, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 150, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 60%);
             font-family: 'Cairo', sans-serif;
             color: var(--text-main);
-            height: 100vh; overflow: hidden; /* منع التمرير */
+            min-height: 100vh;
             display: flex; flex-direction: column;
         }
 
         .top-bar {
-            height: 60px; display: flex; justify-content: space-between; align-items: center;
-            padding: 0 30px; background: transparent;
+            height: 64px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; flex-shrink: 0;
         }
         
         .dashboard-container {
             flex: 1; padding: 10px 30px 30px 30px;
-            display: flex; flex-direction: column; overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
         .page-title {
-            font-size: 1.5rem; font-weight: 800; margin-bottom: 15px;
-            color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            font-size: 1.4rem; font-weight: 800; margin-bottom: 20px;
+            color: #fff; text-shadow: 0 0 20px rgba(255,255,255,0.1);
         }
 
-        /* شبكة الكروت */
+        /* الشبكة: Flexbox يمنع التمدد العمودي غير المرغوب */
         .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            grid-auto-rows: minmax(120px, 1fr);
-            gap: 15px; flex: 1; align-content: start;
+            display: flex; flex-wrap: wrap; gap: 16px;
+            justify-content: flex-start; /* يبدأ من اليمين في RTL */
         }
 
-        /* الكرت الزجاجي المضيء */
+        /* الكرت الزجاجي */
         .card {
+            flex: 1 1 180px; /* مرن، ولكن بحد أدنى 180px */
+            max-width: 240px; /* حد أقصى لمنع التمدد */
+            min-height: 140px;
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 20px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-decoration: none; color: var(--text-main); cursor: grab;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: all 0.3s ease;
             position: relative; overflow: hidden;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        /* تأثير التوهج عند المرور */
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border-radius: 24px; opacity: 0; transition: opacity 0.3s;
-            box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .card:hover {
             transform: translateY(-5px) scale(1.02);
-            border-color: rgba(255,255,255,0.3);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border-color: rgba(255,255,255,0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         }
-        .card:hover::before { opacity: 1; }
         .card:active { cursor: grabbing; }
 
         .card i {
-            font-size: 2.5rem; margin-bottom: 15px;
-            filter: drop-shadow(0 0 10px currentColor); /* توهج للأيقونة */
+            font-size: 2.4rem; margin-bottom: 14px;
+            /* التوهج المحيط بالأيقونة */
+            filter: drop-shadow(0 0 12px currentColor); 
         }
         .card h3 { font-size: 1rem; font-weight: 700; margin: 0; letter-spacing: 0.5px; }
 
         /* ألوان مخصصة لكل كرت (مستوحاة من الصور) */
-        .card[data-id="orders"] i { color: #00F0FF; }       /* سيان */
-        .card[data-id="banks"] i { color: #34C759; }        /* أخضر */
-        .card[data-id="vouchers"] i { color: #FF3B30; }     /* أحمر */
-        .card[data-id="journal"] i { color: #FF9F0A; }      /* برتقالي */
-        .card[data-id="expenses"] i { color: #FF007F; }     /* وردي */
-        .card[data-id="suppliers"] i { color: #8B5CF6; }    /* بنفسجي */
-        .card[data-id="customers"] i { color: #10B981; }    /* زمردي */
-        .card[data-id="reports"] i { color: #F59E0B; }      /* ذهبي */
-        .card[data-id="status"] i { color: #6366F1; }       /* نيلي */
-        .card[data-id="users"] i { color: #EC4899; }        /* وردي فاتح */
+        .card[data-id="orders"] i { color: #00F0FF; }
+        .card[data-id="banks"] i { color: #34C759; }
+        .card[data-id="vouchers"] i { color: #FF3B30; }
+        .card[data-id="journal"] i { color: #FF9F0A; }
+        .card[data-id="expenses"] i { color: #FF007F; }
+        .card[data-id="suppliers"] i { color: #8B5CF6; }
+        .card[data-id="customers"] i { color: #10B981; }
+        .card[data-id="reports"] i { color: #F59E0B; }
+        .card[data-id="status"] i { color: #6366F1; }
+        .card[data-id="users"] i { color: #EC4899; }
 
         /* تأثير السحب */
         .sortable-ghost {
-            opacity: 0.3; background: rgba(255,255,255,0.1);
+            opacity: 0.4; background: rgba(255,255,255,0.1);
             border: 2px dashed rgba(255,255,255,0.5);
         }
         
@@ -110,7 +106,7 @@
         .btn {
             padding: 8px 16px; border-radius: 12px; border: 1px solid var(--glass-border);
             background: var(--glass-bg); color: white; cursor: pointer; font-family: inherit;
-            backdrop-filter: blur(10px); transition: 0.2s;
+            backdrop-filter: blur(10px); transition: 0.2s; font-weight: 700;
         }
         .btn:hover { background: rgba(255,255,255,0.1); }
     </style>
