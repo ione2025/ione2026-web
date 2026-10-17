@@ -3,491 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>IONECENTER — Dashboard</title>
-    
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../assets/logo.png">
-    
-    <!-- Styles -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="_assets/dashboard.css">
+    <style>
+        body {
+            margin: 0; padding: 0; height: 100vh; overflow: hidden; /* منع التمرير */
+            background: var(--bg-primary);
+            font-family: 'Cairo', sans-serif;
+        }
+        .top-bar {
+            height: 70px; background: var(--bg-card); border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 30px;
+        }
+        .dashboard-container {
+            height: calc(100vh - 70px);
+            display: flex; flex-direction: column;
+            padding: 20px; box-sizing: border-box; overflow: hidden;
+        }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; }
+        .page-title { font-size: 1.8rem; font-weight: 800; color: var(--text-primary); }
+        
+        /* شبكة مرنة تتكيف مع الشاشة */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-auto-rows: minmax(120px, 1fr);
+            gap: 15px; flex: 1; overflow-y: auto; padding-bottom: 10px;
+        }
+
+        /* كرت احترافي */
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 20px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center; text-decoration: none; color: var(--text-primary);
+            transition: all 0.2s; cursor: grab; position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .card:active { cursor: grabbing; }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); border-color: var(--ione-red); }
+        .card i { font-size: 2.5rem; color: var(--ione-red); margin-bottom: 12px; }
+        .card h3 { font-size: 1rem; font-weight: 700; margin: 0; }
+
+        /* تأثير السحب */
+        .sortable-ghost { opacity: 0.5; background: var(--bg-secondary); border: 1px dashed var(--ione-red); }
+    </style>
 </head>
-<body class="dashboard-page">
-    
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Top Bar                                              -->
-    <!-- ═══════════════════════════════════════════════════ -->
+<body>
     <div class="top-bar">
-        <div class="top-bar-logo">
-            <img src="../assets/logo.png" alt="IONE CENTER">
-        </div>
-        <div class="top-bar-user">
-            <span>👤 Admin</span>
-            <button class="logout-btn" id="logoutBtn">
-                <i data-lucide="log-out"></i>
-                <span>خروج</span>
+        <div style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary);">IONE<span style="color:var(--ione-red)">+</span></div>
+        <div style="display: flex; gap: 10px;">
+            <button class="logout-btn" onclick="saveLayout()" style="border: none; cursor: pointer; background: #34C759; color: white;">
+                <i data-lucide="save"></i> حفظ الترتيب
+            </button>
+            <button class="logout-btn" onclick="logout()" style="border: none; cursor: pointer; background: var(--bg-secondary);">
+                <i data-lucide="log-out"></i> خروج
             </button>
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Main Content                                         -->
-    <!-- ═══════════════════════════════════════════════════ -->
     <div class="dashboard-container">
-        
-        <!-- Page Header -->
         <div class="page-header">
-            <div>
-                <h1 class="page-title">لوحة التحكم</h1>
-                <p class="page-subtitle">مرحباً بك في لوحة إدارة IONECENTER</p>
-            </div>
-            <div class="page-actions">
-                <button class="action-btn" id="resetLayout">
-                    <i data-lucide="rotate-ccw"></i>
-                    <span>إعادة تعيين</span>
-                </button>
-            </div>
+            <h1 class="page-title">لوحة التحكم</h1>
         </div>
 
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- Section: Statistics                           -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <div class="section">
-            <h2 class="section-title">
-                <i data-lucide="bar-chart-3"></i>
-                <span>نظرة عامة</span>
-            </h2>
-            <div class="card-grid" data-grid="stats">
-                
-                <!-- Stats Card 1: New Orders -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="stat-new-orders" 
-                   data-color="green"
-                   data-icon="package"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="package"></i>
-                    </div>
-                    <div class="card-title">طلبات جديدة</div>
-                    <div class="card-subtitle">بانتظار المراجعة</div>
-                    <div class="card-counter">5</div>
-                </a>
-
-                <!-- Stats Card 2: Pending Quotes -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="stat-pending-quotes" 
-                   data-color="yellow"
-                   data-icon="clock"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="clock"></i>
-                    </div>
-                    <div class="card-title">بانتظار العروض</div>
-                    <div class="card-subtitle">من الموردين</div>
-                    <div class="card-counter">12</div>
-                </a>
-
-                <!-- Stats Card 3: In Progress -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="stat-in-progress" 
-                   data-color="blue"
-                   data-icon="truck"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="truck"></i>
-                    </div>
-                    <div class="card-title">قيد التنفيذ</div>
-                    <div class="card-subtitle">جاري العمل عليها</div>
-                    <div class="card-counter">8</div>
-                </a>
-
-                <!-- Stats Card 4: Completed -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="stat-completed" 
-                   data-color="purple"
-                   data-icon="check-circle"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="check-circle"></i>
-                    </div>
-                    <div class="card-title">طلبات مكتملة</div>
-                    <div class="card-subtitle">هذا الشهر</div>
-                    <div class="card-counter">147</div>
-                </a>
-
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- Section: ORDIX                                -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <div class="section">
-            <h2 class="section-title">
-                <i data-lucide="zap"></i>
-                <span>ORDIX — نظام الطلبات</span>
-            </h2>
-            <div class="card-grid" data-grid="ordix">
-                
-                <!-- ORDIX Card 1: New Order -->
-                <a class="card" 
-                   href="ordix/new-order.html" 
-                   data-card-id="ordix-new-order" 
-                   data-color="red"
-                   data-icon="plus-circle"
-                   data-href="ordix/new-order.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="plus-circle"></i>
-                    </div>
-                    <div class="card-title">طلب جديد</div>
-                    <div class="card-subtitle">إدخال يدوي</div>
-                </a>
-
-                <!-- ORDIX Card 2: Orders List -->
-                <a class="card" 
-                   href="ordix/orders.html" 
-                   data-card-id="ordix-orders" 
-                   data-color="blue"
-                   data-icon="list"
-                   data-href="ordix/orders.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="list"></i>
-                    </div>
-                    <div class="card-title">قائمة الطلبات</div>
-                    <div class="card-subtitle">كل الطلبات</div>
-                </a>
-
-                <!-- ORDIX Card 3: Suppliers -->
-                <a class="card" 
-                   href="ordix/suppliers.html" 
-                   data-card-id="ordix-suppliers" 
-                   data-color="purple"
-                   data-icon="building-2"
-                   data-href="ordix/suppliers.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="building-2"></i>
-                    </div>
-                    <div class="card-title">إدارة الموردين</div>
-                    <div class="card-subtitle">الموردون المعتمدون</div>
-                </a>
-
-                <!-- ORDIX Card 4: Customers -->
-                <a class="card" 
-                   href="ordix/customers.html" 
-                   data-card-id="ordix-customers" 
-                   data-color="cyan"
-                   data-icon="users"
-                   data-href="ordix/customers.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="users"></i>
-                    </div>
-                    <div class="card-title">العملاء</div>
-                    <div class="card-subtitle">قائمة العملاء</div>
-                </a>
-
-                <!-- ORDIX Card 5: Boxes (Payment) -->
-                <a class="card" 
-                   href="ordix/boxes.html" 
-                   data-card-id="ordix-boxes" 
-                   data-color="green"
-                   data-icon="wallet"
-                   data-href="ordix/boxes.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="wallet"></i>
-                    </div>
-                    <div class="card-title">الصناديق المالية</div>
-                    <div class="card-subtitle">إدارة الحسابات</div>
-                </a>
-
-                <!-- ORDIX Card 6: Invoices -->
-                <a class="card" 
-                   href="ordix/invoices.html" 
-                   data-card-id="ordix-invoices" 
-                   data-color="orange"
-                   data-icon="file-text"
-                   data-href="ordix/invoices.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="file-text"></i>
-                    </div>
-                    <div class="card-title">الفواتير</div>
-                    <div class="card-subtitle">مشتريات / مبيعات</div>
-                </a>
-
-                <!-- ORDIX Card 7: Reports -->
-                <a class="card" 
-                   href="ordix/reports.html" 
-                   data-card-id="ordix-reports" 
-                   data-color="pink"
-                   data-icon="bar-chart"
-                   data-href="ordix/reports.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="bar-chart"></i>
-                    </div>
-                    <div class="card-title">التقارير</div>
-                    <div class="card-subtitle">إحصائيات وتحليلات</div>
-                </a>
-
-                <!-- ORDIX Card 8: Settings -->
-                <a class="card" 
-                   href="ordix/settings.html" 
-                   data-card-id="ordix-settings" 
-                   data-color="yellow"
-                   data-icon="settings"
-                   data-href="ordix/settings.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="settings"></i>
-                    </div>
-                    <div class="card-title">الإعدادات</div>
-                    <div class="card-subtitle">إعدادات النظام</div>
-                </a>
-
-            </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════════ -->
-        <!-- Section: System                               -->
-        <!-- ═══════════════════════════════════════════════ -->
-        <div class="section">
-            <h2 class="section-title">
-                <i data-lucide="settings-2"></i>
-                <span>النظام</span>
-            </h2>
-            <div class="card-grid" data-grid="system">
-                
-                <!-- System Card 1: Subscribers -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="system-subscribers" 
-                   data-color="cyan"
-                   data-icon="mail"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="mail"></i>
-                    </div>
-                    <div class="card-title">المشتركون</div>
-                    <div class="card-subtitle">قائمة البريد</div>
-                    <div class="card-counter">0</div>
-                </a>
-
-                <!-- System Card 2: Visits -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="system-visits" 
-                   data-color="blue"
-                   data-icon="eye"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="eye"></i>
-                    </div>
-                    <div class="card-title">الزيارات</div>
-                    <div class="card-subtitle">آخر 24 ساعة</div>
-                    <div class="card-counter">0</div>
-                </a>
-
-                <!-- System Card 3: Status -->
-                <a class="card" 
-                   href="#" 
-                   data-card-id="system-status" 
-                   data-color="green"
-                   data-icon="activity"
-                   data-href="#">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="activity"></i>
-                    </div>
-                    <div class="card-title">حالة الموقع</div>
-                    <div class="card-subtitle">يعمل بشكل جيد</div>
-                    <div class="card-counter">نشط</div>
-                </a>
-
-                <!-- System Card 4: Days Left -->
-                <a class="card" 
-                   href="../index.html" 
-                   target="_blank"
-                   data-card-id="system-days" 
-                   data-color="red"
-                   data-icon="calendar"
-                   data-href="../index.html">
-                    <button class="card-menu" data-menu="card">
-                        <i data-lucide="more-vertical"></i>
-                    </button>
-                    <div class="card-icon">
-                        <i data-lucide="calendar"></i>
-                    </div>
-                    <div class="card-title">يوم للإطلاق</div>
-                    <div class="card-subtitle">العد التنازلي</div>
-                    <div class="card-counter" id="daysCounter">30</div>
-                </a>
-
-            </div>
-        </div>
-
+        <!-- شبكة البطاقات (سيتم تعبئتها بالكود) -->
+        <div class="cards-grid" id="cardsGrid"></div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Context Menu (Card Actions)                         -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div class="context-menu" id="contextMenu">
-        <button class="menu-item" data-action="rename">
-            <i data-lucide="edit-3"></i>
-            <span>إعادة تسمية</span>
-        </button>
-        <button class="menu-item" data-action="color">
-            <i data-lucide="palette"></i>
-            <span>تغيير اللون</span>
-        </button>
-        <button class="menu-item" data-action="duplicate">
-            <i data-lucide="copy"></i>
-            <span>نسخ</span>
-        </button>
-        <div class="menu-divider"></div>
-        <button class="menu-item danger" data-action="delete">
-            <i data-lucide="trash-2"></i>
-            <span>حذف</span>
-        </button>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Modal: Rename Card                                  -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div class="modal-overlay" id="renameModal">
-        <div class="modal">
-            <h3 class="modal-title">إعادة تسمية البطاقة</h3>
-            <p class="modal-subtitle">غيّر اسم البطاقة والوصف</p>
-            
-            <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
-                العنوان
-            </label>
-            <input 
-                type="text" 
-                class="modal-input" 
-                id="renameInput" 
-                placeholder="عنوان البطاقة"
-                style="margin-bottom: 16px;"
-            >
-            
-            <label style="display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">
-                الوصف (اختياري)
-            </label>
-            <input 
-                type="text" 
-                class="modal-input" 
-                id="renameSubtitle" 
-                placeholder="وصف البطاقة"
-            >
-            
-            <div class="modal-actions">
-                <button class="action-btn" data-close-modal>
-                    <span>إلغاء</span>
-                </button>
-                <button class="action-btn primary" id="renameSave">
-                    <i data-lucide="check"></i>
-                    <span>حفظ</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Modal: Color Picker                                 -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div class="modal-overlay" id="colorModal">
-        <div class="modal">
-            <h3 class="modal-title">تغيير لون البطاقة</h3>
-            <p class="modal-subtitle">اختر لوناً جديداً</p>
-            
-            <div class="color-grid">
-                <!-- Filled by JS -->
-            </div>
-            
-            <div class="modal-actions">
-                <button class="action-btn" data-close-modal>
-                    <span>إلغاء</span>
-                </button>
-                <button class="action-btn primary" id="colorSave">
-                    <i data-lucide="check"></i>
-                    <span>حفظ</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Toast Container                                     -->
-    <!-- ═══════════════════════════════════════════════════ -->
-    <div class="toast-container"></div>
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- Scripts                                             -->
-    <!-- ═══════════════════════════════════════════════════ -->
     <script src="admin.js"></script>
-    <script src="_assets/sortable.min.js"></script>
-    <script src="_assets/dashboard.js"></script>
-    
     <script>
-        // Extra: Update days counter
-        (function() {
-            const launchDate = new Date('2026-11-15T00:00:00+08:00').getTime();
-            const now = Date.now();
-            const days = Math.max(0, Math.floor((launchDate - now) / (1000 * 60 * 60 * 24)));
-            const el = document.getElementById('daysCounter');
-            if (el) el.textContent = days;
-        })();
+        // روابط البطاقات (يمكنك تعديلها بسهولة)
+        const defaultCards = [
+            { id: 'orders', title: 'الطلبات', icon: 'shopping-bag', link: 'ordix/orders.html' },
+            { id: 'banks', title: 'الصناديق', icon: 'landmark', link: 'ordix/banks.html' },
+            { id: 'vouchers', title: 'السندات', icon: 'receipt', link: 'ordix/vouchers.html' },
+            { id: 'journal', title: 'دفتر اليوميات', icon: 'book', link: 'ordix/journal.html' },
+            { id: 'expenses', title: 'المصروفات', icon: 'trending-down', link: 'ordix/expenses.html' },
+            { id: 'suppliers', title: 'الموردين', icon: 'factory', link: 'ordix/suppliers.html' },
+            { id: 'customers', title: 'العملاء', icon: 'users', link: 'ordix/customers.html' },
+            { id: 'reports', title: 'التقارير', icon: 'bar-chart-2', link: 'ordix/reports.html' },
+            { id: 'status', title: 'حالة النظام', icon: 'activity', link: 'status.html' },
+            { id: 'users', title: 'المستخدمين', icon: 'user-cog', link: 'users/list.html' }
+        ];
+
+        let savedLayout = [];
+
+        // تحميل الترتيب من API
+        async function loadLayout() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/dashboard/get', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success && data.layout && data.layout.length > 0) {
+                    savedLayout = data.layout;
+                } else {
+                    // إذا لم يكن هناك ترتيب محفوظ، استخدم الافتراضي
+                    savedLayout = defaultCards;
+                }
+                renderCards();
+            } catch(e) {
+                savedLayout = defaultCards;
+                renderCards();
+            }
+        }
+
+        // رسم البطاقات
+        function renderCards() {
+            const grid = document.getElementById('cardsGrid');
+            grid.innerHTML = '';
+            
+            savedLayout.forEach(card => {
+                const a = document.createElement('a');
+                a.href = card.link;
+                a.className = 'card';
+                a.dataset.id = card.id;
+                a.innerHTML = `
+                    <i data-lucide="${card.icon}"></i>
+                    <h3>${card.title}</h3>
+                `;
+                grid.appendChild(a);
+            });
+            
+            if (window.lucide) lucide.createIcons();
+            initSortable();
+        }
+
+        // إعداد السحب والإفلات
+        function initSortable() {
+            const grid = document.getElementById('cardsGrid');
+            new Sortable(grid, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function() {
+                    // تحديث الترتيب المحلي
+                    const newOrder = [];
+                    grid.querySelectorAll('.card').forEach(el => {
+                        const id = el.dataset.id;
+                        const card = savedLayout.find(c => c.id === id);
+                        if (card) newOrder.push(card);
+                    });
+                    savedLayout = newOrder;
+                }
+            });
+        }
+
+        // حفظ الترتيب في Cloudflare KV
+        async function saveLayout() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/dashboard/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ layout: savedLayout })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حفظ الترتيب بنجاح ✅', 'success');
+                } else {
+                    showToast('فشل الحفظ', 'error');
+                }
+            } catch(e) {
+                showToast('فشل الاتصال', 'error');
+            }
+        }
+
+        // تهيئة
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (window.lucide) lucide.createIcons();
+                loadLayout();
+            }, 100);
+        });
     </script>
-    
 </body>
 </html>
