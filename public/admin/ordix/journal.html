@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>IONECENTER — دفتر اليوميات</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../../assets/logo.png">
     <link rel="stylesheet" href="../admin.css">
     <link rel="stylesheet" href="../_assets/dashboard.css">
     <style>
@@ -15,23 +13,19 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--bg-secondary); padding: 14px; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
         td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        tr:hover { background: var(--bg-card-hover); }
+        tr:hover { background: var(--bg-card-hover); cursor: pointer; }
         .dr { color: #FF9F0A; font-weight: 700; }
         .cr { color: #34C759; font-weight: 700; }
         
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
         .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; }
         .modal-overlay.active .modal-box { transform: scale(1); }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
         .form-control { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); outline: none; }
-        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .btn-primary { background: #E31E24; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        
-        .entry-card { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: var(--bg-secondary); }
-        .entry-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 700; color: var(--text-primary); }
-        .entry-lines { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; font-size: 0.9rem; }
+        .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .btn-primary { background: #E31E24; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; }
     </style>
 </head>
 <body class="dashboard-page">
@@ -53,11 +47,8 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">📒 دفتر اليوميات (General Journal)</h1>
-                <p class="page-subtitle">القيود المحاسبية المزدوجة</p>
+                <p class="page-subtitle">القيود المحاسبية وخصم الأرصدة التلقائي</p>
             </div>
-            <button class="logout-btn" onclick="loadJournal()" style="border: none; cursor: pointer; padding: 10px;">
-                <i data-lucide="refresh-cw"></i>
-            </button>
         </div>
 
         <div id="journalContainer"></div>
@@ -81,23 +72,23 @@
                     <input type="text" id="jnlDesc" class="form-control" placeholder="مثال: شراء زيت للمصنع..." required>
                 </div>
                 
-                <div style="margin-bottom: 16px;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; display: block;">الحساب المدين (Debit)</label>
-                    <div class="form-row">
-                        <input type="text" id="drName" class="form-control" placeholder="اسم الحساب (مثال: مصروف زيت)" required>
+                <div style="margin-bottom: 16px; padding: 12px; background: rgba(255,159,10,0.1); border-radius: 8px;">
+                    <label style="color: #FF9F0A; font-weight: 700;">مدين (Debit) — الحساب الذي يستلم</label>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <select id="drAccount" class="form-control" required></select>
                         <input type="number" id="drAmount" class="form-control" placeholder="المبلغ" step="0.01" required>
                     </div>
                 </div>
 
-                <div style="margin-bottom: 16px;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; display: block;">الحساب الدائن (Credit)</label>
-                    <div class="form-row">
-                        <input type="text" id="crName" class="form-control" placeholder="اسم الحساب (مثال: HSBC USD)" required>
+                <div style="margin-bottom: 16px; padding: 12px; background: rgba(52,199,89,0.1); border-radius: 8px;">
+                    <label style="color: #34C759; font-weight: 700;">دائن (Credit) — الحساب الذي يدفع</label>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <select id="crAccount" class="form-control" required></select>
                         <input type="number" id="crAmount" class="form-control" placeholder="المبلغ" step="0.01" required>
                     </div>
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">حفظ القيد</button>
+                <button type="submit" class="btn-primary">حفظ القيد وتحديث الأرصدة</button>
             </form>
         </div>
     </div>
@@ -105,6 +96,7 @@
     <script src="../admin.js"></script>
     <script>
         let allJournal = [];
+        let allAccounts = [];
 
         async function loadJournal() {
             try {
@@ -116,11 +108,26 @@
                 
                 if (data.success) {
                     allJournal = data.journal;
+                    allAccounts = data.accounts; // تخزين الحسابات للقائمة المنسدلة
                     renderJournal();
+                    populateSelects();
                 }
             } catch (err) {
                 showToast('فشل تحميل البيانات', 'error');
             }
+        }
+
+        function populateSelects() {
+            const drSelect = document.getElementById('drAccount');
+            const crSelect = document.getElementById('crAccount');
+            let opts = '<option value="">اختر الحساب...</option>';
+            
+            allAccounts.forEach(acc => {
+                opts += `<option value="${acc.id}" data-name="${acc.name}">${acc.name}</option>`;
+            });
+            
+            drSelect.innerHTML = opts;
+            crSelect.innerHTML = opts;
         }
 
         function renderJournal() {
@@ -136,17 +143,17 @@
                 const date = new Date(entry.date).toLocaleDateString('ar-EG');
                 
                 entry.debits.forEach((dr, i) => {
-                    html += `<tr>`;
+                    html += `<tr onclick="viewEntry('${entry.entry_id}')">`;
                     if (i === 0) {
                         html += `<td rowspan="${entry.debits.length}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
                         html += `<td rowspan="${entry.debits.length}">${entry.description}</td>`;
                     }
-                    html += `<td class="dr">${dr.account}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td></tr>`;
+                    html += `<td class="dr">${dr.account_name}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td></tr>`;
                 });
 
                 entry.credits.forEach((cr, i) => {
-                    html += `<tr>`;
-                    html += `<td></td><td class="cr">${cr.account}</td><td class="cr">${cr.amount.toLocaleString()}</td></tr>`;
+                    html += `<tr onclick="viewEntry('${entry.entry_id}')">`;
+                    html += `<td></td><td class="cr">${cr.account_name}</td><td class="cr">${cr.amount.toLocaleString()}</td></tr>`;
                 });
             });
 
@@ -168,9 +175,15 @@
             e.preventDefault();
             const token = localStorage.getItem('ione_admin_token');
             
-            const drName = document.getElementById('drName').value;
+            const drSelect = document.getElementById('drAccount');
+            const crSelect = document.getElementById('crAccount');
+            
+            const drId = drSelect.value;
+            const drName = drSelect.options[drSelect.selectedIndex].dataset.name;
             const drAmount = parseFloat(document.getElementById('drAmount').value);
-            const crName = document.getElementById('crName').value;
+            
+            const crId = crSelect.value;
+            const crName = crSelect.options[crSelect.selectedIndex].dataset.name;
             const crAmount = parseFloat(document.getElementById('crAmount').value);
 
             if (drAmount !== crAmount) {
@@ -181,8 +194,8 @@
             const payload = {
                 date: document.getElementById('jnlDate').value,
                 description: document.getElementById('jnlDesc').value,
-                debits: [{ account: drName, amount: drAmount }],
-                credits: [{ account: crName, amount: crAmount }]
+                debits: [{ account_id: drId, account_name: drName, amount: drAmount }],
+                credits: [{ account_id: crId, account_name: crName, amount: crAmount }]
             };
 
             try {
@@ -194,15 +207,21 @@
                 
                 const data = await res.json();
                 if (data.success) {
-                    showToast('تم تسجيل القيد بنجاح', 'success');
+                    showToast('تم القيد وتحديث الصناديق', 'success');
                     closeModal();
-                    loadJournal();
+                    loadJournal(); // إعادة تحميل اليومية (والأرصدة ستكون تغيرت في صفحة الصناديق)
                 } else {
                     throw new Error(data.error);
                 }
             } catch (err) {
                 showToast('فشل: ' + err.message, 'error');
             }
+        }
+
+        // فتح تفاصيل القيد (يمكنك إضافة نافذة تفاصيل لاحقاً)
+        function viewEntry(id) {
+            // سيتم إضافتها في المرحلة القادمة
+            // showToast('عرض التفاصيل: ' + id, 'info');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
