@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER - إضافة منتج (Premium UI)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <link rel="stylesheet" href="../admin.css">
+    <style>
+        /* [نفس تنسيقات الـ CSS التي أرسلتها أنت] */
+        :root {
+            --bg-main: #050508;
+            --card-bg: linear-gradient(145deg, rgba(30, 30, 45, 0.8) 0%, rgba(15, 15, 25, 0.9) 100%);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(255, 255, 255, 0.15);
+            --primary: #a855f7; 
+            --primary-glow: rgba(168, 85, 247, 0.4);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100vh; margin: 0; padding: 0; overflow: hidden; }
+        body {
+            padding: 12px; background: var(--bg-main);
+            background-image: radial-gradient(circle at 15% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 40%), radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08) 0%, transparent 40%), radial-gradient(circle at 50% 100%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+            font-family: 'Cairo', sans-serif; color: var(--text); display: flex; flex-direction: column;
+        }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-shrink: 0; padding: 0 5px; }
+        .top-header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; background: linear-gradient(to right, #fff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-save { background: linear-gradient(135deg, #a855f7, #7c3aed); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3); }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(168, 85, 247, 0.5); }
+        .main-grid-wrapper { flex: 1; min-height: 0; display: flex; }
+        #mainGrid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(0, 1fr); gap: 12px; min-height: 0; }
+        .card { background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--border); border-top: 1px solid var(--border-highlight); border-left-width: 6px; border-left-style: solid; border-left-color: var(--primary); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); height: 100%; min-height: 0; min-width: 0; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card:nth-child(1) { border-left-color: #a855f7; } .card:nth-child(2) { border-left-color: #3b82f6; } .card:nth-child(3) { border-left-color: #10b981; } .card:nth-child(4) { border-left-color: #f59e0b; } .card:nth-child(5) { border-left-color: #ec4899; } .card:nth-child(6) { border-left-color: #ef4444; } .card:nth-child(7) { border-left-color: #06b6d4; } .card:nth-child(8) { border-left-color: #8b5cf6; }
+        .card::-webkit-scrollbar { width: 5px; } .card::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 10px; }
+        .card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); cursor: grab; font-weight: 700; font-size: 0.95rem; color: #e2e8f0; flex-shrink: 0; }
+        .card-header i { color: var(--primary); width: 18px; height: 18px; }
+        .form-group { margin-bottom: 12px; position: relative; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; color: white; font-family: inherit; font-size: 0.85rem; outline: none; }
+        .form-control:focus { border-color: var(--primary); background: rgba(0,0,0,0.5); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2); }
+        .form-control.readonly { color: #d8b4fe; font-weight: 700; background: rgba(168, 85, 247, 0.05); border-color: rgba(168, 85, 247, 0.2); }
+        .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        
+        /* صور */
+        .main-img-box { width: 100%; height: 120px; background: rgba(0,0,0,0.4); border: 2px dashed rgba(255, 255, 255, 0.15); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); cursor: pointer; overflow: hidden; position: relative; }
+        .main-img-box:hover { border-color: var(--primary); background: rgba(168, 85, 247, 0.05); }
+        .main-img-box img { width: 100%; height: 100%; object-fit: contain; }
+        .thumbs-row { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 6px; }
+        .thumb-item { width: 50px; height: 50px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; position: relative; }
+        .thumb-item.active { border-color: var(--primary); }
+        .thumb-item img { width: 100%; height: 100%; object-fit: cover; }
+        .thumb-remove { position: absolute; top: 2px; right: 2px; background: rgba(239, 68, 68, 0.9); color: white; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border-radius: 50%; }
+        .thumb-add { display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--primary); background: rgba(168, 85, 247, 0.1); border: 2px dashed var(--primary); }
+
+        /* المتغيرات */
+        .variant-panel { background: rgba(0,0,0,0.2); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        .variant-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: #d8b4fe; margin-bottom: 8px; }
+        .variant-header .delete-panel { cursor: pointer; color: #ef4444; font-size: 1.2rem; }
+        .variant-options { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .variant-input { padding: 8px; font-size: 0.8rem; }
+
+        /* التصنيفات */
+        .cat-cascade { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .cat-level-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .lvl-badge { background: rgba(168, 85, 247, 0.15); color: #d8b4fe; border-radius: 4px; padding: 2px 8px; font-size: 0.65rem; font-weight: 800; }
+        .cat-cascade select.form-control { padding: 8px 10px; font-size: 0.85rem; cursor: pointer; }
+        
+        /* Tags */
+        .tag { background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(124, 58, 237, 0.2)); border: 1px solid rgba(168, 85, 247, 0.5); color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+        .tag span { cursor: pointer; color: #f87171; font-weight: bold; font-size: 1.1rem; }
+
+        /* القائمة المنسدلة */
+        .dropdown { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #181825; border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px; z-index: 1000; display: none; max-height: 160px; overflow-y: auto; }
+        .dropdown-item { padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; }
+        .dropdown-item:hover { background: rgba(168, 85, 247, 0.15); color: white; }
+
+        /* أزرار المشاركة */
+        .share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .btn-share { display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.2); color: white; cursor: pointer; text-decoration: none; font-size: 0.75rem; }
+        .btn-share:hover { background: rgba(255,255,255,0.05); border-color: var(--primary); }
+        .btn-share i { margin-bottom: 5px; width: 20px; height: 20px; }
+        
+        /* الإشعارات */
+        #toast-container { position: fixed; bottom: 20px; left: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: rgba(30, 30, 45, 0.95); color: white; padding: 14px 24px; border-radius: 10px; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 12px; border-right: 4px solid #555; }
+        .toast.success { border-right-color: #10b981; }
+        .toast.error { border-right-color: #ef4444; }
+
+        /* حركات الدخول */
+        @keyframes slideDownEntrance { 0% { opacity: 0; transform: translateY(-40px); } 100% { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUpEntrance { 0% { opacity: 0; transform: translateY(40px); } 100% { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div class="top-header">
+        <h1>📦 إضافة منتج جديد</h1>
+        <button class="btn-save" onclick="saveProductToDB()">حفظ المنتج</button>
+    </div>
+
+    <div class="main-grid-wrapper">
+        <div id="mainGrid">
+            
+            <!-- 1. البيانات الأساسية -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> البيانات الأساسية والصور</div>
+                <div class="form-group">
+                    <label>اسم المنتج</label>
+                    <input type="text" class="form-control" id="prodName" placeholder="مثال: iPhone 15 Pro Max">
+                </div>
+                <div class="form-group" style="flex: 1; display: flex; flex-direction: column;">
+                    <label>صور المنتج</label>
+                    <div class="main-img-box" id="mainImgBox" onclick="document.getElementById('imgInput').click()">
+                        <span id="mainImgText">📸 اختر صورة</span>
+                        <img id="mainImgPreview" style="display:none;">
+                    </div>
+                    <div class="thumbs-row" id="thumbsRow"></div>
+                    <input type="file" id="imgInput" style="display:none;" accept="image/*" multiple onchange="handleImageUpload(event)">
+                </div>
+            </div>
+
+            <!-- 2. التصنيفات -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> التصنيف (4 مستويات)</div>
+                <div id="catCascade" class="cat-cascade"></div>
+                <div class="row-2" style="margin-top: auto;">
+                    <div class="form-group">
+                        <label>الكود التلقائي</label>
+                        <input type="text" class="form-control readonly" id="serialCode" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>باركود المصنع</label>
+                        <input type="text" class="form-control" id="factoryBarcode" placeholder="امسح...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. لوحة الخيارات -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> لوحة الخيارات (Variants)</div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="newPanelInput" placeholder="إضافة لوحة (مثل: COLOR)..." onkeydown="handleNewPanel(event)">
+                </div>
+                <div id="variantsContainer"></div>
+            </div>
+
+            <!-- 4. التسعير -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> التسعير</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>سعر الشراء (CNY)</label>
+                        <input type="number" class="form-control" id="buyCny" value="0" oninput="calcExchange('cny')">
+                    </div>
+                    <div class="form-group">
+                        <label>سعر البيع (USD)</label>
+                        <input type="number" class="form-control" id="sellUsd" value="0" oninput="calcExchange('usd')">
+                    </div>
+                </div>
+                <div style="font-size:0.75rem; color:#d8b4fe; text-align:center; background: rgba(168,85,247,0.1); padding: 5px; border-radius: 6px;" id="agentRateText"></div>
+            </div>
+
+            <!-- 5. الأبعاد والوزن -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> الأبعاد والوزن</div>
+                <div class="form-group">
+                    <label>الأبعاد (سم)</label>
+                    <div class="row-3">
+                        <input type="number" class="form-control" id="dimL" placeholder="L" oninput="calcCBM()">
+                        <input type="number" class="form-control" id="dimW" placeholder="W" oninput="calcCBM()">
+                        <input type="number" class="form-control" id="dimH" placeholder="H" oninput="calcCBM()">
+                    </div>
+                </div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>وزن المنتج (كجم)</label>
+                        <input type="number" class="form-control" id="prodWeight" value="0" oninput="calcTotalWeight()">
+                    </div>
+                    <div class="form-group">
+                        <label>CBM (تلقائي)</label>
+                        <input type="number" class="form-control readonly" id="cbmResult" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. التغليف -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> التغليف</div>
+                <div class="row-2">
+                    <div class="form-group">
+                        <label>كمية الكرتون (CTN QTY)</label>
+                        <input type="number" class="form-control" id="ctnQty" value="1" oninput="calcTotalWeight()">
+                    </div>
+                    <div class="form-group">
+                        <label>إجمالي الوزن للكرتون</label>
+                        <input type="number" class="form-control readonly" id="totalWeight" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. وجهات الشحن -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> وجهات الشحن</div>
+                <div class="form-group">
+                    <label>دول الشحن (اكتب واضغط Enter)</label>
+                    <input type="text" class="form-control" id="countryInput" placeholder="مثال: I..." oninput="handleCountryInput(this)" onkeydown="handleCountryKeydown(event)" autocomplete="off">
+                    <div class="dropdown" id="countryDropdown"></div>
+                    <div class="tags-container" id="countriesContainer"></div>
+                </div>
+            </div>
+
+            <!-- 8. مشاركة المنتج -->
+            <div class="card">
+                <div class="card-header"><i data-lucide="grip-vertical"></i> مشاركة المنتج</div>
+                <div class="share-grid">
+                    <a href="#" class="btn-share wa" onclick="shareProduct('wa', event)"><i data-lucide="message-circle"></i> WhatsApp</a>
+                    <a href="#" class="btn-share wc" onclick="shareProduct('wc', event)"><i data-lucide="message-square"></i> WeChat</a>
+                    <a href="#" class="btn-share em" onclick="shareProduct('em', event)"><i data-lucide="mail"></i> Email</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- الإعدادات الأولية ---
+        lucide.createIcons();
+        const exchangeRate = 7.25;
+        const marginPercent = 4;
+        const marginMultiplier = 1 + (marginPercent / 100);
+        document.getElementById('agentRateText').innerText = `AGENT RATE EXCHANGER (سعر الصرف ${exchangeRate} + هامش ${marginPercent}%)`;
+
+        // --- حركة الدخول ---
+        function playEntranceAnimation() {
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                const isDown = index % 2 === 0;
+                card.style.animation = `${isDown ? 'slideDownEntrance' : 'slideUpEntrance'} 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards`;
+                card.style.animationDelay = `${index * 0.05}s`;
+            });
+        }
+
+        // --- إدارة الصور ---
+        let uploadedImages = []; 
+        let mainImageId = null;
+
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+            let processed = 0;
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const id = 'img_' + Date.now() + Math.random();
+                    uploadedImages.push({ id, url: e.target.result });
+                    if (!mainImageId) mainImageId = id;
+                    processed++;
+                    if (processed === files.length) { renderImages(); event.target.value = ''; }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setMainImage(id) { mainImageId = id; renderImages(); }
+        function removeImage(id, event) { event.stopPropagation(); uploadedImages = uploadedImages.filter(img => img.id !== id); if (mainImageId === id) mainImageId = uploadedImages.length > 0 ? uploadedImages[0].id : null; renderImages(); }
+
+        function renderImages() {
+            const mainPreview = document.getElementById('mainImgPreview');
+            const mainText = document.getElementById('mainImgText');
+            const thumbsRow = document.getElementById('thumbsRow');
+            if (uploadedImages.length === 0) { mainPreview.style.display = 'none'; mainText.style.display = 'block'; } 
+            else {
+                mainText.style.display = 'none'; mainPreview.style.display = 'block';
+                const mainImgObj = uploadedImages.find(img => img.id === mainImageId);
+                mainPreview.src = mainImgObj ? mainImgObj.url : '';
+            }
+            thumbsRow.innerHTML = uploadedImages.map(img => `
+                <div class="thumb-item ${img.id === mainImageId ? 'active' : ''}" onclick="setMainImage('${img.id}')">
+                    <img src="${img.url}"><div class="thumb-remove" onclick="removeImage('${img.id}', event)">×</div>
+                </div>
+            `).join('') + `<div class="thumb-item thumb-add" onclick="document.getElementById('imgInput').click()">+</div>`;
+        }
+
+        // --- لوحة الخيارات (Variants) ---
+        let variantsList = [
+            { id: 'color', name: 'COLOR', options: [] },
+            { id: 'size', name: 'SIZE', options: [] }
+        ];
+
+        function renderVariants() {
+            const container = document.getElementById('variantsContainer');
+            container.innerHTML = variantsList.length === 0 ? '<div style="color:#aaa; text-align:center;">لا توجد لوحات.</div>' : '';
+            variantsList.forEach((panel, pIndex) => {
+                const panelDiv = document.createElement('div');
+                panelDiv.className = 'variant-panel';
+                panelDiv.innerHTML = `
+                    <div class="variant-header"><span>${panel.name}</span><span class="delete-panel" onclick="removePanel(${pIndex})">×</span></div>
+                    <div class="variant-options tags-container">
+                        ${panel.options.map((opt, oIndex) => `<div class="tag">${opt} <span onclick="removeOption(${pIndex}, ${oIndex})">×</span></div>`).join('')}
+                    </div>
+                    <input type="text" class="form-control variant-input" placeholder="إضافة ${panel.name}... (Enter)" onkeydown="addVariantOption(event, ${pIndex})">
+                `;
+                container.appendChild(panelDiv);
+            });
+        }
+
+        function addVariantOption(e, pIndex) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = e.target.value.trim().toUpperCase();
+                if (val) { variantsList[pIndex].options.push(val); e.target.value = ''; renderVariants(); }
+            }
+        }
+        function removePanel(index) { variantsList.splice(index, 1); renderVariants(); }
+        function removeOption(pIndex, oIndex) { variantsList[pIndex].options.splice(oIndex, 1); renderVariants(); }
+        function handleNewPanel(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const val = e.target.value.trim().toUpperCase();
+                if (val) { variantsList.push({ id: val.toLowerCase(), name: val, options: [] }); e.target.value = ''; renderVariants(); }
+            }
+        }
+
+        // --- التصنيفات (Cascade) ---
+        const categoryTree = [
+            { code: '01', name: 'إلكترونيات', children: [ { code: '0101', name: 'أجهزة', children: [ { code: '010101', name: 'موبايلات', children: [{ code: '01010101', name: 'آيفون', children: [] }] } ] } ] },
+            { code: '02', name: 'ملابس', children: [] }
+        ];
+        let catSelectionPath = [];
+        
+        function renderCascade() {
+            const container = document.getElementById('catCascade');
+            container.innerHTML = '';
+            for (let i = 0; i < 4; i++) {
+                const isParentSelected = i === 0 || catSelectionPath[i - 1];
+                const currentChildren = getChildrenAtLevel(i);
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'cat-level';
+                wrapper.innerHTML = `
+                    <div class="cat-level-label"><span>المستوى ${i+1}</span><span class="lvl-badge">${i+1}</span></div>
+                    <select class="form-control" ${!isParentSelected ? 'disabled' : ''} data-level="${i}">
+                        <option value="">— اختر —</option>
+                        ${currentChildren.map(c => `<option value="${c.code}">${c.code} — ${c.name}</option>`).join('')}
+                    </select>
+                `;
+                const select = wrapper.querySelector('select');
+                if (catSelectionPath[i]) select.value = catSelectionPath[i];
+                select.addEventListener('change', onCascadeChange);
+                container.appendChild(wrapper);
+            }
+        }
+
+        function getChildrenAtLevel(level) {
+            let children = categoryTree;
+            for (let i = 0; i < level; i++) {
+                const node = children.find(c => c.code === catSelectionPath[i]);
+                if (!node) return [];
+                children = node.children || [];
+            }
+            return children;
+        }
+
+        function onCascadeChange(e) {
+            const level = parseInt(e.target.dataset.level);
+            catSelectionPath = catSelectionPath.slice(0, level);
+            if (e.target.value) catSelectionPath[level] = e.target.value;
+            document.getElementById('serialCode').value = catSelectionPath[catSelectionPath.length - 1] || '';
+            renderCascade();
+        }
+
+        // --- الدول ---
+        const mockCountries = ["AFGHANISTAN", "ALBANIA", "ALGERIA", "ANDORRA", "ANGOLA", "ARGENTINA", "AUSTRALIA", "AUSTRIA", "BAHRAIN", "BANGLADESH", "BELGIUM", "BRAZIL", "CANADA", "CHINA", "DENMARK", "EGYPT", "FRANCE", "GERMANY", "INDIA", "INDONESIA", "IRAN", "IRAQ", "ISRAEL", "ITALY", "JAPAN", "JORDAN", "KUWAIT", "LEBANON", "LIBYA", "MALAYSIA", "MEXICO", "MOROCCO", "NETHERLANDS", "NEW ZEALAND", "NIGERIA", "NORWAY", "OMAN", "PAKISTAN", "PALESTINE", "PHILIPPINES", "POLAND", "PORTUGAL", "QATAR", "RUSSIA", "SAUDI ARABIA", "SINGAPORE", "SOUTH AFRICA", "SPAIN", "SWEDEN", "SWITZERLAND", "SYRIA", "TAIWAN", "THAILAND", "TUNISIA", "TURKEY", "UKRAINE", "UNITED ARAB EMIRATES", "UNITED KINGDOM", "UNITED STATES", "YEMEN"];
+        let countriesList = [], activeCountryIndex = -1;
+
+        function handleCountryInput(input) {
+            const drop = document.getElementById('countryDropdown');
+            const val = input.value.trim().toUpperCase();
+            if (!val) { drop.style.display = 'none'; return; }
+            const matches = mockCountries.filter(c => c.includes(val));
+            if (matches.length > 0) {
+                drop.innerHTML = matches.map(c => `<div class="dropdown-item" onclick="selectCountry('${c}')">${c}</div>`).join('');
+                drop.style.display = 'block'; activeCountryIndex = -1;
+            } else drop.style.display = 'none';
+        }
+
+        function handleCountryKeydown(e) {
+            const drop = document.getElementById('countryDropdown');
+            const items = drop.querySelectorAll('.dropdown-item');
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (activeCountryIndex > -1 && items[activeCountryIndex]) items[activeCountryIndex].click();
+                else if (e.target.value.trim()) selectCountry(e.target.value.trim().toUpperCase());
+            } else if (e.key === 'ArrowDown' && items.length > 0) {
+                e.preventDefault(); activeCountryIndex = (activeCountryIndex + 1) % items.length; updateActive(items, activeCountryIndex);
+            } else if (e.key === 'ArrowUp' && items.length > 0) {
+                e.preventDefault(); activeCountryIndex = (activeCountryIndex - 1 + items.length) % items.length; updateActive(items, activeCountryIndex);
+            }
+        }
+
+        function selectCountry(c) { if(!countriesList.includes(c)){countriesList.push(c); renderTags('country');} document.getElementById('countryInput').value=''; document.getElementById('countryDropdown').style.display='none'; }
+        function updateActive(items, index) { items.forEach((item, i) => { item.classList.toggle('active', i === index); if (i === index) item.scrollIntoView({ block: 'nearest' }); }); }
+        function renderTags() { document.getElementById('countriesContainer').innerHTML = countriesList.map((item, i) => `<div class="tag">${item} <span onclick="countriesList.splice(${i},1); renderTags();">×</span></div>`).join(''); }
+
+        // --- الحسابات ---
+        function calcExchange(source) {
+            if (source === 'cny') document.getElementById('sellUsd').value = ((parseFloat(document.getElementById('buyCny').value)||0) / exchangeRate * marginMultiplier).toFixed(2);
+            else document.getElementById('buyCny').value = ((parseFloat(document.getElementById('sellUsd').value)||0) * exchangeRate / marginMultiplier).toFixed(2);
+        }
+        function calcCBM() {
+            const l = parseFloat(document.getElementById('dimL').value)||0, w = parseFloat(document.getElementById('dimW').value)||0, h = parseFloat(document.getElementById('dimH').value)||0;
+            document.getElementById('cbmResult').value = ((l * w * h) / 1000000).toFixed(5);
+        }
+        function calcTotalWeight() {
+            document.getElementById('totalWeight').value = ((parseFloat(document.getElementById('prodWeight').value)||0) * (parseFloat(document.getElementById('ctnQty').value)||0)).toFixed(2);
+        }
+
+        // --- Toast ---
+        function showToast(msg, type='info') {
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.innerHTML = `<i data-lucide="${type==='success'?'check-circle':'alert-circle'}"></i> ${msg}`;
+            document.getElementById('toast-container').appendChild(t);
+            lucide.createIcons();
+            setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+        }
+
+        // --- حفظ المنتج إلى قاعدة البيانات ---
+        async function saveProductToDB() {
+            const name = document.getElementById('prodName').value;
+            if (!name) { showToast('أدخل اسم المنتج', 'error'); return; }
+            if (catSelectionPath.length === 0) { showToast('اختر التصنيف', 'error'); return; }
+
+            const payload = {
+                name: name,
+                images: uploadedImages.map(img => img.url), // ملاحظة: في الإنتاج، يجب رفع الصور إلى Cloudinary أولاً
+                category: catSelectionPath.join(''),
+                variants: variantsList,
+                barcode: document.getElementById('factoryBarcode').value,
+                buy_price_cny: document.getElementById('buyCny').value,
+                sell_price_usd: document.getElementById('sellUsd').value,
+                length: document.getElementById('dimL').value,
+                width: document.getElementById('dimW').value,
+                height: document.getElementById('dimH').value,
+                weight: document.getElementById('prodWeight').value,
+                cbm: document.getElementById('cbmResult').value,
+                ctn_qty: document.getElementById('ctnQty').value,
+                total_weight: document.getElementById('totalWeight').value,
+                countries: countriesList
+            };
+
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/products/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حفظ المنتج بنجاح!', 'success');
+                    setTimeout(() => window.location.href = 'products-list.html', 1500); // العودة للقائمة لاحقاً
+                } else {
+                    showToast('فشل الحفظ: ' + data.error, 'error');
+                }
+            } catch(e) {
+                showToast('خطأ في الاتصال', 'error');
+            }
+        }
+
+        // --- التشغيل الأولي ---
+        renderCascade();
+        renderVariants();
+        renderImages();
+        playEntranceAnimation();
+
+    </script>
+</body>
+</html>
