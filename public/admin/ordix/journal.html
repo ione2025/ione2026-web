@@ -126,7 +126,46 @@
                 if (data.success) {
                     allJournal = data.journal || [];
                     allAccounts = data.accounts || [];
-                    renderJournal();
+                            function renderJournal() {
+            const container = document.getElementById('journalContainer');
+            if (allJournal.length === 0) {
+                container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-secondary);">لا توجد قيود بعد.</div>`;
+                return;
+            }
+
+            let html = '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>البيان</th><th>مدين (Dr)</th><th>دائن (Cr)</th><th>المبلغ</th><th>إجراء</th></tr></thead><tbody>';
+            
+            allJournal.forEach(entry => {
+                const date = new Date(entry.date).toLocaleDateString('ar-EG');
+                const rowCount = entry.debits.length + entry.credits.length;
+
+                entry.debits.forEach((dr, i) => {
+                    html += `<tr>`;
+                    if (i === 0) {
+                        html += `<td rowspan="${rowCount}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
+                        html += `<td rowspan="${rowCount}">${entry.description}</td>`;
+                    }
+                    // التحقق من وجود الاسم
+                    const drName = dr.account_name || dr.account || 'حساب غير معروف';
+                    html += `<td class="dr">${drName}</td><td></td><td class="dr">${parseFloat(dr.amount || 0).toLocaleString()}</td>`;
+                    if (i === 0) {
+                        html += `<td rowspan="${rowCount}">
+                            <button class="btn-danger" onclick="deleteEntry('${entry.entry_id}')">حذف القيد</button>
+                        </td>`;
+                    }
+                    html += `</tr>`;
+                });
+
+                entry.credits.forEach((cr, i) => {
+                    html += `<tr>`;
+                    const crName = cr.account_name || cr.account || 'حساب غير معروف';
+                    html += `<td></td><td class="cr">${crName}</td><td class="cr">${parseFloat(cr.amount || 0).toLocaleString()}</td></tr>`;
+                });
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }();
                     populateSelects();
                 } else {
                     showToast(data.error || 'فشل تحميل البيانات', 'error');
