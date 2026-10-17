@@ -10,23 +10,32 @@
     <link rel="stylesheet" href="admin.css">
     <style>
         :root {
-            --bg-main: #030305;
-            --glass-bg: rgba(255, 255, 255, 0.03);
+            --bg-main: #020205;
+            --glass-bg: rgba(255, 255, 255, 0.02);
             --glass-border: rgba(255, 255, 255, 0.08);
         }
         
         body {
             margin: 0; padding: 0; box-sizing: border-box;
             background-color: var(--bg-main);
-            background-image: 
-                radial-gradient(circle at 10% 0%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 90% 100%, rgba(255, 0, 128, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
             font-family: 'Cairo', sans-serif;
             color: #fff;
             height: 100vh;
             overflow: hidden;
             display: flex; flex-direction: column;
+        }
+
+        /* 🌟 حركة الخلفية (Animation) */
+        .bg-animation {
+            position: fixed; inset: 0; z-index: -1;
+            background: linear-gradient(45deg, #020205, #0a0a15, #150520, #020205);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .top-bar {
@@ -44,22 +53,18 @@
             text-shadow: 0 0 20px rgba(255,255,255,0.2);
         }
 
-        /* شبكة Bento المخصصة */
         .bento-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-auto-rows: minmax(100px, 1fr);
             gap: 16px; flex: 1; overflow-y: auto;
-            padding-bottom: 10px;
         }
 
-        /* أحجام الكروت */
         .card-large { grid-column: span 2; grid-row: span 2; }
         .card-wide { grid-column: span 2; grid-row: span 1; }
         .card-tall { grid-column: span 1; grid-row: span 2; }
         .card-small { grid-column: span 1; grid-row: span 1; }
 
-        /* التصميم الزجاجي */
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(24px);
@@ -84,23 +89,19 @@
         .card-icon-wrap {
             width: 48px; height: 48px; border-radius: 12px;
             display: flex; justify-content: center; align-items: center;
-            margin-bottom: auto; /* يدفع النص للأسفل */
+            margin-bottom: auto;
             background: rgba(255,255,255,0.05);
         }
 
         .card i {
             font-size: 1.8rem;
-            filter: drop-shadow(0 0 10px currentColor);
+            filter: drop-shadow(0 0 12px currentColor); /* 💡 إضاءة أقوى للأيقونة */
         }
         
-        .card-title {
-            font-size: 1.2rem; font-weight: 800; margin: 0;
-        }
-        .card-subtitle {
-            font-size: 0.85rem; color: rgba(255,255,255,0.5); font-weight: 500; margin-top: 4px;
-        }
+        .card-title { font-size: 1.2rem; font-weight: 800; margin: 0; }
+        .card-subtitle { font-size: 0.85rem; color: rgba(255,255,255,0.5); font-weight: 500; margin-top: 4px; }
 
-        /* ألوان مخصصة */
+        /* 🎨 الألوان المحسنة (نيون) */
         .card[data-id="orders"] i { color: #00F0FF; }
         .card[data-id="banks"] i { color: #34C759; }
         .card[data-id="vouchers"] i { color: #FF3B30; }
@@ -118,13 +119,17 @@
             backdrop-filter: blur(10px); transition: 0.2s; font-weight: 700; font-size: 0.9rem;
         }
         .btn:hover { background: rgba(255,255,255,0.1); }
-        
         .sortable-ghost { opacity: 0.3; border: 2px dashed #00F0FF; }
     </style>
 </head>
 <body>
+    <!-- حركة الخلفية -->
+    <div class="bg-animation"></div>
+
     <div class="top-bar">
-        <div style="font-size: 1.5rem; font-weight: 800;">IONE<span style="color:#E31E24">+</span></div>
+        <!-- 🖼️ الشعار الأصلي عاد -->
+        <a href="../dashboard.html"><img src="../../assets/logo.png" alt="IONE CENTER" style="height: 45px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));"></a>
+        
         <div style="display: flex; gap: 12px;">
             <button class="btn" onclick="saveLayout()">حفظ الترتيب</button>
             <button class="btn" onclick="logout()">خروج</button>
@@ -133,13 +138,11 @@
 
     <div class="dashboard-container">
         <h1 class="page-title">مرحباً، خليل 👋</h1>
-        <!-- شبكة Bento -->
         <div class="bento-grid" id="bentoGrid"></div>
     </div>
 
     <script src="admin.js"></script>
     <script>
-        // تعريف الكروت مع أحجامها المخصصة (Bento Sizes)
         const defaultCards = [
             { id: 'orders', title: 'الطلبات', subtitle: 'إدارة طلبات العملاء', icon: 'shopping-bag', link: 'ordix/orders.html', size: 'card-large' },
             { id: 'banks', title: 'الصناديق', subtitle: 'الأرصدة والبنوك', icon: 'landmark', link: 'ordix/banks.html', size: 'card-small' },
@@ -172,7 +175,7 @@
             savedLayout.forEach(card => {
                 const a = document.createElement('a');
                 a.href = card.link;
-                a.className = `card ${card.size}`; // إضافة كلاس الحجم
+                a.className = `card ${card.size}`;
                 a.dataset.id = card.id;
                 a.innerHTML = `
                     <div class="card-icon-wrap"><i data-lucide="${card.icon}"></i></div>
