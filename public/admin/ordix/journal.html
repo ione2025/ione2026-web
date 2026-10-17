@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — دفتر اليوميات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--bg-secondary); padding: 14px; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+        td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        tr:hover { background: var(--bg-card-hover); }
+        .dr { color: #FF9F0A; font-weight: 700; }
+        .cr { color: #34C759; font-weight: 700; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); outline: none; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .btn-primary { background: #E31E24; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+        
+        .entry-card { margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; padding: 16px; background: var(--bg-secondary); }
+        .entry-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: 700; color: var(--text-primary); }
+        .entry-lines { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;"><img src="../../assets/logo.png" alt="IONE CENTER"></a>
+        </div>
+        <div class="top-bar-user">
+            <button class="logout-btn" onclick="openModal()" style="border: none; cursor: pointer; background: #E31E24; color: white;">
+                <i data-lucide="plus"></i> قيد جديد
+            </button>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📒 دفتر اليوميات (General Journal)</h1>
+                <p class="page-subtitle">القيود المحاسبية المزدوجة</p>
+            </div>
+            <button class="logout-btn" onclick="loadJournal()" style="border: none; cursor: pointer; padding: 10px;">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+
+        <div id="journalContainer"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="journalModal">
+        <div class="modal-box">
+            <div class="modal-header" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h2 class="modal-title">تسجيل قيد جديد</h2>
+                <button class="modal-close" onclick="closeModal()" style="background: none; border: none; cursor: pointer; color: white;"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="journalForm" onsubmit="saveEntry(event)">
+                <div class="form-group">
+                    <label>التاريخ *</label>
+                    <input type="date" id="jnlDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>البيان / الوصف *</label>
+                    <input type="text" id="jnlDesc" class="form-control" placeholder="مثال: شراء زيت للمصنع..." required>
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; display: block;">الحساب المدين (Debit)</label>
+                    <div class="form-row">
+                        <input type="text" id="drName" class="form-control" placeholder="اسم الحساب (مثال: مصروف زيت)" required>
+                        <input type="number" id="drAmount" class="form-control" placeholder="المبلغ" step="0.01" required>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; display: block;">الحساب الدائن (Credit)</label>
+                    <div class="form-row">
+                        <input type="text" id="crName" class="form-control" placeholder="اسم الحساب (مثال: HSBC USD)" required>
+                        <input type="number" id="crAmount" class="form-control" placeholder="المبلغ" step="0.01" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; margin-top: 10px;">حفظ القيد</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        let allJournal = [];
+
+        async function loadJournal() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/journal/list', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    allJournal = data.journal;
+                    renderJournal();
+                }
+            } catch (err) {
+                showToast('فشل تحميل البيانات', 'error');
+            }
+        }
+
+        function renderJournal() {
+            const container = document.getElementById('journalContainer');
+            if (allJournal.length === 0) {
+                container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-secondary);">لا توجد قيود بعد.</div>`;
+                return;
+            }
+
+            let html = '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>البيان</th><th>مدين (Dr)</th><th>دائن (Cr)</th><th>المبلغ</th></tr></thead><tbody>';
+            
+            allJournal.forEach(entry => {
+                const date = new Date(entry.date).toLocaleDateString('ar-EG');
+                
+                entry.debits.forEach((dr, i) => {
+                    html += `<tr>`;
+                    if (i === 0) {
+                        html += `<td rowspan="${entry.debits.length}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
+                        html += `<td rowspan="${entry.debits.length}">${entry.description}</td>`;
+                    }
+                    html += `<td class="dr">${dr.account}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td></tr>`;
+                });
+
+                entry.credits.forEach((cr, i) => {
+                    html += `<tr>`;
+                    html += `<td></td><td class="cr">${cr.account}</td><td class="cr">${cr.amount.toLocaleString()}</td></tr>`;
+                });
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function openModal() {
+            document.getElementById('journalForm').reset();
+            document.getElementById('jnlDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('journalModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('journalModal').classList.remove('active');
+        }
+
+        async function saveEntry(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('ione_admin_token');
+            
+            const drName = document.getElementById('drName').value;
+            const drAmount = parseFloat(document.getElementById('drAmount').value);
+            const crName = document.getElementById('crName').value;
+            const crAmount = parseFloat(document.getElementById('crAmount').value);
+
+            if (drAmount !== crAmount) {
+                showToast('يجب أن يكون المدين مساوياً للدائن', 'error');
+                return;
+            }
+
+            const payload = {
+                date: document.getElementById('jnlDate').value,
+                description: document.getElementById('jnlDesc').value,
+                debits: [{ account: drName, amount: drAmount }],
+                credits: [{ account: crName, amount: crAmount }]
+            };
+
+            try {
+                const res = await fetch('/api/journal/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم تسجيل القيد بنجاح', 'success');
+                    closeModal();
+                    loadJournal();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast('فشل: ' + err.message, 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadJournal();
+        });
+    </script>
+</body>
+</html>
