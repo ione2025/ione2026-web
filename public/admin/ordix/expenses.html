@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — المصروفات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .stats-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat-chip { padding: 12px 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .stat-chip strong { color: var(--text-primary); font-size: 1.1rem; }
+        .stat-chip.currency-USD strong { color: #34C759; }
+        .stat-chip.currency-CNY strong { color: #FF3B30; }
+        .stat-chip.currency-ILS strong { color: #00bcd4; }
+        
+        .grid-large { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        @media (max-width: 1200px) { .grid-large { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .grid-large { grid-template-columns: 1fr; } }
+        
+        .box-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; transition: 0.2s; }
+        .box-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+        .box-card.type-expense { background: linear-gradient(135deg, rgba(255,59,48,0.1), rgba(255,59,48,0.02)); }
+        
+        .currency-stripe { position: absolute; top: 0; right: 0; bottom: 0; width: 4px; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+        .currency-stripe.USD { background: #34C759; }
+        .currency-stripe.CNY { background: #FF3B30; }
+        .currency-stripe.ILS { background: #00bcd4; }
+        .currency-stripe.OTHER { background: #8E8E93; }
+
+        .box-name { font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .box-balance { font-size: 1.8rem; font-weight: 800; color: #FF3B30; direction: ltr; text-align: right; margin-bottom: 4px; }
+        .box-currency { font-size: 0.9rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 12px; }
+        .box-details { font-size: 0.8rem; color: var(--text-secondary); display: flex; justify-content: space-between; border-top: 1px dashed var(--border); padding-top: 8px; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 480px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 1.4rem; font-weight: 800; }
+        .modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); outline: none; }
+        .form-control:focus { border-color: var(--ione-red); }
+        .btn-submit { width: 100%; padding: 14px; background: #FF3B30; color: white; border: none; border-radius: var(--radius-md); font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .btn-submit:hover { background: #d32f2f; }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;"><img src="../../assets/logo.png" alt="IONE CENTER"></a>
+        </div>
+        <div class="top-bar-user">
+            <button class="logout-btn" onclick="openModal()" style="border: none; cursor: pointer; background: #FF3B30; color: white;">
+                <i data-lucide="plus"></i> مصروف جديد
+            </button>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">📉 صناديق المصروفات</h1>
+                <p class="page-subtitle">إدارة مصاريف التشغيل (إيجار، رواتب، زيت، إلخ...)</p>
+            </div>
+            <button class="logout-btn" onclick="loadExpenses()" style="border: none; cursor: pointer; padding: 10px;">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+
+        <div class="stats-row" id="statsRow"></div>
+        
+        <div class="grid-large" id="grid1"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">صندوق مصروفات جديد</h2>
+                <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="expenseForm" onsubmit="saveExpense(event)">
+                <div class="form-group">
+                    <label>اسم المصروف *</label>
+                    <input type="text" id="expName" class="form-control" placeholder="مثال: Oil, Rent, Salaries..." required>
+                </div>
+                
+                <div class="form-group">
+                    <label>العملة *</label>
+                    <input type="text" id="expCurrency" class="form-control" placeholder="USD, ILS, CNY..." required style="text-transform: uppercase;">
+                </div>
+
+                <div class="form-group">
+                    <label>الرصيد الافتتاحي (المصروف)</label>
+                    <input type="number" id="expOpenBalance" class="form-control" step="0.01" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>ملاحظات</label>
+                    <input type="text" id="expNotes" class="form-control" placeholder="اختياري...">
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">حفظ المصروف</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        let allExpenses = [];
+
+        async function loadExpenses() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/expenses/list', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    allExpenses = data.expenses;
+                    renderStats(data.stats);
+                    renderGrid();
+                }
+            } catch (err) {
+                showToast('فشل تحميل البيانات', 'error');
+            }
+        }
+
+        function renderStats(stats) {
+            const row = document.getElementById('statsRow');
+            let html = `<div class="stat-chip"><i data-lucide="receipt"></i> إجمالي البنود <strong>${stats.total}</strong></div>`;
+            
+            for (const [curr, amount] of Object.entries(stats.by_currency)) {
+                if (amount !== 0) {
+                    html += `<div class="stat-chip currency-${curr}">
+                        ${curr} <strong>${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</strong>
+                    </div>`;
+                }
+            }
+            row.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('grid1');
+            grid.innerHTML = '';
+
+            if (allExpenses.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: var(--text-secondary);">لا توجد صناديق مصروفات. أضف واحداً جديداً.</div>`;
+                return;
+            }
+
+            allExpenses.forEach(exp => {
+                const div = document.createElement('div');
+                div.className = `box-card type-expense`;
+                const stripeClass = ['USD','CNY','ILS','EUR'].includes(exp.currency) ? exp.currency : 'OTHER';
+                const balance = parseFloat(exp.balance) || 0;
+
+                div.innerHTML = `
+                    <div class="currency-stripe ${stripeClass}"></div>
+                    <div class="box-name"><i data-lucide="trending-down"></i> ${exp.name}</div>
+                    <div class="box-balance">${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+                    <div class="box-currency">${exp.currency}</div>
+                    <div class="box-details">
+                        <span>افتتاحي: ${exp.open_balance.toLocaleString('en-US')}</span>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+
+            lucide.createIcons();
+        }
+
+        function openModal() {
+            document.getElementById('expenseForm').reset();
+            document.getElementById('expenseModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('expenseModal').classList.remove('active');
+        }
+
+        async function saveExpense(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('ione_admin_token');
+            const btn = document.getElementById('submitBtn');
+            
+            const payload = {
+                name: document.getElementById('expName').value,
+                currency: document.getElementById('expCurrency').value,
+                open_balance: document.getElementById('expOpenBalance').value,
+                notes: document.getElementById('expNotes').value
+            };
+
+            btn.disabled = true;
+            btn.textContent = 'جاري الحفظ...';
+
+            try {
+                const res = await fetch('/api/expenses/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم الإنشاء بنجاح', 'success');
+                    closeModal();
+                    loadExpenses();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast('فشل: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'حفظ المصروف';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadExpenses();
+        });
+    </script>
+</body>
+</html>
