@@ -8,8 +8,13 @@ export async function onRequest(context) {
         const listRaw = await env.IONE_KV.get('customers:list');
         const list = listRaw ? JSON.parse(listRaw) : [];
         
+        // 🔢 توليد كود العميل تلقائياً (CUST-XXXX)
+        const randomCode = Math.floor(1000 + Math.random() * 9000);
+        const customerCode = `CUST-${randomCode}`;
+
         const customer = {
             id: 'cust_' + Date.now(),
+            customer_code: customerCode, // الكود التلقائي
             name: body.name,
             company: body.company || '',
             contact: body.contact || '',
@@ -19,8 +24,8 @@ export async function onRequest(context) {
             address: body.address || '',
             shipping_address: body.shipping_address || '',
             business_scope: body.business_scope || '',
-            country: body.country || 'US', // الكود الدولي مثل US, PS, JO
-            type: body.type || 'offline', // online أو offline
+            country: body.country || 'US',
+            type: body.type || 'offline',
             orders_count: 0,
             total_purchases: 0,
             image_url: body.image_url || '',
