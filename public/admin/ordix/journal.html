@@ -13,7 +13,7 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: var(--bg-secondary); padding: 14px; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
         td { padding: 14px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        tr:hover { background: var(--bg-card-hover); cursor: pointer; }
+        tr:hover { background: var(--bg-card-hover); }
         .dr { color: #FF9F0A; font-weight: 700; }
         .cr { color: #34C759; font-weight: 700; }
         
@@ -26,6 +26,7 @@
         .form-control { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); outline: none; }
         .form-row { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
         .btn-primary { background: #E31E24; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; cursor: pointer; width: 100%; font-size: 1rem; }
+        .btn-danger { background: #FF3B30; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 700; }
     </style>
 </head>
 <body class="dashboard-page">
@@ -49,6 +50,9 @@
                 <h1 class="page-title">📒 دفتر اليوميات (General Journal)</h1>
                 <p class="page-subtitle">القيود المحاسبية وخصم الأرصدة التلقائي</p>
             </div>
+            <button class="logout-btn" onclick="loadJournal()" style="border: none; cursor: pointer; padding: 10px;">
+                <i data-lucide="refresh-cw"></i>
+            </button>
         </div>
 
         <div id="journalContainer">
@@ -103,20 +107,13 @@
         let allJournal = [];
         let allAccounts = [];
 
-        // دالة التهيئة المحصنة ضد أخطاء الإضافات الخارجية
         function init() {
             try {
                 if (window.lucide) lucide.createIcons();
                 loadJournal();
-            } catch(e) {
-                console.error('Init Error:', e);
-            }
+            } catch(e) { console.error('Init Error:', e); }
         }
-
-        // تشغيل التهيئة بعد تحميل الصفحة بالكامل
-        window.addEventListener('load', () => {
-            setTimeout(init, 100);
-        });
+        window.addEventListener('load', () => setTimeout(init, 100));
 
         async function loadJournal() {
             try {
@@ -160,22 +157,29 @@
                 return;
             }
 
-            let html = '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>البيان</th><th>مدين (Dr)</th><th>دائن (Cr)</th><th>المبلغ</th></tr></thead><tbody>';
+            let html = '<div class="table-wrap"><table><thead><tr><th>التاريخ</th><th>البيان</th><th>مدين (Dr)</th><th>دائن (Cr)</th><th>المبلغ</th><th>إجراء</th></tr></thead><tbody>';
             
             allJournal.forEach(entry => {
                 const date = new Date(entry.date).toLocaleDateString('ar-EG');
-                
+                const rowCount = entry.debits.length + entry.credits.length;
+
                 entry.debits.forEach((dr, i) => {
-                    html += `<tr onclick="viewEntry('${entry.entry_id}')">`;
+                    html += `<tr>`;
                     if (i === 0) {
-                        html += `<td rowspan="${entry.debits.length}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
-                        html += `<td rowspan="${entry.debits.length}">${entry.description}</td>`;
+                        html += `<td rowspan="${rowCount}">${date} <br><small style="color:var(--text-secondary)">${entry.entry_code}</small></td>`;
+                        html += `<td rowspan="${rowCount}">${entry.description}</td>`;
                     }
-                    html += `<td class="dr">${dr.account_name}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td></tr>`;
+                    html += `<td class="dr">${dr.account_name}</td><td></td><td class="dr">${dr.amount.toLocaleString()}</td>`;
+                    if (i === 0) {
+                        html += `<td rowspan="${rowCount}">
+                            <button class="btn-danger" onclick="deleteEntry('${entry.entry_id}')">حذف القيد</button>
+                        </td>`;
+                    }
+                    html += `</tr>`;
                 });
 
                 entry.credits.forEach((cr, i) => {
-                    html += `<tr onclick="viewEntry('${entry.entry_id}')">`;
+                    html += `<tr>`;
                     html += `<td></td><td class="cr">${cr.account_name}</td><td class="cr">${cr.amount.toLocaleString()}</td></tr>`;
                 });
             });
@@ -241,9 +245,26 @@
             }
         }
 
-        // فتح تفاصيل القيد (سيتم إضافتها في المرحلة القادمة)
-        function viewEntry(id) {
-            showToast('عرض التفاصيل قيد التطوير', 'info');
+        async function deleteEntry(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا القيد؟ سيتم إرجاع الأرصدة للصناديق.')) return;
+            
+            const token = localStorage.getItem('ione_admin_token');
+            try {
+                const res = await fetch('/api/journal/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ entry_id: id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حذف القيد وإرجاع الأرصدة', 'success');
+                    loadJournal();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast('فشل الحذف: ' + err.message, 'error');
+            }
         }
     </script>
 </body>
