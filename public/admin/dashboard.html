@@ -9,43 +9,118 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link rel="stylesheet" href="admin.css">
     <style>
-        body { margin: 0; padding: 0; background: var(--bg-primary); font-family: 'Cairo', sans-serif; }
-        .top-bar { height: 70px; background: var(--bg-card); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
-        .dashboard-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-        .page-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 24px; color: var(--text-primary); }
+        /* الألوان الأساسية المستوحاة من الصور */
+        :root {
+            --bg-main: #050505;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #ffffff;
+        }
         
-        /* شبكة مرنة (Flex) تسمح بالالتفاف وتتجنب الشاشات الضخمة */
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-main);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 255, 255, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 255, 0.05) 0%, transparent 40%);
+            font-family: 'Cairo', sans-serif;
+            color: var(--text-main);
+            height: 100vh; overflow: hidden; /* منع التمرير */
+            display: flex; flex-direction: column;
+        }
+
+        .top-bar {
+            height: 60px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px; background: transparent;
+        }
+        
+        .dashboard-container {
+            flex: 1; padding: 10px 30px 30px 30px;
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .page-title {
+            font-size: 1.5rem; font-weight: 800; margin-bottom: 15px;
+            color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        /* شبكة الكروت */
         .cards-grid {
-            display: flex; flex-wrap: wrap; gap: 16px; justify-content: center;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-auto-rows: minmax(120px, 1fr);
+            gap: 15px; flex: 1; align-content: start;
         }
-        
-        /* كرت بحجم ثابت ومريح */
+
+        /* الكرت الزجاجي المضيء */
         .card {
-            width: 160px; height: 140px;
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 16px; padding: 16px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 20px;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            text-decoration: none; color: var(--text-primary); cursor: grab;
-            transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-decoration: none; color: var(--text-main); cursor: grab;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
-        .card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--ione-red); }
-        .card i { font-size: 2rem; color: var(--ione-red); margin-bottom: 12px; }
-        .card h3 { font-size: 0.95rem; font-weight: 700; margin: 0; text-align: center; }
+
+        /* تأثير التوهج عند المرور */
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 24px; opacity: 0; transition: opacity 0.3s;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255,255,255,0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+        .card:hover::before { opacity: 1; }
+        .card:active { cursor: grabbing; }
+
+        .card i {
+            font-size: 2.5rem; margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px currentColor); /* توهج للأيقونة */
+        }
+        .card h3 { font-size: 1rem; font-weight: 700; margin: 0; letter-spacing: 0.5px; }
+
+        /* ألوان مخصصة لكل كرت (مستوحاة من الصور) */
+        .card[data-id="orders"] i { color: #00F0FF; }       /* سيان */
+        .card[data-id="banks"] i { color: #34C759; }        /* أخضر */
+        .card[data-id="vouchers"] i { color: #FF3B30; }     /* أحمر */
+        .card[data-id="journal"] i { color: #FF9F0A; }      /* برتقالي */
+        .card[data-id="expenses"] i { color: #FF007F; }     /* وردي */
+        .card[data-id="suppliers"] i { color: #8B5CF6; }    /* بنفسجي */
+        .card[data-id="customers"] i { color: #10B981; }    /* زمردي */
+        .card[data-id="reports"] i { color: #F59E0B; }      /* ذهبي */
+        .card[data-id="status"] i { color: #6366F1; }       /* نيلي */
+        .card[data-id="users"] i { color: #EC4899; }        /* وردي فاتح */
 
         /* تأثير السحب */
-        .sortable-ghost { opacity: 0.4; background: var(--bg-secondary); border: 1px dashed var(--ione-red); }
+        .sortable-ghost {
+            opacity: 0.3; background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.5);
+        }
+        
+        /* أزرار أعلى الصفحة */
+        .btn {
+            padding: 8px 16px; border-radius: 12px; border: 1px solid var(--glass-border);
+            background: var(--glass-bg); color: white; cursor: pointer; font-family: inherit;
+            backdrop-filter: blur(10px); transition: 0.2s;
+        }
+        .btn:hover { background: rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
     <div class="top-bar">
-        <div style="font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">IONE<span style="color:var(--ione-red)">+</span></div>
+        <div style="font-size: 1.4rem; font-weight: 800; text-shadow: 0 0 10px rgba(255,255,255,0.3);">IONE<span style="color:#E31E24">+</span></div>
         <div style="display: flex; gap: 10px;">
-            <button onclick="saveLayout()" style="padding: 8px 16px; background: #34C759; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit;">
-                حفظ الترتيب
-            </button>
-            <button onclick="logout()" style="padding: 8px 16px; background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit;">
-                خروج
-            </button>
+            <button class="btn" onclick="saveLayout()">حفظ الترتيب</button>
+            <button class="btn" onclick="logout()">خروج</button>
         </div>
     </div>
 
@@ -99,7 +174,7 @@
 
         function initSortable() {
             new Sortable(document.getElementById('cardsGrid'), {
-                animation: 150, ghostClass: 'sortable-ghost',
+                animation: 200, ghostClass: 'sortable-ghost',
                 onEnd: function() {
                     const newOrder = [];
                     document.querySelectorAll('.card').forEach(el => {
