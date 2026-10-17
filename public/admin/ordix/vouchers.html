@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>IONECENTER — السندات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="icon" type="image/png" href="../../assets/logo.png">
+    <link rel="stylesheet" href="../admin.css">
+    <link rel="stylesheet" href="../_assets/dashboard.css">
+    <style>
+        .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .search-box { flex: 1; min-width: 250px; position: relative; }
+        .search-box input { width: 100%; padding: 12px 16px 12px 44px; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; }
+        .search-box svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--text-secondary); }
+        .filter-select { padding: 12px 16px; background: var(--bg-card); border: 1.5px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; cursor: pointer; outline: none; }
+        
+        .btn-primary { background: #E31E24; color: white; border: none; padding: 12px 24px; border-radius: var(--radius-md); font-weight: 700; cursor: pointer; font-family: inherit; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px;}
+        .btn-primary:hover { background: #d32f2f; transform: translateY(-1px); }
+
+        .table-wrap { background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--bg-secondary); padding: 14px 16px; text-align: right; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); white-space: nowrap; }
+        td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 0.9rem; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: var(--bg-card-hover); }
+
+        .vch-code { font-family: 'Courier New', monospace; font-weight: 700; font-size: 0.85rem; direction: ltr; text-align: right; }
+        .vch-code.in { color: #34C759; }
+        .vch-code.out { color: #FF3B30; }
+        .vch-code.transfer { color: #0071e3; }
+
+        .amount-cell { font-weight: 800; font-size: 1rem; }
+        .amount-cell.in { color: #34C759; }
+        .amount-cell.out { color: #FF3B30; }
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 500px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-title { font-size: 1.4rem; font-weight: 800; color: var(--text-primary); }
+        .modal-close { background: none; border: none; color: var(--text-secondary); cursor: pointer; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; }
+        .form-control:focus { border-color: var(--ione-red); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        
+        .type-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+        .type-tab { flex: 1; padding: 10px; text-align: center; border-radius: 8px; background: var(--bg-secondary); border: 1px solid var(--border); cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .type-tab.active[data-type="receipt"] { background: rgba(52,199,89,0.15); border-color: #34C759; color: #34C759; }
+        .type-tab.active[data-type="payment"] { background: rgba(255,59,48,0.15); border-color: #FF3B30; color: #FF3B30; }
+        .type-tab.active[data-type="transfer"] { background: rgba(0,113,227,0.15); border-color: #0071e3; color: #0071e3; }
+    </style>
+</head>
+<body class="dashboard-page">
+    
+    <div class="top-bar">
+        <div class="top-bar-logo">
+            <a href="../dashboard.html" style="text-decoration: none;"><img src="../../assets/logo.png" alt="IONE CENTER"></a>
+        </div>
+        <div class="top-bar-user">
+            <button class="logout-btn" onclick="openModal()" style="border: none; cursor: pointer; background: #E31E24; color: white;">
+                <i data-lucide="plus"></i> سند جديد
+            </button>
+            <a href="../dashboard.html" class="logout-btn" style="text-decoration: none;">
+                <i data-lucide="arrow-right"></i> رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">🧾 السندات (قبض / صرف / تحويل)</h1>
+                <p class="page-subtitle">إدارة الحركات المالية بين الصناديق</p>
+            </div>
+            <button class="btn-primary" onclick="loadVouchers()" style="padding: 10px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);">
+                <i data-lucide="refresh-cw"></i>
+            </button>
+        </div>
+
+        <div class="toolbar">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" placeholder="ابحث برقم السند أو اسم الصندوق...">
+            </div>
+            <select class="filter-select" id="typeFilter">
+                <option value="all">كل السندات</option>
+                <option value="receipt">سند قبض (In)</option>
+                <option value="payment">سند صرف (Out)</option>
+                <option value="transfer">سند تحويل</option>
+            </select>
+        </div>
+
+        <div id="vouchersContainer" class="table-wrap">
+            <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                <div class="spinner" style="margin: 0 auto 12px;"></div>
+                <p>جاري التحميل...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="voucherModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2 class="modal-title">إنشاء سند جديد</h2>
+                <button class="modal-close" onclick="closeModal()"><i data-lucide="x"></i></button>
+            </div>
+            
+            <form id="voucherForm" onsubmit="saveVoucher(event)">
+                <div class="type-tabs">
+                    <div class="type-tab active" data-type="receipt" onclick="setType('receipt')">🟢 قبض (In)</div>
+                    <div class="type-tab" data-type="payment" onclick="setType('payment')">🔴 صرف (Out)</div>
+                    <div class="type-tab" data-type="transfer" onclick="setType('transfer')">🔵 تحويل</div>
+                </div>
+                <input type="hidden" id="vchType" value="receipt">
+
+                <div class="form-group" id="fromBoxGroup" style="display: none;">
+                    <label>من صندوق (المصدر)</label>
+                    <select id="vchFromBox" class="form-control"></select>
+                </div>
+
+                <div class="form-group" id="toBoxGroup">
+                    <label>إلى صندوق (الوجهة)</label>
+                    <select id="vchToBox" class="form-control"></select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>المبلغ *</label>
+                        <input type="number" id="vchAmount" class="form-control" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group" id="exchangeGroup" style="display: none;">
+                        <label>سعر الصرف</label>
+                        <input type="number" id="vchExchange" class="form-control" step="0.01" value="1">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>التاريخ</label>
+                    <input type="date" id="vchDate" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label>ملاحظات / البيان</label>
+                    <input type="text" id="vchNotes" class="form-control" placeholder="مثال: دفعة من العميل أحمد...">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">حفظ السند</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../admin.js"></script>
+    <script>
+        let allBanks = [];
+        let allVouchers = [];
+
+        async function loadBanksForSelect() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/banks/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    allBanks = data.banks;
+                    renderBankOptions();
+                }
+            } catch(e) {}
+        }
+
+        function renderBankOptions() {
+            const fromSel = document.getElementById('vchFromBox');
+            const toSel = document.getElementById('vchToBox');
+            let opts = '';
+            allBanks.forEach(b => {
+                opts += `<option value="${b.box_id}">${b.name} (${b.balance} ${b.currency})</option>`;
+            });
+            fromSel.innerHTML = opts;
+            toSel.innerHTML = opts;
+        }
+
+        async function loadVouchers() {
+            try {
+                const token = localStorage.getItem('ione_admin_token');
+                const res = await fetch('/api/vouchers/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    allVouchers = data.vouchers;
+                    renderVouchers(allVouchers);
+                }
+            } catch(e) { showToast('فشل التحميل', 'error'); }
+        }
+
+        function renderVouchers(list) {
+            const container = document.getElementById('vouchersContainer');
+            if (list.length === 0) {
+                container.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-secondary);">لا توجد سندات بعد.</div>`;
+                return;
+            }
+            
+            let html = `<table><thead><tr>
+                <th>رقم السند</th><th>النوع</th><th>من</th><th>إلى</th><th>المبلغ</th><th>التاريخ</th><th>إجراء</th>
+            </tr></thead><tbody>`;
+
+            list.forEach(v => {
+                let typeText = v.type === 'receipt' ? 'قبض' : (v.type === 'payment' ? 'صرف' : 'تحويل');
+                let colorClass = v.type === 'receipt' ? 'in' : (v.type === 'payment' ? 'out' : 'transfer');
+                let sign = v.type === 'receipt' ? '+' : (v.type === 'payment' ? '-' : '⇄');
+                
+                html += `<tr>
+                    <td><span class="vch-code ${colorClass}">${v.voucher_code}</span></td>
+                    <td>${typeText}</td>
+                    <td>${v.from_box_name || '—'}</td>
+                    <td>${v.to_box_name || '—'}</td>
+                    <td><span class="amount-cell ${colorClass}">${sign} ${v.amount.toLocaleString()} ${v.currency}</span></td>
+                    <td>${v.date}</td>
+                    <td><button class="btn-primary" style="padding: 4px 8px; font-size: 0.8rem; background: #FF3B30;" onclick="deleteVoucher('${v.voucher_id}')">إلغاء</button></td>
+                </tr>`;
+            });
+
+            html += `</tbody></table>`;
+            container.innerHTML = html;
+        }
+
+        function setType(type) {
+            document.getElementById('vchType').value = type;
+            document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.type-tab[data-type="${type}"]`).classList.add('active');
+            
+            const fromGroup = document.getElementById('fromBoxGroup');
+            const toGroup = document.getElementById('toBoxGroup');
+            const exchGroup = document.getElementById('exchangeGroup');
+
+            if (type === 'receipt') {
+                fromGroup.style.display = 'none';
+                toGroup.style.display = 'block';
+                exchGroup.style.display = 'none';
+            } else if (type === 'payment') {
+                fromGroup.style.display = 'block';
+                toGroup.style.display = 'none';
+                exchGroup.style.display = 'none';
+            } else {
+                fromGroup.style.display = 'block';
+                toGroup.style.display = 'block';
+                exchGroup.style.display = 'block';
+            }
+        }
+
+        function openModal() {
+            document.getElementById('voucherForm').reset();
+            document.getElementById('vchDate').value = new Date().toISOString().split('T')[0];
+            setType('receipt');
+            document.getElementById('voucherModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('voucherModal').classList.remove('active');
+        }
+
+        async function saveVoucher(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('ione_admin_token');
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true; btn.textContent = 'جاري الحفظ...';
+
+            const payload = {
+                type: document.getElementById('vchType').value,
+                from_box_id: document.getElementById('vchFromBox').value,
+                to_box_id: document.getElementById('vchToBox').value,
+                amount: document.getElementById('vchAmount').value,
+                exchange_rate: document.getElementById('vchExchange').value,
+                date: document.getElementById('vchDate').value,
+                notes: document.getElementById('vchNotes').value,
+            };
+
+            if (payload.type === 'receipt') payload.from_box_id = null;
+            if (payload.type === 'payment') payload.to_box_id = null;
+            if (payload.type !== 'transfer') payload.exchange_rate = 1;
+
+            try {
+                const res = await fetch('/api/vouchers/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم حفظ السند بنجاح ✅', 'success');
+                    closeModal();
+                    loadVouchers();
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (err) {
+                showToast('فشل: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'حفظ السند';
+            }
+        }
+
+        async function deleteVoucher(id) {
+            if (!confirm('هل أنت متأكد من إلغاء هذا السند؟ سيتم إرجاع المبالغ للصناديق.')) return;
+            const token = localStorage.getItem('ione_admin_token');
+            try {
+                const res = await fetch('/api/vouchers/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ voucher_id: id })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم الإلغاء بنجاح', 'success');
+                    loadVouchers();
+                }
+            } catch(e) { showToast('فشل الإلغاء', 'error'); }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            const t = document.getElementById('typeFilter').value;
+            let filtered = allVouchers;
+            if (t !== 'all') filtered = filtered.filter(v => v.type === t);
+            if (q) filtered = filtered.filter(v => (v.voucher_code || '').toLowerCase().includes(q) || (v.from_box_name || '').toLowerCase().includes(q) || (v.to_box_name || '').toLowerCase().includes(q));
+            renderVouchers(filtered);
+        });
+
+        document.getElementById('typeFilter').addEventListener('change', (e) => {
+            document.getElementById('searchInput').dispatchEvent(new Event('input'));
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            loadBanksForSelect();
+            loadVouchers();
+        });
+    </script>
+</body>
+</html>
