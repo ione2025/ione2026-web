@@ -1,6 +1,5 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — List Expenses API                             */
-/*  GET /api/expenses/list                                     */
+/*  IONECENTER — List Journal & Accounts API                   */
 /* ═══════════════════════════════════════════════════════════ */
 
 export async function onRequest(context) {
@@ -19,57 +18,37 @@ export async function onRequest(context) {
     
     try {
         const authHeader = request.headers.get('Authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return new Response(JSON.stringify({
-                success: false, error: 'No token'
-            }), { status: 401, headers });
-        }
+        if (!authHeader) return new Response(JSON.stringify({ success: false, error: 'No token' }), { status: 401, headers });
         
-        const payload = await verifyToken(authHeader.substring(7), env);
-        if (!payload) {
-            return new Response(JSON.stringify({
-                success: false, error: 'Invalid token'
-            }), { status: 401, headers });
-        }
+        // 1. جلب الحسابات (الصناديق من المفتاح الصحيح)
+        const banksRaw = await env.IONE_KV.get('banks:list');
+        const banks = banksRaw ? JSON.parse(banksRaw) : [];
         
-        const hasAccess = payload.role === 'ceo' || 
-                          (payload.permissions && (
-                              payload.permissions.includes('*') ||
-                              payload.permissions.includes('view_expenses')
-                          ));
+        const accounts = [
+            { id: 'acc_expenses', name: 'مصروفات عامة', type: 'expense' },
+            { id: 'acc_sales', name: 'إيرادات المبيعات', type: 'revenue' },
+            { id: 'acc_customers', name: 'العملاء', type: 'asset' },
+            { id: 'acc_suppliers', name: 'الموردون', type: 'liability' }
+        ];
         
-        if (!hasAccess) {
-            return new Response(JSON.stringify({
-                success: false, error: 'Forbidden'
-            }), { status: 403, headers });
-        }
-        
-        const listRaw = await env.IONE_KV.get('banks:list');
-        let boxes = listRaw ? JSON.parse(listRaw) : [];
-        
-        // Filter only expense boxes
-        let expenses = boxes.filter(b => b.type === 'expense' && b.status !== 'deleted');
-        
-        const stats = {
-            total: expenses.length,
-            by_currency: {}
-        };
-        
-        expenses.forEach(b => {
-            const curr = b.currency || 'USD';
-            stats.by_currency[curr] = (stats.by_currency[curr] || 0) + (parseFloat(b.balance) || 0);
+        banks.forEach(b => {
+            if (b.status !== 'deleted') {
+                accounts.push({ id: b.box_id, name: b.name + ' (' + b.currency + ')', type: 'asset' });
+            }
         });
+
+        // 2. جلب القيود
+        const listRaw = await env.IONE_KV.get('journal:list');
+        const journal = listRaw ? JSON.parse(listRaw) : [];
         
         return new Response(JSON.stringify({
             success: true,
-            expenses,
-            stats
+            journal,
+            accounts 
         }), { status: 200, headers });
         
     } catch (error) {
-        return new Response(JSON.stringify({
-            success: false, error: error.message
-        }), { status: 500, headers });
+        return new Response(JSON.stringify({ success: false, error: error.message }), { status: 500, headers });
     }
 }
 
