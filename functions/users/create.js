@@ -8,14 +8,17 @@ export async function onRequest(context) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     };
     
-    // 1. التعامل مع طلبات OPTIONS (CORS) التي يرسلها المتصفح تلقائياً
+    // 1. معالجة طلبات OPTIONS (التي يرسلها المتصفح أولاً)
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
     }
     
     // 2. رفض أي طلب ليس POST
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), { status: 405, headers });
+        return new Response(JSON.stringify({
+            success: false,
+            error: 'Method not allowed'
+        }), { status: 405, headers });
     }
     
     try {
@@ -30,7 +33,7 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 401, headers });
         }
         
-        // 4. استقبال البيانات (تمت إضافة phone و userCode و avatar)
+        // 4. استقبال البيانات من الواجهة
         const body = await request.json();
         const { email, password, full_name, phone, userCode, avatar, role, permissions, active } = body;
         
@@ -78,6 +81,7 @@ export async function onRequest(context) {
             await env.IONE_KV.put('users:list', JSON.stringify(usersList));
         }
         
+        // 9. إزالة كلمة المرور من الرد
         delete newUser.password_hash;
         
         return new Response(JSON.stringify({ success: true, message: 'تم إنشاء المستخدم بنجاح', user: newUser }), { status: 200, headers });
