@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="admin.css">
     <style>
         :root {
-            --bg-main: #020205;
+            --bg-main: #050508;
             --glass-border: rgba(255, 255, 255, 0.15);
         }
         body {
@@ -22,7 +22,7 @@
         }
         .bg-animation {
             position: fixed; inset: 0; z-index: -1;
-            background: linear-gradient(45deg, #020205, #0a0a15, #150520, #020205);
+            background: linear-gradient(45deg, #050508, #0a0a15, #150520, #050508);
             background-size: 400% 400%; animation: gradientMove 15s ease infinite;
         }
         @keyframes gradientMove {
@@ -78,6 +78,9 @@
         .card[data-id="purchases"] i { color: #3B82F6; }
         .card[data-id="sales"] { background: linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(20, 184, 166, 0.02)); border-color: rgba(20, 184, 166, 0.3); }
         .card[data-id="sales"] i { color: #14B8A6; }
+        /* لون كارت الإشعارات */
+        .card[data-id="notifications"] { background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.02)); border-color: rgba(239, 68, 68, 0.3); }
+        .card[data-id="notifications"] i { color: #EF4444; }
 
         .card-icon-wrap { width: 48px; height: 48px; border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: auto; background: rgba(255,255,255,0.05); }
         .card i { font-size: 1.8rem; filter: drop-shadow(0 0 10px currentColor); }
@@ -93,7 +96,7 @@
     <div class="bg-animation"></div>
 
     <div class="top-bar">
-        <a href="../dashboard.html"><img src="../../assets/logo.png" alt="IONE CENTER" style="height: 45px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));"></a>
+        <a href="dashboard.html"><img src="../assets/logo.png" alt="IONE CENTER" style="height: 45px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));"></a>
         <div style="display: flex; gap: 12px;">
             <button class="btn" onclick="saveLayout()">حفظ الترتيب</button>
             <button class="btn" onclick="logout()">خروج</button>
@@ -108,8 +111,7 @@
     <script src="admin.js"></script>
     <script>
         // =========================================================
-        // 🎯 هنا "الدليل" (Directory) لكل صفحات النظام.
-        // لإضافة أي صفحة جديدة، فقط أضف سطراً هنا، وستظهر في اللوحة فوراً.
+        // 🎯 دليل الصفحات (تمت إضافة الإشعارات هنا)
         // =========================================================
         const APP_PAGES = [
             { id: 'orders', title: 'الطلبات', subtitle: 'إدارة طلبات العملاء', icon: 'shopping-bag', link: 'ordix/orders.html', size: 'card-large' },
@@ -123,13 +125,14 @@
             { id: 'suppliers', title: 'الموردين', subtitle: 'قائمة الموردين', icon: 'factory', link: 'ordix/suppliers.html', size: 'card-tall' },
             { id: 'customers', title: 'العملاء', subtitle: 'قائمة العملاء', icon: 'users', link: 'ordix/customers.html', size: 'card-small' },
             { id: 'status', title: 'حالة النظام', subtitle: 'فحص الصفحات', icon: 'activity', link: 'status.html', size: 'card-small' },
+            { id: 'team', title: 'فريق العمل', subtitle: 'إدارة الأعضاء', icon: 'users', link: 'team.html', size: 'card-small' }, // أضفنا فريق العمل أيضاً
+            { id: 'notifications', title: 'الإشعارات', subtitle: 'سجل المشاكل والملاحظات', icon: 'bell', link: 'notifications.html', size: 'card-small' }, // 🚀 كارت الإشعارات
             { id: 'users', title: 'المستخدمين', subtitle: 'إدارة الصلاحيات', icon: 'user-cog', link: 'users/list.html', size: 'card-small' },
             { id: 'settings', title: 'الإعدادات', subtitle: 'بيانات الشركة', icon: 'settings', link: 'ordix/settings.html', size: 'card-small' }
         ];
 
         let savedLayout = [];
 
-        // تحميل الترتيب المحفوظ (إن وجد) أو استخدام الترتيب الافتراضي
         async function loadLayout() {
             try {
                 const token = localStorage.getItem('ione_admin_token');
@@ -137,10 +140,8 @@
                 const data = await res.json();
                 
                 if (data.success && data.layout && data.layout.length > 0) {
-                    // إذا كان هناك ترتيب محفوظ، نستخدمه
                     savedLayout = data.layout;
                 } else {
-                    // إذا لم يوجد، نستخدم القائمة الكاملة APP_PAGES
                     savedLayout = APP_PAGES;
                 }
             } catch(e) {
