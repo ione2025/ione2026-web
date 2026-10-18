@@ -2,26 +2,26 @@
 /*  IONECENTER — Create User API                               */
 /* ═══════════════════════════════════════════════════════════ */
 
-export async function onRequest(context) {
+// 🌟 التعامل مع طلبات OPTIONS (CORS Preflight)
+export async function onRequestOptions() {
+    return new Response(null, {
+        status: 204,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+    });
+}
+
+// 🌟 التعامل مع طلبات POST فقط
+export async function onRequestPost(context) {
     const { request, env } = context;
     
     const headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     };
-    
-    if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers });
-    }
-    
-    if (request.method !== 'POST') {
-        return new Response(JSON.stringify({
-            success: false,
-            error: 'Method not allowed'
-        }), { status: 405, headers });
-    }
     
     try {
         // Verify CEO
