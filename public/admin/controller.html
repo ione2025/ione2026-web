@@ -433,8 +433,8 @@
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
                 
                 try {
-                    // --- المسار المباشر هنا لحل المشكلة ---
-                    const response = await fetch('https://ionecenter.com/api/users/create', { 
+                    // المسار النسبي المباشر
+                    const response = await fetch('/api/users/create', { 
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -469,7 +469,7 @@
 
                 } catch (error) {
                     console.error(error);
-                    alert('فشل الاتصال. تحقق من الكونسول (F12).');
+                    alert('فشل الاتصال. تأكد من وجود ملف create.js في المجلد الصحيح.');
                 }
             }
         }
