@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════════════════════ */
+/*  IONECENTER — Create User API (Final Bulletproof)          */
+/* ═══════════════════════════════════════════════════════════ */
+
 export async function onRequest(context) {
     const { request, env } = context;
     
@@ -8,7 +12,7 @@ export async function onRequest(context) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     };
     
-    // 1. معالجة طلبات OPTIONS (التي يرسلها المتصفح أولاً)
+    // 1. التعامل مع طلبات OPTIONS (التي يرسلها المتصفح تلقائياً)
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
     }
@@ -33,7 +37,7 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 401, headers });
         }
         
-        // 4. استقبال البيانات من الواجهة
+        // 4. استقبال البيانات
         const body = await request.json();
         const { email, password, full_name, phone, userCode, avatar, role, permissions, active } = body;
         
@@ -91,6 +95,7 @@ export async function onRequest(context) {
     }
 }
 
+// دوال مساعدة
 async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password + '_IONE_SALT_2026');
