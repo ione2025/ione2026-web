@@ -7,6 +7,10 @@ export async function onRequest(context) {
         const body = await request.json();
         const { page, notes, assignee, sender } = body;
 
+        if (!page || !notes || notes.length === 0) {
+            return new Response(JSON.stringify({ success: false, error: 'بيانات ناقصة' }), { status: 400, headers });
+        }
+
         const listRaw = await env.IONE_KV.get('status:notes_list');
         let list = listRaw ? JSON.parse(listRaw) : [];
         
