@@ -29,13 +29,16 @@
         /* شريط الأدوات العلوي (X) */
         .top-dashboard-drawer { position: fixed; top: 0; left: 0; right: 0; background: rgba(10, 11, 15, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
         .top-dashboard-drawer.active { transform: translateY(0); }
+        
         .drawer-nav { display: flex; justify-content: center; gap: 30px; flex: 1; }
+        
         .user-profile-drawer { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
         .user-profile-drawer:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
         .user-avatar-drawer { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); box-shadow: 0 0 10px rgba(139, 92, 246, 0.4); }
         .user-info-drawer { display: flex; flex-direction: column; align-items: flex-start; }
         .user-name-drawer { font-size: 0.85rem; font-weight: 800; color: #fff; line-height: 1.2; }
         .user-role-drawer { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
+
         .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s; }
         .drawer-icon-wrap { width: 56px; height: 56px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; transition: 0.3s; }
         .drawer-icon-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent); pointer-events: none; }
@@ -96,8 +99,13 @@
         .app-view { flex: 1; display: flex; flex-direction: column; border-radius: 20px 0 0 20px; }
         .app-header { height: 55px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--glass-border); }
         .app-title { font-size: 0.85rem; font-weight: 700; }
-        .iframe-container { flex: 1; position: relative; background: #000; }
-        #app-iframe { width: 100%; height: 100%; border: none; display: none; }
+        
+        /* إضافة شريط بحث ليوتيوب داخل الإطار */
+        .yt-search-container { padding: 10px; background: #000; display: none; border-bottom: 1px solid var(--glass-border); }
+        .yt-search-container input { width: 100%; padding: 8px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; outline: none; font-family: 'Cairo', sans-serif; }
+        
+        .iframe-container { flex: 1; position: relative; background: #000; display: flex; flex-direction: column; }
+        #app-iframe { width: 100%; flex: 1; border: none; display: none; }
         .app-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted); gap: 10px; }
         
         .guide-btn-wrapper { padding: 15px; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
@@ -178,22 +186,22 @@
 
     <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم إرسال الملاحظة إلى الأدمن بنجاح</div>
 
-    <!-- شريط الأدوات العلوي -->
+    <!-- شريط الأدوات العلوي (مع الروابط الحقيقية) -->
     <div class="top-dashboard-drawer" id="topDrawer">
-        <a href="/profile" class="user-profile-drawer">
+        <a href="/admin/profile" class="user-profile-drawer">
             <div class="user-info-drawer">
-                <div class="user-name-drawer" id="drawerUserName">Khalil CEO</div>
-                <div class="user-role-drawer" id="drawerUserRole">Admin</div>
+                <div class="user-name-drawer" id="drawerUserName">جاري التحميل...</div>
+                <div class="user-role-drawer" id="drawerUserRole">...</div>
             </div>
-            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
+            <img src="https://ui-avatars.com/api/?name=User&background=8b5cf6&color=fff" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
         </a>
         <div class="drawer-nav">
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
-            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
+            <a href="/admin/dashboard" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
+            <a href="/admin/ordix/orders.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
+            <a href="/admin/ordix/customers.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
+            <a href="/admin/ordix/products.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
+            <a href="/admin/ordix/purchases.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
+            <a href="/admin/ordix/settings.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
         </div>
         <div style="width: 150px;"></div>
     </div>
@@ -233,7 +241,7 @@
     <button class="toggle-btn toggle-right-side" onclick="toggleLeftSidebar()" id="btnToggleLeft" style="opacity: 1;"><i data-lucide="sticky-note"></i></button>
     <button class="toggle-btn toggle-left-side" onclick="toggleRightSidebar()" id="btnToggleRight" style="opacity: 1;"><i data-lucide="layout-sidebar"></i></button>
 
-    <!-- الشريط الأيسر -->
+    <!-- الشريط الأيسر (الملاحظات) -->
     <div class="sidebar-left hidden" id="sidebarLeft">
         <div class="sidebar-header">
             <div class="sidebar-title"><i data-lucide="sticky-note"></i> الملاحظات</div>
@@ -253,6 +261,12 @@
                 <div class="app-title" id="appTitle">المساعد الجانبي</div>
                 <button class="modal-close" onclick="toggleRightSidebar()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i data-lucide="x"></i></button>
             </div>
+            
+            <!-- شريط بحث مخصص ليوتيوب -->
+            <div class="yt-search-container" id="ytSearchContainer">
+                <input type="text" id="ytSearchInput" placeholder="ابحث في يوتيوب..." onkeydown="if(event.key==='Enter') searchYouTube()">
+            </div>
+
             <div class="iframe-container">
                 <div class="app-placeholder" id="appPlaceholder">
                     <i data-lucide="mouse-pointer-2" style="width:30px; height:30px; opacity:0.5;"></i>
@@ -289,13 +303,14 @@
         lucide.createIcons();
 
         // =========================================
-        // 1. بيانات المستخدم والصلاحيات
+        // 1. المصادقة وبيانات المستخدم (Auth)
         // =========================================
-        const userRole = 'admin'; 
-        const currentUser = {
-            name: "Khalil CEO",
-            role: "Admin",
-            avatar: "https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff"
+        // جلب بيانات المستخدم من التخزين المحلي (بعد تسجيل الدخول)
+        let userRole = localStorage.getItem('userRole') || 'admin'; // افتراضي: أدمن للتجربة
+        let currentUser = {
+            name: localStorage.getItem('userName') || "Khalil CEO",
+            role: localStorage.getItem('userRoleName') || "Admin",
+            avatar: localStorage.getItem('userAvatar') || "https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff"
         };
 
         function loadUserData() {
@@ -306,23 +321,23 @@
         loadUserData();
 
         // =========================================
-        // 2. إعدادات المساعد الجانبي (التطبيقات)
+        // 2. إعدادات المساعد الجانبي (الوظائف الفعلية)
         // =========================================
         const AVAILABLE_APPS = [
             { id: 'youtube', name: 'YouTube', desc: 'مشاهدة الفيديوهات', icon: 'youtube', url: 'https://www.youtube.com/embed/videoseries?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG' },
             { id: 'whatsapp', name: 'WhatsApp', desc: 'محادثات العمل', icon: 'message-circle', url: 'https://web.whatsapp.com/' }
         ];
 
-        let userApps = JSON.parse(localStorage.getItem('userApps')) || ['youtube'];
+        let userApps = JSON.parse(localStorage.getItem('userApps')) || ['youtube', 'whatsapp'];
         let activeApp = localStorage.getItem('activeApp') || null;
 
         const iframe = document.getElementById('app-iframe');
         const placeholder = document.getElementById('appPlaceholder');
         const appTitle = document.getElementById('appTitle');
         const appRail = document.getElementById('appRail');
+        const ytSearchContainer = document.getElementById('ytSearchContainer');
 
         function renderRail() {
-            // مسح الأيقونات القديمة فقط
             appRail.querySelectorAll('.rail-icon').forEach(el => el.remove());
             
             userApps.forEach(appId => {
@@ -330,7 +345,9 @@
                 if (!app) return;
                 const btn = document.createElement('div');
                 btn.className = `rail-icon ${activeApp === app.id ? 'active' : ''}`;
-                btn.innerHTML = `<i data-lucide="${app.icon}"></i>`;
+                // استخدام أيقونة يوتيوب الرسمية لضمان الوضوح
+                const iconName = app.id === 'youtube' ? 'youtube' : app.icon;
+                btn.innerHTML = `<i data-lucide="${iconName}"></i>`;
                 btn.onclick = () => loadApp(app.id, app.url, app.name);
                 appRail.insertBefore(btn, appRail.querySelector('.rail-divider'));
             });
@@ -341,10 +358,30 @@
             activeApp = id;
             localStorage.setItem('activeApp', id);
             renderRail();
+            
+            // إخفاء شريط البحث إلا في يوتيوب
+            ytSearchContainer.style.display = id === 'youtube' ? 'block' : 'none';
             placeholder.style.display = 'none';
             iframe.style.display = 'block';
-            iframe.src = url;
             appTitle.innerText = name;
+
+            // معالجة واتساب (فتح في نافذة منبثقة لتجاوز حظر iframe)
+            if (id === 'whatsapp') {
+                window.open(url, '_blank', 'width=900,height=700,scrollbars=yes,resizable=yes');
+                // إعادة الإطار لحالته السابقة
+                iframe.style.display = 'none';
+                placeholder.style.display = 'flex';
+                return;
+            }
+
+            iframe.src = url;
+        }
+
+        function searchYouTube() {
+            const query = document.getElementById('ytSearchInput').value.trim();
+            if(!query) return;
+            // استخدام خدمة البحث الخاصة بـ يوتيوب داخل الإطار
+            iframe.src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
         }
 
         function openCustomizeModal() {
@@ -383,6 +420,7 @@
                     localStorage.removeItem('activeApp');
                     iframe.style.display = 'none';
                     placeholder.style.display = 'flex';
+                    ytSearchContainer.style.display = 'none';
                     appTitle.innerText = 'المساعد الجانبي';
                 }
             } else {
@@ -393,7 +431,6 @@
             openCustomizeModal(); 
         }
 
-        // تشغيل التطبيق المحفوظ سابقاً عند التحميل
         if (activeApp) {
             const app = AVAILABLE_APPS.find(a => a.id === activeApp);
             if (app) loadApp(app.id, app.url, app.name);
@@ -474,7 +511,7 @@
         }
 
         // =========================================
-        // 4. العرض التلقائي
+        // 4. العرض التلقائي للأشرطة
         // =========================================
         let userInteracted = false; 
 
@@ -502,7 +539,7 @@
         });
 
         // =========================================
-        // 5. التحكم في الأشرطة
+        // 5. التحكم في الأشرطة يدوياً
         // =========================================
         function openGuide() { document.getElementById('guideOverlay').classList.add('active'); }
         function closeGuide() { document.getElementById('guideOverlay').classList.remove('active'); }
@@ -535,7 +572,7 @@
         }
 
         // =========================================
-        // 6. إدارة الملاحظات
+        // 6. إدارة الملاحظات (ربط حقيقي بالـ API)
         // =========================================
         const notesDock = document.getElementById('notesDock');
         let zIndexCounter = 100;
@@ -573,13 +610,44 @@
             const textarea = noteCard.querySelector('textarea');
             const text = textarea.value.trim();
             if(!text) { alert('الرجاء كتابة ملاحظة قبل الإرسال.'); return; }
+            
+            // تغيير نص الزر لإظهار جاري الإرسال
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;"></i> جاري الإرسال...';
+            lucide.createIcons();
+
             try {
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 3000);
-                textarea.value = '';
-                autoResize(textarea); 
-            } catch (e) { alert('فشل إرسال الملاحظة.'); }
+                // الربط الحقيقي مع الـ API الخاص بك
+                const response = await fetch('/api/status/notes/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        page: window.location.pathname, 
+                        notes: text, 
+                        sender: currentUser.name 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const toast = document.getElementById('toast');
+                    toast.classList.add('show');
+                    setTimeout(() => toast.classList.remove('show'), 3000);
+                    
+                    // إعادة تعيين الحقل
+                    textarea.value = '';
+                    autoResize(textarea);
+                } else {
+                    alert('حدث خطأ في الخادم: ' + data.error);
+                }
+            } catch (e) {
+                alert('فشل الاتصال بالخادم. تأكد من اتصالك بالإنترنت.');
+            } finally {
+                // إرجاع الزر لحالته الأصلية
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
         }
 
         function setupNoteDrag(note) {
@@ -634,7 +702,7 @@
             notesDock.appendChild(note);
         }
 
-        setTimeout(() => { addNewNote(); addNewNote(); }, 300);
+        setTimeout(() => { addNewNote(); }, 300);
 
         // =========================================
         // 7. الاختصارات
