@@ -75,6 +75,20 @@
         .playlist-item-actions { display: flex; align-items: center; gap: 10px; }
         .playlist-item audio { height: 30px; outline: none; }
 
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 90%; max-width: 600px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: scale(0.95); transition: 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+        .modal-title { font-size: 1.2rem; font-weight: 800; color: var(--accent-cyan); }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        .form-label { display: block; font-size: 0.9rem; font-weight: 700; color: #ccc; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: var(--accent-cyan); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: #fff; font-family: inherit; font-weight: 700; cursor: pointer; }
+
         .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
         .toast.show { bottom: 30px; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
@@ -84,8 +98,29 @@
     <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح</div>
 
     <!-- نافذة إضافة / تعديل بطاقة -->
-    <div class="modal-overlay" id="newCardModal" style="display:none;">
-        <!-- ... (بقية الكود كما هو، مع إزالة نافذة المستخدم بالكامل) ... -->
+    <div class="modal-overlay" id="newCardModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="cardModalTitle">إضافة بطاقة جديدة للوحة التحكم</div>
+                <button onclick="closeCardModal()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <input type="hidden" id="editingCardIndex">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">اسم البطاقة (مثال: المنتجات)</label>
+                    <input type="text" id="newCardTitle" class="form-input" placeholder="اكتب اسم البطاقة هنا...">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">الرابط (مثال: ordix/products.html)</label>
+                    <input type="text" id="newCardLink" class="form-input" placeholder="ordix/products.html">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeCardModal()">إلغاء (Esc)</button>
+            </div>
+        </div>
     </div>
 
     <div class="app-container">
@@ -98,8 +133,10 @@
                 <div class="control-card" onclick="openSettings('dashboard')"><div class="icon-box"><i data-lucide="layout-dashboard"></i></div><h3>بطاقات اللوحة</h3><p>إضافة وتعديل بطاقات لوحة التحكم.</p></div>
                 <div class="control-card" onclick="openSettings('assistant')"><div class="icon-box"><i data-lucide="layout-sidebar"></i></div><h3>تطبيقات المساعد</h3><p>تحديد التطبيقات.</p></div>
                 <div class="control-card" onclick="openSettings('guide')"><div class="icon-box"><i data-lucide="book-open"></i></div><h3>دليل المستخدم</h3><p>تعديل نصوص الدليل.</p></div>
-                <!-- التوجيه للصفحة الجديدة هنا -->
-                <div class="control-card" onclick="window.location.href='ordix/users/create.html'"><div class="icon-box"><i data-lucide="users"></i></div><h3>إضافة مستخدم</h3><p>إنشاء حساب موظف جديد.</p></div>
+                
+                <!-- تم توجيه الزر إلى team.html -->
+                <div class="control-card" onclick="window.location.href='team.html'"><div class="icon-box"><i data-lucide="users"></i></div><h3>إدارة الفريق</h3><p>إضافة مستخدمين وصلاحيات.</p></div>
+                
                 <div class="control-card" onclick="openSettings('media')"><div class="icon-box"><i data-lucide="music"></i></div><h3>الوسائط والملاحظات</h3><p>التحكم في الموسيقى والملاحظات.</p></div>
             </div>
         </div>
@@ -205,10 +242,21 @@
         }
         function deleteAudioTrack(index) { if (confirm('حذف الملف؟')) { config.media.adminPlaylist.splice(index, 1); saveSettings(); renderMediaSettings(); } }
 
-        function openCardModal(index = null) { /* ... */ }
-        function closeCardModal() { /* ... */ }
-        function saveNewCard() { /* ... */ }
-        function deleteDashboardCard(index) { /* ... */ }
+        function openCardModal(index = null) {
+            const modal = document.getElementById('newCardModal'); const title = document.getElementById('cardModalTitle');
+            if (index !== null) { title.innerText = 'تعديل البطاقة'; document.getElementById('editingCardIndex').value = index; const card = config.cards[index]; document.getElementById('newCardTitle').value = card.title; document.getElementById('newCardLink').value = card.link; } 
+            else { title.innerText = 'إضافة بطاقة جديدة'; document.getElementById('editingCardIndex').value = ''; document.getElementById('newCardTitle').value = ''; document.getElementById('newCardLink').value = ''; }
+            modal.classList.add('active'); setTimeout(() => document.getElementById('newCardTitle').focus(), 100);
+        }
+        function closeCardModal() { document.getElementById('newCardModal').classList.remove('active'); }
+        function saveNewCard() {
+            const title = document.getElementById('newCardTitle').value.trim(); const link = document.getElementById('newCardLink').value.trim(); const editIndex = document.getElementById('editingCardIndex').value;
+            if (!title || !link) { alert('الرجاء إدخال الاسم والرابط.'); return; }
+            if (editIndex !== '') { config.cards[editIndex].title = title; config.cards[editIndex].link = link; } 
+            else { config.cards.push({ id: 'custom_' + Date.now(), title: title, visible: true, count: 0, link: link, icon: 'package', section: 'bot' }); }
+            saveSettings(); closeCardModal(); renderSettings();
+        }
+        function deleteDashboardCard(index) { if (confirm('حذف البطاقة؟')) { config.cards.splice(index, 1); saveSettings(); renderSettings(); } }
 
         function renderGuide() {
             const guideContainer = document.getElementById('guideSettings'); guideContainer.innerHTML = '';
@@ -229,6 +277,15 @@
 
         function saveSettings() { localStorage.setItem('adminConfig', JSON.stringify(config)); const toast = document.getElementById('toast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
         function showToast(msg) { const toast = document.getElementById('toast'); toast.innerHTML = `<i data-lucide="check-circle"></i> ${msg}`; lucide.createIcons(); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (document.activeElement.tagName === 'TEXTAREA') return;
+                if (document.getElementById('newCardModal').classList.contains('active')) { e.preventDefault(); saveNewCard(); }
+                else { e.preventDefault(); document.activeElement.blur(); saveSettings(); }
+            }
+            if (e.key === 'Escape') { if (document.getElementById('newCardModal').classList.contains('active')) closeCardModal(); }
+        });
 
         renderSettings();
     </script>
