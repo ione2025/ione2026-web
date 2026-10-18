@@ -63,7 +63,34 @@
                     <input type="text" id="noteInput" class="notes-input" placeholder="اكتب واضغط Enter..." onkeydown="handleNoteEnter(event)">
                     <select id="assigneeSelect" class="assign-select"></select>
                 </div>
-                <button class="btn-send-notes" onclick="sendNotes()">إرسال الملاحظات</button>
+                <button class="btn-send-notes" onclick="        async function sendNotes(file) {
+            const notes = pageNotes[file] || [];
+            const assignee = pageAssignees[file] || 'Unassigned';
+            const token = localStorage.getItem('ione_admin_token');
+            
+            // جلب اسم المرسل من بيانات الجلسة
+            const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
+            const sender = user ? (user.full_name || user.username) : 'Admin';
+
+            if (notes.length === 0) return;
+
+            try {
+                const res = await fetch('/api/status/notes/save', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ page: file, notes: notes, assignee: assignee, sender: sender })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    pageNotes[file] = [];
+                    pageAssignees[file] = null;
+                    renderList();
+                    alert('تم إرسال الملاحظات بنجاح!');
+                } else {
+                    alert('فشل الإرسال: ' + data.error);
+                }
+            } catch(e) { alert('خطأ في الاتصال بالخادم'); }
+        }()">إرسال الملاحظات</button>
             </div>
         </div>
         <div class="status-preview">
