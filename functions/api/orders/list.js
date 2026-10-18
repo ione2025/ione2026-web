@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — List Orders API v2.0                          */
+/*  IONECENTER — List Orders API v2.1 (Sorted)                 */
 /*  GET /api/orders/list                                       */
 /*  Query params: ?status=new|pending|...&q=search             */
 /* ═══════════════════════════════════════════════════════════ */
@@ -58,6 +58,9 @@ export async function onRequest(context) {
         // ─────── Get List ───────
         const listRaw = await env.IONE_KV.get('orders:list');
         let orders = listRaw ? JSON.parse(listRaw) : [];
+        
+        // 🔴 [تمت إضافة هذا السطر]: ترتيب الطلبات حسب الأحدث أولاً
+        orders.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // ─────── Filter Deleted ───────
         if (!includeDeleted) {
@@ -170,4 +173,3 @@ async function verifyToken(token, env) {
         return null;
     }
 }
-

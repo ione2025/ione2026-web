@@ -3,1043 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>IONECENTER — حالة النظام</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../assets/logo.png">
     <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="_assets/dashboard.css">
     <style>
-        .stat-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .stat-box {
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            text-align: center;
-        }
-        .stat-box .num {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-        .stat-box .lbl {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-        .stat-box.green .num { color: #34C759; }
-        .stat-box.red .num { color: #FF3B30; }
-        .stat-box.yellow .num { color: #FF9F0A; }
+        body { margin: 0; padding: 0; display: flex; height: 100vh; background: #0a0a0f; color: white; font-family: 'Cairo', sans-serif; overflow: hidden; direction: rtl; }
         
-        .section-block {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .section-title svg {
-            width: 20px;
-            height: 20px;
-            color: var(--ione-red);
-        }
+        /* 30% للقائمة */
+        .sidebar { width: 30%; background: #111118; border-left: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
+        /* 70% للمعاينة */
+        .main-preview { width: 70%; background: #000; display: flex; flex-direction: column; border: none; }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; background: white; }
         
-        .page-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            background: var(--bg-secondary);
-            margin-bottom: 8px;
-            transition: all 0.2s;
-        }
-        .page-row:hover {
-            background: var(--bg-card-hover);
-        }
-        .page-row.red {
-            border-right: 4px solid #FF3B30;
-        }
-        .page-row.green {
-            border-right: 4px solid #34C759;
-        }
-        .page-row.yellow {
-            border-right: 4px solid #FF9F0A;
-        }
+        /* تنسيق القائمة الجانبية */
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-header h2 { font-size: 1.2rem; margin: 0; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
         
-        .status-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.green { background: #34C759; box-shadow: 0 0 8px rgba(52,199,89,0.5); }
-        .status-dot.red { background: #FF3B30; box-shadow: 0 0 8px rgba(255,59,48,0.5); }
-        .status-dot.yellow { background: #FF9F0A; box-shadow: 0 0 8px rgba(255,159,10,0.5); }
+        .page-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; background: #1a1a24; border: 1px solid transparent; }
+        .page-item:hover { background: #222233; border-color: #333; }
+        .page-item.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
         
-        .page-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .page-name {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: 'Courier New', monospace;
-            direction: ltr;
-            text-align: right;
-        }
-        .page-note {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-        .page-meta {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            margin-top: 2px;
-        }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .page-name { font-size: 0.85rem; font-family: monospace; direction: ltr; color: #ddd; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .dot-green { background: #10b981; box-shadow: 0 0 8px #10b981; }
+        .dot-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+        .dot-yellow { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
         
-        .page-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        
-        .action-icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .action-icon-btn:hover {
-            transform: scale(1.05);
-        }
-        .action-icon-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-        .action-icon-btn.green:hover {
-            background: #34C759;
-            border-color: #34C759;
-            color: white;
-        }
-        .action-icon-btn.red:hover {
-            background: #FF3B30;
-            border-color: #FF3B30;
-            color: white;
-        }
-        .action-icon-btn.yellow:hover {
-            background: #FF9F0A;
-            border-color: #FF9F0A;
-            color: white;
-        }
-        .action-icon-btn.open:hover {
-            background: #0071e3;
-            border-color: #0071e3;
-            color: white;
-        }
-        
-        .loading-state {
-            text-align: center;
-            padding: 60px 24px;
-            color: var(--text-secondary);
-        }
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--ione-red);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .page-actions { display: flex; gap: 5px; margin-top: 5px; }
+        .status-btn { flex: 1; padding: 4px; border: none; border-radius: 4px; font-family: inherit; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
+        .btn-green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .btn-green:hover, .btn-green.active { background: #10b981; color: white; }
+        .btn-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .btn-red:hover, .btn-red.active { background: #ef4444; color: white; }
+        .btn-yellow { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .btn-yellow:hover, .btn-yellow.active { background: #f59e0b; color: white; }
     </style>
 </head>
-<body class="dashboard-page">
-    
-    <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="dashboard.html" style="text-decoration: none;">
-                <img src="../assets/logo.png" alt="IONE CENTER">
-            </a>
+<body>
+    <!-- الشاشة اليسرى (30%) -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>حالة النظام</h2>
+            <a href="dashboard.html" style="color: #888; text-decoration: none; font-size: 0.8rem;">رجوع</a>
         </div>
-        <div class="top-bar-user">
-            <a href="dashboard.html" class="logout-btn" style="text-decoration: none;">
-                <i data-lucide="arrow-right"></i>
-                <span>رجوع</span>
-            </a>
+        <div class="sidebar-content" id="pagesList">
+            <div style="text-align: center; padding: 20px;">جاري التحميل...</div>
         </div>
     </div>
 
-    <div class="dashboard-container">
-        
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">🏥 حالة النظام</h1>
-                <p class="page-subtitle">تتبع كل صفحة: يعمل ✅ / يحتاج مراجعة 🔴 / قيد التطوير 🟡</p>
-            </div>
-            <button class="action-icon-btn open" onclick="loadStatus()" title="تحديث">
-                <i data-lucide="refresh-cw"></i>
-            </button>
-        </div>
-
-        <!-- Summary -->
-        <div class="stat-summary" id="summary">
-            <div class="stat-box green">
-                <div class="num" id="countGreen">0</div>
-                <div class="lbl">يعمل ✅</div>
-            </div>
-            <div class="stat-box red">
-                <div class="num" id="countRed">0</div>
-                <div class="lbl">يحتاج مراجعة</div>
-            </div>
-            <div class="stat-box yellow">
-                <div class="num" id="countYellow">0</div>
-                <div class="lbl">قيد التطوير</div>
-            </div>
-        </div>
-
-        <!-- Container -->
-        <div id="sectionsContainer">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>جاري تحميل الحالات...</p>
-            </div>
-        </div>
-
+    <!-- الشاشة اليمنى (70%) -->
+    <div class="main-preview">
+        <iframe id="previewFrame" src="about:blank"></iframe>
     </div>
 
     <script src="admin.js"></script>
     <script>
-        // ─────────────────────────────────────────────
-        // 📋 الصفحات المراقبة (مُعرَّفة يدوياً)
-        // ─────────────────────────────────────────────
+        // قائمة الصفحات
         const PAGES_CONFIG = [
-            {
-                title: 'ORDIX — الطلبات',
-                icon: 'shopping-bag',
-                pages: [
-                    { file: 'ordix/orders.html', label: 'قائمة الطلبات' },
-                    { file: 'ordix/order-details.html', label: 'تفاصيل الطلب' },
-                    { file: 'ordix/new-order.html', label: 'طلب جديد' }
-                ]
-            },
-            {
-                title: 'ORDIX — الفواتير',
-                icon: 'file-text',
-                pages: [
-                    { file: 'ordix/purchases.html', label: 'فواتير الشراء (PR)' },
-                    { file: 'ordix/sales.html', label: 'فواتير البيع (S)' },
-                    { file: 'ordix/invoices.html', label: 'كل الفواتير' },
-                    { file: 'ordix/connections.html', label: 'الروابط (Connect)' }
-                ]
-            },
-            {
-                title: 'ORDIX — المالية',
-                icon: 'wallet',
-                pages: [
-                    { file: 'ordix/boxes.html', label: 'الصناديق والبنوك' },
-                    { file: 'ordix/transactions.html', label: 'المعاملات' },
-                    { file: 'ordix/exchange.html', label: 'التحويلات' }
-                ]
-            },
-            {
-                title: 'ORDIX — الأطراف',
-                icon: 'users',
-                pages: [
-                    { file: 'ordix/suppliers.html', label: 'الموردين' },
-                    { file: 'ordix/customers.html', label: 'العملاء' }
-                ]
-            },
-            {
-                title: 'ORDIX — التقارير',
-                icon: 'bar-chart',
-                pages: [
-                    { file: 'ordix/reports.html', label: 'التقارير' },
-                    { file: 'ordix/settings.html', label: 'الإعدادات' }
-                ]
-            },
-            {
-                title: 'النظام',
-                icon: 'settings',
-                pages: [
-                    { file: 'login.html', label: 'تسجيل الدخول' },
-                    { file: 'dashboard.html', label: 'Dashboard' },
-                    { file: 'users/list.html', label: 'المستخدمين' },
-                    { file: 'users/create.html', label: 'إنشاء مستخدم' },
-                    { file: 'users/edit.html', label: 'تعديل مستخدم' }
-                ]
-            },
-            {
-                title: 'PWA — الزبائن',
-                icon: 'smartphone',
-                pages: [
-                    { file: '../order/index.html', label: 'طلب جديد (PWA)' }
-                ]
-            }
+            { title: 'ORDIX — الطلبات', file: 'ordix/orders.html' },
+            { title: 'ORDIX — تفاصيل الطلب', file: 'ordix/order-details.html' },
+            { title: 'ORDIX — فواتير الشراء', file: 'ordix/purchases.html' },
+            { title: 'ORDIX — فواتير البيع', file: 'ordix/sales.html' },
+            { title: 'ORDIX — العملاء', file: 'ordix/customers.html' },
+            { title: 'ORDIX — الموردين', file: 'ordix/suppliers.html' },
+            { title: 'ORDIX — الصناديق', file: 'ordix/banks.html' },
+            { title: 'ORDIX — السندات', file: 'ordix/vouchers.html' },
+            { title: 'ORDIX — دفتر اليوميات', file: 'ordix/journal.html' },
+            { title: 'ORDIX — المصروفات', file: 'ordix/expenses.html' },
+            { title: 'ORDIX — التقارير', file: 'ordix/reports.html' },
+            { title: 'ORDIX — الإعدادات', file: 'ordix/settings.html' },
+            { title: 'لوحة التحكم', file: 'dashboard.html' }
         ];
-        
-        // ─────────────────────────────────────────────
-        // 📦 State
-        // ─────────────────────────────────────────────
-        let statuses = {};
-        
-        // ─────────────────────────────────────────────
-        // 🌐 Load Statuses
-        // ─────────────────────────────────────────────
-        async function loadStatus() {
-            const container = document.getElementById('sectionsContainer');
-            
-            container.innerHTML = `
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>جاري تحميل الحالات...</p>
-                </div>
-            `;
-            
+
+        let currentStatuses = {};
+
+        // جلب الحالات الحقيقية من السيرفر
+        async function loadStatuses() {
+            const container = document.getElementById('pagesList');
             try {
                 const token = localStorage.getItem('ione_admin_token');
-                const response = await fetch('/api/status/list', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = 'login.html';
-                    return;
+                const res = await fetch('/api/status/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    currentStatuses = data.statuses || {};
                 }
-                
-                const result = await response.json();
-                statuses = result.statuses || {};
-                
-                renderSections();
-                updateSummary();
-                
-            } catch (error) {
-                console.error('Load error:', error);
-                container.innerHTML = `
-                    <div class="loading-state">
-                        <p style="color: #FF3B30;">فشل التحميل: ${error.message}</p>
-                        <button class="action-icon-btn open" onclick="loadStatus()" style="margin: 16px auto;">
-                            <i data-lucide="refresh-cw"></i>
-                        </button>
-                    </div>
-                `;
-                lucide.createIcons();
+                renderList();
+            } catch(e) {
+                renderList(); // عرض القائمة حتى لو فشل جلب الحالات
             }
         }
-        
-        // ─────────────────────────────────────────────
-        // 📊 Update Summary
-        // ─────────────────────────────────────────────
-        function updateSummary() {
-            let green = 0, red = 0, yellow = 0;
-            
-            PAGES_CONFIG.forEach(section => {
-                section.pages.forEach(page => {
-                    const st = statuses[page.file]?.status || 'yellow';
-                    if (st === 'green') green++;
-                    else if (st === 'red') red++;
-                    else yellow++;
-                });
-            });
-            
-            document.getElementById('countGreen').textContent = green;
-            document.getElementById('countRed').textContent = red;
-            document.getElementById('countYellow').textContent = yellow;
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🎨 Render Sections
-        // ─────────────────────────────────────────────
-        function renderSections() {
-            const container = document.getElementById('sectionsContainer');
-            
-            container.innerHTML = PAGES_CONFIG.map(section => `
-                <div class="section-block">
-                    <div class="section-title">
-                        <i data-lucide="${section.icon}"></i>
-                        ${section.title}
+
+        function renderList() {
+            const container = document.getElementById('pagesList');
+            container.innerHTML = PAGES_CONFIG.map(p => {
+                const info = currentStatuses[p.file] || {};
+                const status = info.status || 'yellow';
+                
+                return `
+                <div class="page-item" id="item-${p.file.replace(/\//g, '-')}" onclick="openPage('${p.file}')">
+                    <div class="page-header">
+                        <span class="page-name">${p.file}</span>
+                        <div class="status-dot dot-${status}"></div>
                     </div>
-                    ${section.pages.map(page => renderPageRow(page)).join('')}
-                </div>
-            `).join('');
-            
-            lucide.createIcons();
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🎯 Render Single Page Row
-        // ─────────────────────────────────────────────
-        function renderPageRow(page) {
-            const info = statuses[page.file] || {};
-            const status = info.status || 'yellow';
-            const note = info.note || '';
-            const updatedAt = info.updated_at ? formatDate(info.updated_at) : 'لم يُختبر';
-            const updatedBy = info.updated_by || '';
-            
-            return `
-                <div class="page-row ${status}">
-                    <div class="status-dot ${status}"></div>
-                    
-                    <div class="page-info">
-                        <div class="page-name">${page.file}</div>
-                        <div class="page-note">${page.label}${note ? ' — ' + note : ''}</div>
-                        <div class="page-meta">
-                            ${updatedAt}${updatedBy ? ' — ' + updatedBy : ''}
-                        </div>
-                    </div>
-                    
+                    <div style="font-size: 0.75rem; color: #888; margin-bottom: 8px;">${p.title}</div>
                     <div class="page-actions">
-                        <button class="action-icon-btn open" onclick="openPage('${page.file}')" title="فتح">
-                            <i data-lucide="external-link"></i>
-                        </button>
-                        <button class="action-icon-btn green" onclick="setStatus('${page.file}', 'green')" title="يعمل">
-                            <i data-lucide="check"></i>
-                        </button>
-                        <button class="action-icon-btn red" onclick="setStatus('${page.file}', 'red')" title="يحتاج مراجعة">
-                            <i data-lucide="alert-triangle"></i>
-                        </button>
-                        <button class="action-icon-btn yellow" onclick="setStatus('${page.file}', 'yellow')" title="قيد التطوير">
-                            <i data-lucide="construction"></i>
-                        </button>
+                        <button class="status-btn btn-green ${status === 'green' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'green', event)">يعمل</button>
+                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'red', event)">يحتاج مراجعة</button>
+                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'yellow', event)">قيد التطوير</button>
                     </div>
-                </div>
-            `;
+                </div>`;
+            }).join('');
         }
-        
-        // ─────────────────────────────────────────────
-        // 🔄 Set Status
-        // ─────────────────────────────────────────────
-        async function setStatus(page, status) {
-            const note = prompt('ملاحظة (اختياري):', statuses[page]?.note || '');
-            if (note === null) return; // cancelled
+
+        // فتح الصفحة في الـ iframe
+        function openPage(file) {
+            // إزالة التحديد النشط من الجميع
+            document.querySelectorAll('.page-item').forEach(el => el.classList.remove('active'));
+            // تحديد العنصر الحالي
+            const itemId = `item-${file.replace(/\//g, '-')}`;
+            document.getElementById(itemId).classList.add('active');
+            
+            // تحميل الصفحة
+            document.getElementById('previewFrame').src = file;
+        }
+
+        // تحديث الحالة في السيرفر
+        async function updateStatus(file, status, event) {
+            event.stopPropagation(); // منع فتح الصفحة عند الضغط على زر الحالة
             
             try {
                 const token = localStorage.getItem('ione_admin_token');
-                const response = await fetch('/api/status/update', {
+                const res = await fetch('/api/status/update', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ page, status, note })
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ page: file, status: status })
                 });
-                
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error);
+                const data = await res.json();
+                if (data.success) {
+                    currentStatuses[file] = { status: status };
+                    renderList(); // إعادة رسم القائمة لتحديث الألوان
                 }
-                
-                // Update local state
-                statuses[page] = {
-                    status,
-                    note,
-                    updated_at: new Date().toISOString(),
-                    updated_by: getCurrentUser()?.email || 'unknown'
-                };
-                
-                renderSections();
-                updateSummary();
-                showToast('تم تحديث الحالة ✅', 'success');
-                
-            } catch (error) {
-                showToast('فشل التحديث: ' + error.message, 'error');
+            } catch(e) {
+                console.error('Failed to update status', e);
             }
         }
-        window.setStatus = setStatus;
-        
-        // ─────────────────────────────────────────────
-        // 🔗 Open Page
-        // ─────────────────────────────────────────────
-        function openPage(page) {
-            window.open(page, '_blank');
-        }
-        window.openPage = openPage;
-        
-        // ─────────────────────────────────────────────
-        // 🔧 Helpers
-        // ─────────────────────────────────────────────
-        function formatDate(iso) {
-            if (!iso) return '';
-            try {
-                const d = new Date(iso);
-                const now = new Date();
-                const diff = Math.floor((now - d) / 1000);
-                
-                if (diff < 60) return 'منذ لحظات';
-                if (diff < 3600) return 'منذ ' + Math.floor(diff / 60) + ' دقيقة';
-                if (diff < 86400) return 'منذ ' + Math.floor(diff / 3600) + ' ساعة';
-                if (diff < 604800) return 'منذ ' + Math.floor(diff / 86400) + ' يوم';
-                
-                return d.toLocaleDateString('ar-EG', {
-                    year: 'numeric', month: 'short', day: 'numeric'
-                });
-            } catch { return ''; }
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🚀 Init
-        // ─────────────────────────────────────────────
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadStatus);
-        } else {
-            loadStatus();
-        }
-        
-        console.log(
-            '%c 🏥 Status Health Check v1.0 ',
-            'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
-        );
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
-    <title>IONECENTER — حالة النظام</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../assets/logo.png">
-    <link rel="stylesheet" href="admin.css">
-    <link rel="stylesheet" href="_assets/dashboard.css">
-    <style>
-        .stat-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .stat-box {
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            text-align: center;
-        }
-        .stat-box .num {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 4px;
-        }
-        .stat-box .lbl {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-        }
-        .stat-box.green .num { color: #34C759; }
-        .stat-box.red .num { color: #FF3B30; }
-        .stat-box.yellow .num { color: #FF9F0A; }
-        
-        .section-block {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .section-title svg {
-            width: 20px;
-            height: 20px;
-            color: var(--ione-red);
-        }
-        
-        .page-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            background: var(--bg-secondary);
-            margin-bottom: 8px;
-            transition: all 0.2s;
-        }
-        .page-row:hover {
-            background: var(--bg-card-hover);
-        }
-        .page-row.red {
-            border-right: 4px solid #FF3B30;
-        }
-        .page-row.green {
-            border-right: 4px solid #34C759;
-        }
-        .page-row.yellow {
-            border-right: 4px solid #FF9F0A;
-        }
-        
-        .status-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.green { background: #34C759; box-shadow: 0 0 8px rgba(52,199,89,0.5); }
-        .status-dot.red { background: #FF3B30; box-shadow: 0 0 8px rgba(255,59,48,0.5); }
-        .status-dot.yellow { background: #FF9F0A; box-shadow: 0 0 8px rgba(255,159,10,0.5); }
-        
-        .page-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .page-name {
-            font-weight: 700;
-            color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: 'Courier New', monospace;
-            direction: ltr;
-            text-align: right;
-        }
-        .page-note {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 4px;
-        }
-        .page-meta {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            opacity: 0.7;
-            margin-top: 2px;
-        }
-        
-        .page-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        
-        .action-icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: var(--bg-card);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .action-icon-btn:hover {
-            transform: scale(1.05);
-        }
-        .action-icon-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-        .action-icon-btn.green:hover {
-            background: #34C759;
-            border-color: #34C759;
-            color: white;
-        }
-        .action-icon-btn.red:hover {
-            background: #FF3B30;
-            border-color: #FF3B30;
-            color: white;
-        }
-        .action-icon-btn.yellow:hover {
-            background: #FF9F0A;
-            border-color: #FF9F0A;
-            color: white;
-        }
-        .action-icon-btn.open:hover {
-            background: #0071e3;
-            border-color: #0071e3;
-            color: white;
-        }
-        
-        .loading-state {
-            text-align: center;
-            padding: 60px 24px;
-            color: var(--text-secondary);
-        }
-        .spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--border);
-            border-top-color: var(--ione-red);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-</head>
-<body class="dashboard-page">
-    
-    <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="dashboard.html" style="text-decoration: none;">
-                <img src="../assets/logo.png" alt="IONE CENTER">
-            </a>
-        </div>
-        <div class="top-bar-user">
-            <a href="dashboard.html" class="logout-btn" style="text-decoration: none;">
-                <i data-lucide="arrow-right"></i>
-                <span>رجوع</span>
-            </a>
-        </div>
-    </div>
 
-    <div class="dashboard-container">
-        
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">🏥 حالة النظام</h1>
-                <p class="page-subtitle">تتبع كل صفحة: يعمل ✅ / يحتاج مراجعة 🔴 / قيد التطوير 🟡</p>
-            </div>
-            <button class="action-icon-btn open" onclick="loadStatus()" title="تحديث">
-                <i data-lucide="refresh-cw"></i>
-            </button>
-        </div>
-
-        <!-- Summary -->
-        <div class="stat-summary" id="summary">
-            <div class="stat-box green">
-                <div class="num" id="countGreen">0</div>
-                <div class="lbl">يعمل ✅</div>
-            </div>
-            <div class="stat-box red">
-                <div class="num" id="countRed">0</div>
-                <div class="lbl">يحتاج مراجعة</div>
-            </div>
-            <div class="stat-box yellow">
-                <div class="num" id="countYellow">0</div>
-                <div class="lbl">قيد التطوير</div>
-            </div>
-        </div>
-
-        <!-- Container -->
-        <div id="sectionsContainer">
-            <div class="loading-state">
-                <div class="spinner"></div>
-                <p>جاري تحميل الحالات...</p>
-            </div>
-        </div>
-
-    </div>
-
-    <script src="admin.js"></script>
-    <script>
-        // ─────────────────────────────────────────────
-        // 📋 الصفحات المراقبة (مُعرَّفة يدوياً)
-        // ─────────────────────────────────────────────
-        const PAGES_CONFIG = [
-            {
-                title: 'ORDIX — الطلبات',
-                icon: 'shopping-bag',
-                pages: [
-                    { file: 'ordix/orders.html', label: 'قائمة الطلبات' },
-                    { file: 'ordix/order-details.html', label: 'تفاصيل الطلب' },
-                    { file: 'ordix/new-order.html', label: 'طلب جديد' }
-                ]
-            },
-            {
-                title: 'ORDIX — الفواتير',
-                icon: 'file-text',
-                pages: [
-                    { file: 'ordix/purchases.html', label: 'فواتير الشراء (PR)' },
-                    { file: 'ordix/sales.html', label: 'فواتير البيع (S)' },
-                    { file: 'ordix/invoices.html', label: 'كل الفواتير' },
-                    { file: 'ordix/connections.html', label: 'الروابط (Connect)' }
-                ]
-            },
-            {
-                title: 'ORDIX — المالية',
-                icon: 'wallet',
-                pages: [
-                    { file: 'ordix/boxes.html', label: 'الصناديق والبنوك' },
-                    { file: 'ordix/transactions.html', label: 'المعاملات' },
-                    { file: 'ordix/exchange.html', label: 'التحويلات' }
-                ]
-            },
-            {
-                title: 'ORDIX — الأطراف',
-                icon: 'users',
-                pages: [
-                    { file: 'ordix/suppliers.html', label: 'الموردين' },
-                    { file: 'ordix/customers.html', label: 'العملاء' }
-                ]
-            },
-            {
-                title: 'ORDIX — التقارير',
-                icon: 'bar-chart',
-                pages: [
-                    { file: 'ordix/reports.html', label: 'التقارير' },
-                    { file: 'ordix/settings.html', label: 'الإعدادات' }
-                ]
-            },
-            {
-                title: 'النظام',
-                icon: 'settings',
-                pages: [
-                    { file: 'login.html', label: 'تسجيل الدخول' },
-                    { file: 'dashboard.html', label: 'Dashboard' },
-                    { file: 'users/list.html', label: 'المستخدمين' },
-                    { file: 'users/create.html', label: 'إنشاء مستخدم' },
-                    { file: 'users/edit.html', label: 'تعديل مستخدم' }
-                ]
-            },
-            {
-                title: 'PWA — الزبائن',
-                icon: 'smartphone',
-                pages: [
-                    { file: '../order/index.html', label: 'طلب جديد (PWA)' }
-                ]
-            }
-        ];
-        
-        // ─────────────────────────────────────────────
-        // 📦 State
-        // ─────────────────────────────────────────────
-        let statuses = {};
-        
-        // ─────────────────────────────────────────────
-        // 🌐 Load Statuses
-        // ─────────────────────────────────────────────
-        async function loadStatus() {
-            const container = document.getElementById('sectionsContainer');
-            
-            container.innerHTML = `
-                <div class="loading-state">
-                    <div class="spinner"></div>
-                    <p>جاري تحميل الحالات...</p>
-                </div>
-            `;
-            
-            try {
-                const token = localStorage.getItem('ione_admin_token');
-                const response = await fetch('/api/status/list', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                const result = await response.json();
-                statuses = result.statuses || {};
-                
-                renderSections();
-                updateSummary();
-                
-            } catch (error) {
-                console.error('Load error:', error);
-                container.innerHTML = `
-                    <div class="loading-state">
-                        <p style="color: #FF3B30;">فشل التحميل: ${error.message}</p>
-                        <button class="action-icon-btn open" onclick="loadStatus()" style="margin: 16px auto;">
-                            <i data-lucide="refresh-cw"></i>
-                        </button>
-                    </div>
-                `;
-                lucide.createIcons();
-            }
-        }
-        
-        // ─────────────────────────────────────────────
-        // 📊 Update Summary
-        // ─────────────────────────────────────────────
-        function updateSummary() {
-            let green = 0, red = 0, yellow = 0;
-            
-            PAGES_CONFIG.forEach(section => {
-                section.pages.forEach(page => {
-                    const st = statuses[page.file]?.status || 'yellow';
-                    if (st === 'green') green++;
-                    else if (st === 'red') red++;
-                    else yellow++;
-                });
-            });
-            
-            document.getElementById('countGreen').textContent = green;
-            document.getElementById('countRed').textContent = red;
-            document.getElementById('countYellow').textContent = yellow;
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🎨 Render Sections
-        // ─────────────────────────────────────────────
-        function renderSections() {
-            const container = document.getElementById('sectionsContainer');
-            
-            container.innerHTML = PAGES_CONFIG.map(section => `
-                <div class="section-block">
-                    <div class="section-title">
-                        <i data-lucide="${section.icon}"></i>
-                        ${section.title}
-                    </div>
-                    ${section.pages.map(page => renderPageRow(page)).join('')}
-                </div>
-            `).join('');
-            
-            lucide.createIcons();
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🎯 Render Single Page Row
-        // ─────────────────────────────────────────────
-        function renderPageRow(page) {
-            const info = statuses[page.file] || {};
-            const status = info.status || 'yellow';
-            const note = info.note || '';
-            const updatedAt = info.updated_at ? formatDate(info.updated_at) : 'لم يُختبر';
-            const updatedBy = info.updated_by || '';
-            
-            return `
-                <div class="page-row ${status}">
-                    <div class="status-dot ${status}"></div>
-                    
-                    <div class="page-info">
-                        <div class="page-name">${page.file}</div>
-                        <div class="page-note">${page.label}${note ? ' — ' + note : ''}</div>
-                        <div class="page-meta">
-                            ${updatedAt}${updatedBy ? ' — ' + updatedBy : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="page-actions">
-                        <button class="action-icon-btn open" onclick="openPage('${page.file}')" title="فتح">
-                            <i data-lucide="external-link"></i>
-                        </button>
-                        <button class="action-icon-btn green" onclick="setStatus('${page.file}', 'green')" title="يعمل">
-                            <i data-lucide="check"></i>
-                        </button>
-                        <button class="action-icon-btn red" onclick="setStatus('${page.file}', 'red')" title="يحتاج مراجعة">
-                            <i data-lucide="alert-triangle"></i>
-                        </button>
-                        <button class="action-icon-btn yellow" onclick="setStatus('${page.file}', 'yellow')" title="قيد التطوير">
-                            <i data-lucide="construction"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🔄 Set Status
-        // ─────────────────────────────────────────────
-        async function setStatus(page, status) {
-            const note = prompt('ملاحظة (اختياري):', statuses[page]?.note || '');
-            if (note === null) return; // cancelled
-            
-            try {
-                const token = localStorage.getItem('ione_admin_token');
-                const response = await fetch('/api/status/update', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ page, status, note })
-                });
-                
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error);
-                }
-                
-                // Update local state
-                statuses[page] = {
-                    status,
-                    note,
-                    updated_at: new Date().toISOString(),
-                    updated_by: getCurrentUser()?.email || 'unknown'
-                };
-                
-                renderSections();
-                updateSummary();
-                showToast('تم تحديث الحالة ✅', 'success');
-                
-            } catch (error) {
-                showToast('فشل التحديث: ' + error.message, 'error');
-            }
-        }
-        window.setStatus = setStatus;
-        
-        // ─────────────────────────────────────────────
-        // 🔗 Open Page
-        // ─────────────────────────────────────────────
-        function openPage(page) {
-            window.open(page, '_blank');
-        }
-        window.openPage = openPage;
-        
-        // ─────────────────────────────────────────────
-        // 🔧 Helpers
-        // ─────────────────────────────────────────────
-        function formatDate(iso) {
-            if (!iso) return '';
-            try {
-                const d = new Date(iso);
-                const now = new Date();
-                const diff = Math.floor((now - d) / 1000);
-                
-                if (diff < 60) return 'منذ لحظات';
-                if (diff < 3600) return 'منذ ' + Math.floor(diff / 60) + ' دقيقة';
-                if (diff < 86400) return 'منذ ' + Math.floor(diff / 3600) + ' ساعة';
-                if (diff < 604800) return 'منذ ' + Math.floor(diff / 86400) + ' يوم';
-                
-                return d.toLocaleDateString('ar-EG', {
-                    year: 'numeric', month: 'short', day: 'numeric'
-                });
-            } catch { return ''; }
-        }
-        
-        // ─────────────────────────────────────────────
-        // 🚀 Init
-        // ─────────────────────────────────────────────
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadStatus);
-        } else {
-            loadStatus();
-        }
-        
-        console.log(
-            '%c 🏥 Status Health Check v1.0 ',
-            'background: #34C759; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;'
-        );
+        window.onload = () => { lucide.createIcons(); loadStatuses(); };
     </script>
 </body>
 </html>
