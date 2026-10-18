@@ -46,7 +46,8 @@
     <div class="create-container">
         <div class="create-header">
             <div class="create-title"><i data-lucide="user-plus"></i> إضافة مستخدم جديد</div>
-            <a href="../../controller.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+            <!-- تم إصلاح علامة التنصيص هنا -->
+            <a href="../controller.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
         </div>
 
         <form id="createUserForm">
@@ -132,7 +133,7 @@
             const token = localStorage.getItem('ione_admin_token');
             if (!token) {
                 showToast('انتهت الجلسة، يرجى تسجيل الدخول مجدداً', true);
-                setTimeout(() => window.location.href = '../../login.html', 1500);
+                setTimeout(() => window.location.href = '../login.html', 1500); // تم إصلاح المسار هنا
                 return;
             }
 
@@ -151,9 +152,9 @@
                         role: permissions.includes('admin') ? 'admin' : 'user',
                         permissions: permissions,
                         active: true,
-                        userCode: userCode,  // تم إضافة هذا
-                        phone: phone,        // تم إضافة هذا
-                        address: address     // تم إضافة هذا
+                        userCode: userCode,
+                        phone: phone,
+                        address: address
                     })
                 });
 
@@ -179,7 +180,7 @@
                 showToast('تم إضافة المستخدم بنجاح!');
                 
                 setTimeout(() => {
-                    window.location.href = '../../controller.html';
+                    window.location.href = '../controller.html';
                 }, 1500);
 
             } catch (error) {
