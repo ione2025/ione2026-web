@@ -6,33 +6,23 @@
     <title>IONECENTER — حالة النظام</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="admin.css">
     <style>
-        body { margin: 0; padding: 0; display: flex; height: 100vh; background: #0a0a0f; color: white; font-family: 'Cairo', sans-serif; overflow: hidden; direction: rtl; }
+        .status-wrapper { position: fixed; inset: 0; display: flex; background: #0a0a0f; color: white; font-family: 'Cairo', sans-serif; z-index: 99999; }
+        .status-sidebar { width: 30%; background: #111118; border-left: 1px solid #222; display: flex; flex-direction: column; overflow-y: auto; padding: 20px; }
+        .status-preview { width: 70%; background: #000; }
+        .status-preview iframe { width: 100%; height: 100%; border: none; background: white; }
         
-        /* 30% للقائمة */
-        .sidebar { width: 30%; background: #111118; border-left: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
-        /* 70% للمعاينة */
-        .main-preview { width: 70%; background: #000; display: flex; flex-direction: column; border: none; }
-        iframe { flex: 1; border: none; width: 100%; height: 100%; background: white; }
-        
-        /* تنسيق القائمة الجانبية */
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-header h2 { font-size: 1.2rem; margin: 0; }
-        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
-        
-        .page-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; background: #1a1a24; border: 1px solid transparent; }
-        .page-item:hover { background: #222233; border-color: #333; }
-        .page-item.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .page-name { font-size: 0.85rem; font-family: monospace; direction: ltr; color: #ddd; }
+        .status-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #1a1a24; border: 1px solid transparent; }
+        .status-item:hover { background: #222233; border-color: #333; }
+        .status-item.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .status-name { font-size: 0.85rem; font-family: monospace; direction: ltr; color: #ddd; }
         .status-dot { width: 12px; height: 12px; border-radius: 50%; }
         .dot-green { background: #10b981; box-shadow: 0 0 8px #10b981; }
         .dot-red { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
         .dot-yellow { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
         
-        .page-actions { display: flex; gap: 5px; margin-top: 5px; }
+        .status-actions { display: flex; gap: 5px; margin-top: 5px; }
         .status-btn { flex: 1; padding: 4px; border: none; border-radius: 4px; font-family: inherit; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
         .btn-green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
         .btn-green:hover, .btn-green.active { background: #10b981; color: white; }
@@ -43,57 +33,39 @@
     </style>
 </head>
 <body>
-    <!-- الشاشة اليسرى (30%) -->
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <h2>حالة النظام</h2>
-            <a href="dashboard.html" style="color: #888; text-decoration: none; font-size: 0.8rem;">رجوع</a>
+    <div class="status-wrapper">
+        <div class="status-sidebar">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px;">
+                <h2 style="font-size: 1.2rem; margin: 0;">حالة النظام</h2>
+                <a href="dashboard.html" style="color: #888; text-decoration: none; font-size: 0.8rem;">رجوع</a>
+            </div>
+            <div id="pagesList"><div style="text-align: center; padding: 20px;">جاري التحميل...</div></div>
         </div>
-        <div class="sidebar-content" id="pagesList">
-            <div style="text-align: center; padding: 20px;">جاري التحميل...</div>
+        <div class="status-preview">
+            <iframe id="previewFrame" src="about:blank"></iframe>
         </div>
     </div>
 
-    <!-- الشاشة اليمنى (70%) -->
-    <div class="main-preview">
-        <iframe id="previewFrame" src="about:blank"></iframe>
-    </div>
-
-    <script src="admin.js"></script>
     <script>
-        // قائمة الصفحات
         const PAGES_CONFIG = [
             { title: 'ORDIX — الطلبات', file: 'ordix/orders.html' },
-            { title: 'ORDIX — تفاصيل الطلب', file: 'ordix/order-details.html' },
             { title: 'ORDIX — فواتير الشراء', file: 'ordix/purchases.html' },
             { title: 'ORDIX — فواتير البيع', file: 'ordix/sales.html' },
             { title: 'ORDIX — العملاء', file: 'ordix/customers.html' },
-            { title: 'ORDIX — الموردين', file: 'ordix/suppliers.html' },
             { title: 'ORDIX — الصناديق', file: 'ordix/banks.html' },
-            { title: 'ORDIX — السندات', file: 'ordix/vouchers.html' },
-            { title: 'ORDIX — دفتر اليوميات', file: 'ordix/journal.html' },
-            { title: 'ORDIX — المصروفات', file: 'ordix/expenses.html' },
-            { title: 'ORDIX — التقارير', file: 'ordix/reports.html' },
-            { title: 'ORDIX — الإعدادات', file: 'ordix/settings.html' },
-            { title: 'لوحة التحكم', file: 'dashboard.html' }
+            { title: 'ORDIX — السندات', file: 'ordix/vouchers.html' }
         ];
 
         let currentStatuses = {};
 
-        // جلب الحالات الحقيقية من السيرفر
         async function loadStatuses() {
-            const container = document.getElementById('pagesList');
             try {
                 const token = localStorage.getItem('ione_admin_token');
                 const res = await fetch('/api/status/list', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                if (data.success) {
-                    currentStatuses = data.statuses || {};
-                }
-                renderList();
-            } catch(e) {
-                renderList(); // عرض القائمة حتى لو فشل جلب الحالات
-            }
+                if (data.success) currentStatuses = data.statuses || {};
+            } catch(e) {}
+            renderList();
         }
 
         function renderList() {
@@ -101,54 +73,40 @@
             container.innerHTML = PAGES_CONFIG.map(p => {
                 const info = currentStatuses[p.file] || {};
                 const status = info.status || 'yellow';
-                
                 return `
-                <div class="page-item" id="item-${p.file.replace(/\//g, '-')}" onclick="openPage('${p.file}')">
-                    <div class="page-header">
-                        <span class="page-name">${p.file}</span>
+                <div class="status-item" id="item-${p.file.replace(/\//g, '-')}" onclick="openPage('${p.file}')">
+                    <div class="status-header">
+                        <span class="status-name">${p.file}</span>
                         <div class="status-dot dot-${status}"></div>
                     </div>
                     <div style="font-size: 0.75rem; color: #888; margin-bottom: 8px;">${p.title}</div>
-                    <div class="page-actions">
+                    <div class="status-actions">
                         <button class="status-btn btn-green ${status === 'green' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'green', event)">يعمل</button>
-                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'red', event)">يحتاج مراجعة</button>
-                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'yellow', event)">قيد التطوير</button>
+                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'red', event)">مراجعة</button>
+                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'yellow', event)">تطوير</button>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // فتح الصفحة في الـ iframe
         function openPage(file) {
-            // إزالة التحديد النشط من الجميع
-            document.querySelectorAll('.page-item').forEach(el => el.classList.remove('active'));
-            // تحديد العنصر الحالي
-            const itemId = `item-${file.replace(/\//g, '-')}`;
-            document.getElementById(itemId).classList.add('active');
-            
-            // تحميل الصفحة
+            document.querySelectorAll('.status-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(`item-${file.replace(/\//g, '-')}`).classList.add('active');
             document.getElementById('previewFrame').src = file;
         }
 
-        // تحديث الحالة في السيرفر
         async function updateStatus(file, status, event) {
-            event.stopPropagation(); // منع فتح الصفحة عند الضغط على زر الحالة
-            
+            event.stopPropagation();
             try {
                 const token = localStorage.getItem('ione_admin_token');
-                const res = await fetch('/api/status/update', {
+                await fetch('/api/status/update', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({ page: file, status: status })
                 });
-                const data = await res.json();
-                if (data.success) {
-                    currentStatuses[file] = { status: status };
-                    renderList(); // إعادة رسم القائمة لتحديث الألوان
-                }
-            } catch(e) {
-                console.error('Failed to update status', e);
-            }
+                currentStatuses[file] = { status: status };
+                renderList();
+            } catch(e) {}
         }
 
         window.onload = () => { lucide.createIcons(); loadStatuses(); };
