@@ -1,125 +1,170 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>IONECENTER - Team</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER — إدارة الفريق</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="admin.css">
     <style>
-        body { background: #050508; color: white; font-family: 'Inter', sans-serif; padding: 20px; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .btn-add { background: #8B5CF6; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        :root {
+            --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-cyan: #06b6d4; --accent-green: #10b981; --accent-red: #ef4444; --accent-primary: #8b5cf6;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); min-height: 100vh; padding: 30px; display: flex; flex-direction: column; align-items: center; }
         
-        /* تصميم البطاقات (Full Cover) */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
-        .card { position: relative; height: 280px; border-radius: 16px; background-size: cover; background-position: center; overflow: hidden; border: 1px solid #333; cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.6); border-color: #8B5CF6; }
-        .card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.2) 50%, transparent); z-index: 1; }
+        .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 1200px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
+        .page-title { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .btn-add { background: var(--accent-primary); color: white; padding: 10px 20px; border: none; border-radius: 12px; font-family: inherit; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .btn-add:hover { background: #7c3aed; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+        
+        /* تصميم البطاقات */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
+        .card { position: relative; height: 300px; border-radius: 20px; background-size: cover; background-position: center; overflow: hidden; border: 1px solid var(--glass-border); cursor: pointer; display: flex; flex-direction: column; justify-content: flex-end; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent-cyan); }
+        .card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.2) 60%, transparent); z-index: 1; }
         
         .card-content { position: relative; z-index: 2; padding: 20px; }
-        .code { background: rgba(139,92,246,0.8); color: white; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 0.75rem; display: inline-block; margin-bottom: 5px; }
+        .code { background: var(--accent-cyan); color: #fff; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-weight: bold; font-size: 0.75rem; display: inline-block; margin-bottom: 6px; }
         .card h3 { margin: 0; font-size: 1.2rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .card p { color: #ddd; font-size: 0.85rem; margin: 2px 0; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+        .card p { color: #ccc; font-size: 0.85rem; margin: 2px 0; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
         
         /* Modal */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal.active { display: flex; }
-        .modal-content { background: #1a1a24; padding: 30px; border-radius: 16px; width: 450px; border: 1px solid #444; }
+        .modal-content { background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 30px; border-radius: 24px; width: 90%; max-width: 550px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 0.85rem; }
-        .form-control { width: 100%; padding: 10px; background: #000; border: 1px solid #333; border-radius: 8px; color: white; }
+        .form-group label { display: block; margin-bottom: 8px; color: #ccc; font-size: 0.9rem; font-weight: 700; }
+        .form-control { width: 100%; padding: 12px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: white; font-family: inherit; outline: none; transition: 0.2s; }
+        .form-control:focus { border-color: var(--accent-cyan); }
         
-        .btn-save { background: #8B5CF6; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-delete { background: #ef4444; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; display: none; }
+        .btn-save { background: var(--accent-green); color: white; padding: 14px; border: none; border-radius: 10px; font-family: inherit; font-weight: 800; font-size: 1.1rem; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #059669; transform: translateY(-2px); }
+        .btn-delete { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--accent-red); padding: 14px; border-radius: 10px; font-family: inherit; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; display: none; transition: 0.2s; }
+        .btn-delete:hover { background: rgba(239, 68, 68, 0.2); }
+        .btn-cancel { background: transparent; color: #888; border: none; margin-top: 15px; cursor: pointer; width: 100%; font-family: inherit; font-weight: 700; }
+        .btn-cancel:hover { color: #fff; }
+
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+        .toast.show { bottom: 30px; }
+        .toast.error { background: var(--accent-red); }
     </style>
 </head>
 <body>
+    <div class="toast" id="toast"><i data-lucide="check-circle"></i> <span id="toastMessage">تم الحفظ بنجاح</span></div>
+
     <div class="header">
-        <h1>Team Members</h1>
-        <button class="btn-add" onclick="openModal()">+ Add Member</button>
+        <div class="page-title"><i data-lucide="users"></i> إدارة الفريق</div>
+        <button class="btn-add" onclick="openModal()"><i data-lucide="plus"></i> إضافة عضو جديد</button>
     </div>
+    
     <div class="grid" id="teamGrid"></div>
 
+    <!-- Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content" onkeydown="handleDoubleEnter(event)">
-            <h2 style="margin-bottom: 20px;" id="modalTitle">Add Team Member</h2>
+            <h2 style="margin-bottom: 25px; color: var(--accent-cyan); display: flex; align-items: center; gap: 10px;" id="modalTitle"><i data-lucide="user-plus"></i> إضافة عضو للفريق</h2>
             <input type="hidden" id="tId">
-            <div class="form-group"><label>Name</label><input type="text" id="tName" class="form-control"></div>
-            <div class="form-group"><label>Role (Admin, Tester...)</label>
+            
+            <div class="form-group"><label>الاسم الكامل</label><input type="text" id="tName" class="form-control" placeholder="مثال: أحمد محمد"></div>
+            
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="tEmail" class="form-control" placeholder="ahmad@example.com"></div>
+            
+            <div class="form-group"><label>الصلاحية (Role)</label>
                 <select id="tRole" class="form-control">
-                    <option value="Admin">Admin</option>
-                    <option value="Manager">Manager</option>
-                    <option value="Tester">Tester</option>
-                    <option value="Reviewer">Reviewer</option>
-                    <option value="Developer">Developer</option>
-                    <option value="Support">Support</option>
+                    <option value="admin">مدير (Admin)</option>
+                    <option value="sales">مبيعات (Sales)</option>
+                    <option value="accounting">محاسبة (Accounting)</option>
+                    <option value="support">دعم (Support)</option>
+                    <option value="warehouse">مستودعات (Warehouse)</option>
+                    <option value="hr">موارد بشرية (HR)</option>
+                    <option value="viewer">مشاهدة فقط (Viewer)</option>
                 </select>
             </div>
-            <div class="form-group"><label>Email</label><input type="email" id="tEmail" class="form-control"></div>
-            <div class="form-group"><label>Phone</label><input type="text" id="tPhone" class="form-control"></div>
+
+            <!-- حقول إضافية مطلوبة لتسجيل الدخول (تظهر فقط عند الإضافة) -->
+            <div id="loginFields">
+                <div class="form-group"><label>كلمة المرور (Password)</label><input type="password" id="tPassword" class="form-control" placeholder="******"></div>
+                <div class="form-group"><label>كود الدخول السريع (رقم)</label><input type="text" id="tUserCode" class="form-control" placeholder="1001" maxlength="6" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);"></div>
+            </div>
+
+            <div class="form-group"><label>رقم الهاتف</label><input type="text" id="tPhone" class="form-control" placeholder="+966 50 123 4567"></div>
             
-            <div class="form-group" style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px;">
-                <label>Profile Image</label>
-                <input type="file" id="tImageUpload" class="form-control" accept="image/*" onchange="uploadImage(event)" style="margin-bottom: 5px;">
-                <input type="text" id="tImage" class="form-control" placeholder="Or paste URL...">
+            <div class="form-group" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                <label>الصورة الشخصية</label>
+                <input type="file" id="tImageUpload" class="form-control" accept="image/*" onchange="uploadImage(event)" style="margin-bottom: 10px;">
+                <input type="text" id="tImage" class="form-control" placeholder="أو الصق رابط الصورة هنا...">
             </div>
             
-            <button onclick="saveMember()" class="btn-save">Save (Or Double Enter)</button>
-            <button onclick="deleteMember()" id="btnDelete" class="btn-delete">Delete Member</button>
-            <button onclick="document.getElementById('editModal').classList.remove('active')" style="width: 100%; background: transparent; color: #aaa; border: none; margin-top: 10px; cursor: pointer;">Cancel</button>
+            <button onclick="saveMember()" class="btn-save" id="saveBtn"><i data-lucide="save"></i> حفظ (أو اضغط Enter مرتين)</button>
+            <button onclick="deleteMember()" id="btnDelete" class="btn-delete">حذف العضو</button>
+            <button onclick="document.getElementById('editModal').classList.remove('active')" class="btn-cancel">إلغاء</button>
         </div>
     </div>
 
-    <script src="admin.js"></script>
     <script>
+        lucide.createIcons();
         let teamData = [];
         let enterCount = 0;
         let enterTimer;
 
+        // جلب أعضاء الفريق
         async function loadTeam() {
             const token = localStorage.getItem('ione_admin_token');
-            const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } });
-            const data = await res.json();
-            if (data.success) {
-                teamData = data.team;
-                const grid = document.getElementById('teamGrid');
-                grid.innerHTML = teamData.length === 0 ? '<p>No team members yet.</p>' : teamData.map(m => `
-                    <div class="card" onclick="editMember('${m.id}')" style="background-image: url('${m.image_url || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop'}');">
-                        <div class="card-content">
-                            <div class="code">${m.code}</div>
-                            <h3>${m.name}</h3>
-                            <p>${m.role}</p>
+            if(!token) return;
+            try {
+                const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success) {
+                    teamData = data.team;
+                    const grid = document.getElementById('teamGrid');
+                    grid.innerHTML = teamData.length === 0 ? '<p style="color:#888; grid-column: 1/-1; text-align:center;">لا يوجد أعضاء حتى الآن.</p>' : teamData.map(m => `
+                        <div class="card" onclick="editMember('${m.id}')" style="background-image: url('${m.image_url || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop'}');">
+                            <div class="card-content">
+                                <div class="code">${m.code || 'TM'}</div>
+                                <h3>${m.name}</h3>
+                                <p>${m.role}</p>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
-            }
+                    `).join('');
+                }
+            } catch(e) { console.error("Error loading team", e); }
         }
 
         function openModal() {
-            document.getElementById('modalTitle').innerText = 'Add Team Member';
+            document.getElementById('modalTitle').innerHTML = '<i data-lucide="user-plus"></i> إضافة عضو للفريق';
             document.getElementById('tId').value = '';
             document.getElementById('tName').value = '';
-            document.getElementById('tRole').value = 'Tester';
             document.getElementById('tEmail').value = '';
+            document.getElementById('tPassword').value = '';
+            document.getElementById('tUserCode').value = '';
+            document.getElementById('tRole').value = 'sales';
             document.getElementById('tPhone').value = '';
             document.getElementById('tImage').value = '';
             document.getElementById('btnDelete').style.display = 'none';
+            document.getElementById('loginFields').style.display = 'block';
             document.getElementById('editModal').classList.add('active');
+            lucide.createIcons();
         }
 
         function editMember(id) {
             const m = teamData.find(x => x.id === id);
             if(!m) return;
-            document.getElementById('modalTitle').innerText = 'Edit Team Member';
+            document.getElementById('modalTitle').innerHTML = '<i data-lucide="edit"></i> تعديل بيانات العضو';
             document.getElementById('tId').value = m.id;
             document.getElementById('tName').value = m.name;
-            document.getElementById('tRole').value = m.role;
             document.getElementById('tEmail').value = m.email || '';
+            document.getElementById('tRole').value = m.role.toLowerCase();
             document.getElementById('tPhone').value = m.phone || '';
             document.getElementById('tImage').value = m.image_url || '';
             document.getElementById('btnDelete').style.display = 'block';
+            
+            // إخفاء حقول كلمة المرور والكود عند التعديل (لأنها خاصة بالإنشاء)
+            document.getElementById('loginFields').style.display = 'none';
+            
             document.getElementById('editModal').classList.add('active');
+            lucide.createIcons();
         }
 
         async function uploadImage(event) {
@@ -132,7 +177,7 @@
                 const res = await fetch(`https://api.cloudinary.com/v1_1/xhfnelrf/image/upload`, { method: 'POST', body: formData });
                 const data = await res.json();
                 document.getElementById('tImage').value = data.secure_url;
-            } catch(e) {}
+            } catch(e) { console.error(e); }
         }
 
         // ميزة حفظ بـ Double Enter
@@ -151,28 +196,114 @@
 
         async function saveMember() {
             const token = localStorage.getItem('ione_admin_token');
+            if (!token) { showToast('انتهت الجلسة، يرجى تسجيل الدخول', true); return; }
+
             const id = document.getElementById('tId').value;
-            const payload = {
-                id: id || undefined,
-                name: document.getElementById('tName').value,
-                role: document.getElementById('tRole').value,
-                email: document.getElementById('tEmail').value,
-                phone: document.getElementById('tPhone').value,
-                image_url: document.getElementById('tImage').value
-            };
-            const url = id ? '/api/team/update' : '/api/team/save';
-            await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
-            document.getElementById('editModal').classList.remove('active');
-            loadTeam();
+            const name = document.getElementById('tName').value.trim();
+            const email = document.getElementById('tEmail').value.trim();
+            const role = document.getElementById('tRole').value;
+            const phone = document.getElementById('tPhone').value.trim();
+            const image_url = document.getElementById('tImage').value;
+            
+            if(!name || !email) { showToast('الرجاء إدخال الاسم والبريد', true); return; }
+
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> جاري الحفظ...';
+            btn.disabled = true;
+            lucide.createIcons();
+
+            try {
+                // 1. الحفظ في قاعدة بيانات الفريق (للعرض في هذه الصفحة)
+                const teamPayload = {
+                    id: id || undefined,
+                    name: name,
+                    role: role,
+                    email: email,
+                    phone: phone,
+                    image_url: image_url
+                };
+                const teamUrl = id ? '/api/team/update' : '/api/team/save';
+                await fetch(teamUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(teamPayload) });
+
+                // 2. الحفظ في قاعدة بيانات المستخدمين (لتسجيل الدخول) - فقط عند الإضافة الجديدة
+                if (!id) {
+                    const password = document.getElementById('tPassword').value;
+                    const userCode = document.getElementById('tUserCode').value;
+
+                    if (!password || !userCode) {
+                        showToast('الرجاء إدخال كلمة المرور وكود الدخول', true);
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    const userPayload = {
+                        email: email,
+                        password: password,
+                        full_name: name,
+                        role: role,
+                        permissions: [role], // ربط الصلاحية بالنظام
+                        active: true
+                    };
+
+                    const response = await fetch('/api/users/create', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(userPayload)
+                    });
+
+                    const textResponse = await response.text();
+                    let data;
+                    try { data = JSON.parse(textResponse); } catch (e) { 
+                        showToast(`فشل الاتصال (كود ${response.status}): السيرفر لم يرجع JSON`, true);
+                        btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons();
+                        return; 
+                    }
+
+                    if (!response.ok || !data.success) {
+                        showToast('تم إضافة العضو، لكن فشل إنشاء حساب الدخول: ' + (data.error || ''), true);
+                        btn.innerHTML = originalText; btn.disabled = false; lucide.createIcons();
+                        return;
+                    }
+                }
+
+                // النجاح
+                document.getElementById('editModal').classList.remove('active');
+                showToast(id ? 'تم تحديث بيانات العضو بنجاح' : 'تم إضافة العضو وإنشاء حساب الدخول بنجاح');
+                loadTeam();
+
+            } catch (error) {
+                console.error(error);
+                showToast('فشل الاتصال بالسيرفر. تحقق من الـ Console.', true);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
         }
 
         async function deleteMember() {
-            if(!confirm('Are you sure?')) return;
+            if(!confirm('هل أنت متأكد من حذف هذا العضو؟')) return;
             const token = localStorage.getItem('ione_admin_token');
             const id = document.getElementById('tId').value;
             await fetch('/api/team/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id }) });
             document.getElementById('editModal').classList.remove('active');
             loadTeam();
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            if (isError) toast.innerHTML = `<i data-lucide="alert-circle"></i> <span id="toastMessage">${msg}</span>`;
+            else toast.innerHTML = `<i data-lucide="check-circle"></i> <span id="toastMessage">${msg}</span>`;
+            lucide.createIcons();
+            setTimeout(() => toast.classList.remove('show'), 4000);
         }
 
         window.onload = loadTeam;
