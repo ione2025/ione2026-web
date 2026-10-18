@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>IONECENTER - Team</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        body { background: #050508; color: white; font-family: 'Inter', sans-serif; padding: 20px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .btn-add { background: #8B5CF6; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #1a1a24; border-radius: 16px; padding: 20px; text-align: center; border: 1px solid #333; }
+        .card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid #8B5CF6; }
+        .card h3 { margin: 5px 0; font-size: 1.2rem; }
+        .card p { color: #aaa; font-size: 0.85rem; margin: 2px 0; }
+        .code { background: rgba(139,92,246,0.2); color: #a855f7; padding: 2px 8px; border-radius: 4px; font-family: monospace; font-weight: bold; font-size: 0.8rem; display: inline-block; margin-bottom: 10px; }
+        
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal.active { display: flex; }
+        .modal-content { background: #1a1a24; padding: 30px; border-radius: 16px; width: 400px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #aaa; font-size: 0.85rem; }
+        .form-control { width: 100%; padding: 10px; background: #000; border: 1px solid #333; border-radius: 8px; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Team Members</h1>
+        <button class="btn-add" onclick="document.getElementById('addModal').classList.add('active')">+ Add Member</button>
+    </div>
+    <div class="grid" id="teamGrid"></div>
+
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 20px;">Add Team Member</h2>
+            <div class="form-group"><label>Name</label><input type="text" id="tName" class="form-control"></div>
+            <div class="form-group"><label>Role (Admin, Tester...)</label><input type="text" id="tRole" class="form-control"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="tEmail" class="form-control"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="tPhone" class="form-control"></div>
+            <div class="form-group"><label>Image URL</label><input type="text" id="tImage" class="form-control" placeholder="https://..."></div>
+            <button onclick="saveMember()" style="width: 100%; background: #8B5CF6; color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px;">Save</button>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadTeam() {
+            const token = localStorage.getItem('ione_admin_token');
+            const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            if (data.success) {
+                const grid = document.getElementById('teamGrid');
+                if (data.team.length === 0) {
+                    grid.innerHTML = '<p>No team members yet.</p>'; return;
+                }
+                grid.innerHTML = data.team.map(m => `
+                    <div class="card">
+                        <img src="${m.image_url || 'https://ui-avatars.com/api/?name=' + m.name}" alt="${m.name}">
+                        <div class="code">${m.code}</div>
+                        <h3>${m.name}</h3>
+                        <p>${m.role}</p>
+                        <p>${m.email || ''}</p>
+                    </div>
+                `).join('');
+            }
+        }
+
+        async function saveMember() {
+            const token = localStorage.getItem('ione_admin_token');
+            const payload = {
+                name: document.getElementById('tName').value,
+                role: document.getElementById('tRole').value,
+                email: document.getElementById('tEmail').value,
+                phone: document.getElementById('tPhone').value,
+                image_url: document.getElementById('tImage').value
+            };
+            const res = await fetch('/api/team/save', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) { location.reload(); }
+        }
+        window.onload = loadTeam;
+    </script>
+</body>
+</html>

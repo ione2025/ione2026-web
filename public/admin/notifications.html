@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>IONECENTER — الإشعارات والمشاكل</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        body { background: #050508; color: white; font-family: 'Cairo', sans-serif; padding: 20px; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .btn-print { background: #ef4444; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .note-card { background: #1a1a24; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 15px; }
+        .note-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .page-name { font-family: monospace; font-size: 1.1rem; color: #3b82f6; font-weight: bold; }
+        .assignee { background: rgba(139, 92, 246, 0.2); color: #a855f7; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; }
+        .note-text { color: #ccc; font-size: 0.95rem; margin-bottom: 5px; }
+        @media print {
+            body { background: white; color: black; }
+            .note-card { border: 1px solid #ccc; break-inside: avoid; }
+            .btn-print, .btn-back { display: none; }
+            .page-name { color: #000; }
+            .assignee { color: #000; border: 1px solid #000; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 سجل المشاكل والملاحظات</h1>
+        <div>
+            <button class="btn-print" onclick="window.print()">تحميل كـ PDF</button>
+            <a href="status.html" class="btn-back" style="color: #888; text-decoration: none; margin-right: 15px;">رجوع</a>
+        </div>
+    </div>
+    <div id="notesContainer"></div>
+
+    <script src="admin.js"></script>
+    <script>
+        async function loadNotes() {
+            const token = localStorage.getItem('ione_admin_token');
+            try {
+                const res = await fetch('/api/status/notes/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const container = document.getElementById('notesContainer');
+                
+                if (!data.success || data.notes.length === 0) {
+                    container.innerHTML = '<p>لا توجد ملاحظات مسجلة.</p>';
+                    return;
+                }
+
+                container.innerHTML = data.notes.map(n => `
+                    <div class="note-card">
+                        <div class="note-header">
+                            <span class="page-name">${n.page}</span>
+                            <span class="assignee">👤 ${n.assignee}</span>
+                        </div>
+                        <div>
+                            ${n.notes.map((text, i) => `<div class="note-text">${i + 1}. ${text}</div>`).join('')}
+                        </div>
+                        <div style="margin-top: 10px; font-size: 0.75rem; color: #666;">
+                            🕒 ${new Date(n.created_at).toLocaleString('ar-EG')}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch(e) { console.error(e); }
+        }
+        window.onload = loadNotes;
+    </script>
+</body>
+</html>
