@@ -3,213 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IONECENTER - لوحة المهام</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <title>IONECENTER - Workspace</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    
     <style>
-        :root { --bg: #050508; --border: #333; --text: #fff; --open: #ef4444; --dev: #f59e0b; --review: #3b82f6; --works: #10b981; --archive: #64748b; }
+        :root {
+            --bg-body: #0b0c10;
+            --bg-surface: rgba(18, 20, 28, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --sidebar-width: 380px;
+            --notes-width: 340px;
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
-        .header h1 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
-        .btn-dark { background: #333; color: white; }
-        .btn-archive { background: var(--archive); color: white; }
-        .board-wrapper { flex: 1; padding: 10px; overflow-x: auto; overflow-y: hidden; }
-        .board { display: flex; gap: 10px; height: 100%; min-width: 1300px; }
-        .column { flex: 1; min-width: 250px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 100%; }
-        .column-header { font-weight: bold; padding: 12px; border-bottom: 2px solid; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 0.9rem; }
-        #col-open .column-header { border-color: var(--open); color: var(--open); }
-        #col-develop .column-header { border-color: var(--dev); color: var(--dev); }
-        #col-review .column-header { border-color: var(--review); color: var(--review); }
-        #col-works .column-header { border-color: var(--works); color: var(--works); }
-        #col-archive .column-header { border-color: var(--archive); color: var(--archive); }
-        .card-list { flex: 1; overflow-y: auto; padding: 8px; min-height: 100px; }
-        .card { position: relative; border-radius: 8px; margin-bottom: 10px; background: #1a1a24; border: 1px solid var(--border); display: flex; flex-direction: column; cursor: grab; overflow: hidden; transition: 0.2s; }
-        .card:hover { transform: translateY(-2px); border-color: #555; }
-        .card::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 4px; }
-        #col-open .card::after { background: var(--open); }
-        #col-develop .card::after { background: var(--dev); }
-        #col-review .card::after { background: var(--review); }
-        #col-works .card::after { background: var(--works); }
-        .card-body { padding: 12px; }
-        .card-title { font-size: 0.85rem; font-weight: bold; font-family: monospace; color: #a855f7; margin-bottom: 6px; }
-        .card-notes { font-size: 0.8rem; color: #ccc; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .card-footer { padding: 8px 12px; background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: #888; }
-        .avatar { width: 20px; height: 20px; border-radius: 50%; }
-        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 9999; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-box { background: #1a1a24; border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 90%; max-width: 500px; }
-        .modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .notes-box { background: #000; padding: 12px; border-radius: 8px; border-right: 3px solid var(--review); margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
-        .reply-box textarea { width: 100%; height: 80px; padding: 10px; background: #000; border: 1px solid var(--border); border-radius: 8px; color: white; font-family: inherit; resize: none; margin-bottom: 10px; }
-        .btn-send { width: 100%; background: var(--works); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #archiveView { position: fixed; inset: 0; background: var(--bg); z-index: 900; padding: 20px; display: none; flex-direction: column; }
-        #archiveView.active { display: flex; }
-        .archive-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .table-container { background: #1a1a24; border-radius: 8px; overflow: auto; flex: 1; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); min-height: 100vh; overflow: hidden; position: relative; user-select: none; }
+        #workspace { width: 100vw; height: 100vh; position: absolute; inset: 0; display: flex; justify-content: center; overflow-y: auto; z-index: 1; padding: 40px; }
+        
+        /* =========================================
+           🌟 شريط الأدوات العلوي (X Shortcut)
+           ========================================= */
+        .top-dashboard-drawer { 
+            position: fixed; top: 0; left: 0; right: 0; 
+            background: rgba(10, 11, 15, 0.95); backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); 
+            z-index: 1000; padding: 15px 30px; 
+            display: flex; justify-content: space-between; align-items: center; /* التعديل هنا: space-between */
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+        }
+        .top-dashboard-drawer.active { transform: translateY(0); }
+        
+        /* حاوية الأيقونات في المنتصف */
+        .drawer-nav { 
+            display: flex; justify-content: center; gap: 30px; flex: 1; 
+        }
+
+        /* 🌟 كارت المستخدم في اليسار */
+        .user-profile-drawer {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 16px 6px 6px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            cursor: pointer; transition: 0.3s;
+            text-decoration: none; color: #fff;
+        }
+        .user-profile-drawer:hover {
+            background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        .user-avatar-drawer {
+            width: 38px; height: 38px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--accent-primary);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        }
+        .user-info-drawer { display: flex; flex-direction: column; align-items: flex-start; }
+        .user-name-drawer { font-size: 0.85rem; font-weight: 800; color: #fff; line-height: 1.2; }
+        .user-role-drawer { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
+
+        .drawer-item { 
+            display: flex; flex-direction: column; align-items: center; gap: 8px; 
+            color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s;
+        }
+        .drawer-icon-wrap { width: 56px; height: 56px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; transition: 0.3s; }
+        .drawer-icon-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent); pointer-events: none; }
+        .drawer-icon-wrap i { width: 24px; height: 24px; color: #d4d4d8; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); z-index: 1; }
+        .drawer-item:hover { color: #fff; }
+        .drawer-item:hover .drawer-icon-wrap { background: rgba(255, 255, 255, 0.08); border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
+        
+        /* باقي الـ CSS كما هو */
+        .sidebar-left { width: var(--notes-width); height: calc(100vh - 30px); margin: 15px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; position: fixed; right: 15px; top: 0; z-index: 100; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.2s ease-in-out; }
+        .sidebar-left.hidden { transform: translateX(calc(100% + 30px)); opacity: 0; pointer-events: none; }
+        .sidebar-left.disabled { display: none; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
+        .sidebar-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .btn-add-note { background: var(--accent-cyan); color: #fff; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.4); transition: 0.2s; }
+        .btn-add-note:hover { transform: scale(1.05); }
+        .notes-dock { flex: 1; overflow-y: auto; padding: 15px 15px 20px 15px; display: flex; flex-direction: column; gap: 25px; }
+        .notes-dock::-webkit-scrollbar { width: 4px; }
+        .notes-dock::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+        
+        .note-card { position: relative; border-radius: 24px; background: #18181b; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transition: transform 0.2s; z-index: 1; height: auto; }
+        .note-card::before { content: ""; position: absolute; inset: -1.5px; border-radius: 25.5px; background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); background-size: 400%; z-index: -1; animation: glowing 20s linear infinite; }
+        @keyframes glowing { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
+        .note-card.docked { width: 100%; cursor: grab; }
+        .note-card.floating { position: fixed; width: 320px; z-index: 9999; cursor: default; animation: popOut 0.3s ease; }
+        @keyframes popOut { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+        .note-header { height: 40px; background: transparent; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
+        .docked .note-header { cursor: grab; }
+        .mac-dots { display: flex; gap: 6px; }
+        .mac-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .mac-dot.red { background: #ff5f56; }
+        .mac-dot.yellow { background: #ffbd2e; }
+        .mac-dot.green { background: #27c93f; }
+        .note-body { padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; }
+        .inner-box { background: #27272a; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; flex: 1; }
+        .note-card textarea { width: 100%; background: transparent; border: none; resize: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 0.9rem; font-weight: 600; color: #fff; line-height: 1.6; margin-bottom: 10px; flex: none; min-height: 40px; overflow-y: hidden; }
+        .note-card textarea::placeholder { color: rgba(255,255,255,0.3); }
+        .inner-tools { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; flex-shrink: 0; }
+        .btn-send-admin { display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.75rem; transition: 0.2s; }
+        .btn-send-admin:hover { background: rgba(16, 185, 129, 0.2); transform: translateY(-1px); }
+        .btn-del-note { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.3); display: flex; align-items: center; transition: 0.2s; }
+        .btn-del-note:hover { color: #ef4444; transform: rotate(90deg); }
+
+        .sidebar-right { width: var(--sidebar-width); height: calc(100vh - 30px); margin: 15px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; position: fixed; left: 15px; top: 0; z-index: 100; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.2s ease-in-out; overflow: hidden; }
+        .sidebar-right.hidden { transform: translateX(calc(-100% - 30px)); opacity: 0; pointer-events: none; }
+        .sidebar-right.disabled { display: none; }
+        .app-rail { width: 70px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-left: 1px solid var(--glass-border); border-radius: 0 20px 20px 0; }
+        .app-view { flex: 1; display: flex; flex-direction: column; border-radius: 20px 0 0 20px; }
+        .app-header { height: 55px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--glass-border); }
+        .iframe-container { flex: 1; position: relative; background: #000; }
+        #app-iframe { width: 100%; height: 100%; border: none; display: none; }
+        .app-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted); gap: 10px; }
+        .guide-btn-wrapper { padding: 15px; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
+        .guide-btn-gradient { width: 100%; padding: 12px 20px; border-radius: 50px; border: none; background: linear-gradient(90deg, #ff4e00 0%, #ec9f05 50%, #8bc34a 100%); color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 78, 0, 0.3); transition: transform 0.2s, box-shadow 0.2s; }
+        .guide-btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 78, 0, 0.5); }
+
+        .main-content { width: 100%; max-width: 1000px; margin: 0 auto; margin-top: 20px; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border); }
+        .page-title { font-size: 1.8rem; font-weight: 800; }
+        .table-container { background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(10px); }
         table { width: 100%; border-collapse: collapse; text-align: right; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        th { background: #0f0f15; color: #aaa; position: sticky; top: 0; }
-        tr:hover { background: rgba(255,255,255,0.02); cursor: pointer; }
+        th { background: rgba(0,0,0,0.2); color: var(--text-muted); padding: 16px 20px; font-size: 0.75rem; font-weight: 700; border-bottom: 1px solid var(--glass-border); }
+        td { padding: 16px 20px; border-bottom: 1px solid var(--glass-border); font-size: 0.9rem; font-weight: 600; font-family: 'Inter', 'Cairo', sans-serif; }
+        .serial-col { width: 60px; text-align: center; color: var(--text-muted); }
+        .td-id { color: var(--accent-cyan); font-family: monospace; }
+        .td-amount { color: var(--accent-green); font-family: monospace; }
+        tbody tr { cursor: grab; transition: background 0.2s; }
+        tbody tr:hover { background: rgba(255,255,255,0.05); }
+        tbody tr:active { cursor: grabbing; }
+        .sortable-ghost { background: rgba(139, 92, 246, 0.1) !important; opacity: 0.5; }
+        .toggle-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--bg-surface); border: 1px solid var(--glass-border); color: var(--text-main); padding: 20px 10px; cursor: pointer; z-index: 101; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .toggle-right-side { right: 0; border-radius: 10px 0 0 10px; }
+        .toggle-left-side { left: 0; border-radius: 0 10px 10px 0; }
+        .toggle-btn:hover { background: var(--accent-primary); color: #fff; }
+        .toggle-btn.disabled { display: none; }
+
+        .controller-overlay, .guide-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .controller-overlay.active, .guide-overlay.active { opacity: 1; visibility: visible; }
+        .controller-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 90%; max-width: 450px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: translateY(20px) scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
+        .controller-overlay.active .controller-box { transform: translateY(0) scale(1); }
+        .controller-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff); border-radius: 24px 24px 0 0; }
+        .controller-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .controller-title { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        .controller-options { display: flex; flex-direction: column; gap: 12px; }
+        .controller-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; transition: background 0.2s; }
+        .controller-row:hover { background: rgba(255,255,255,0.05); }
+        .controller-label { font-size: 0.95rem; font-weight: 600; color: #ccc; display: flex; align-items: center; gap: 10px; }
+        .controller-label i { width: 18px; height: 18px; color: var(--accent-cyan); }
+        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #27272a; transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.1); }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #888; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+
+        .guide-overlay { align-items: flex-end; }
+        .guide-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-bottom: none; border-radius: 24px 24px 0 0; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+        .guide-overlay.active .guide-box { transform: translateY(0); }
+        .guide-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff); border-radius: 24px 24px 0 0; }
+        .guide-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #fff;}
+        .guide-list { list-style: none; display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        .guide-item { display: flex; align-items: flex-start; gap: 12px; font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+        .guide-item i { color: var(--accent-cyan); flex-shrink: 0; margin-top: 3px; }
+        .guide-item kbd { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; font-family: 'Inter', monospace; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+        .btn-guide-close { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 8px; }
+        .toast.show { bottom: 30px; }
     </style>
 </head>
 <body>
-    <div id="toast">تم الحفظ بنجاح</div>
-    <div class="header">
-        <h1><i data-lucide="layout-dashboard"></i> لوحة إدارة مهام الفريق</h1>
-        <div>
-            <button class="btn btn-archive" onclick="toggleArchive()"><i data-lucide="archive"></i> الأرشيف</button>
-            <a href="/admin/dashboard" class="btn btn-dark"><i data-lucide="arrow-right"></i> رجوع</a>
-        </div>
+
+    <!-- إشعار -->
+    <div class="toast" id="toast">
+        <i data-lucide="check-circle"></i> تم إرسال الملاحظة إلى الأدمن بنجاح
     </div>
-    <div class="board-wrapper" id="mainBoard">
-        <div class="board" id="board">
-            <div class="column" id="col-open"><div class="column-header">جديد / مفتوح <span class="count">0</span></div><div class="card-list" data-status="open"></div></div>
-            <div class="column" id="col-develop"><div class="column-header">قيد التطوير <span class="count">0</span></div><div class="card-list" data-status="develop"></div></div>
-            <div class="column" id="col-review"><div class="column-header">قيد المراجعة <span class="count">0</span></div><div class="card-list" data-status="review"></div></div>
-            <div class="column" id="col-works"><div class="column-header">يعمل (تم الحل) <span class="count">0</span></div><div class="card-list" data-status="works"></div></div>
-            <div class="column" id="col-archive"><div class="column-header">الأرشيف <span class="count">0</span></div><div class="card-list" data-status="archive"></div></div>
-        </div>
-    </div>
-    <div id="archiveView">
-        <div class="archive-header">
-            <h2><i data-lucide="archive"></i> سجل الأرشيف</h2>
-            <button class="btn btn-dark" onclick="toggleArchive()"><i data-lucide="x"></i> إغلاق</button>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead><tr><th>#</th><th>الصفحة</th><th>المرسل</th><th>الملاحظات</th><th>الحالة</th></tr></thead>
-                <tbody id="archiveBody"></tbody>
-            </table>
-        </div>
-    </div>
-    <div class="modal-overlay" id="modal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3 id="mTitle" style="color:#a855f7; font-family:monospace;">...</h3>
-                <button style="background:none; border:none; color:#fff; cursor:pointer; font-size:1.2rem;" onclick="closeModal()">×</button>
+
+    <!-- 🌟 شريط الأدوات العلوي (X) مع كارت المستخدم -->
+    <div class="top-dashboard-drawer" id="topDrawer">
+        
+        <!-- كارت المستخدم (يسار الشاشة) -->
+        <a href="/profile" class="user-profile-drawer">
+            <div class="user-info-drawer">
+                <div class="user-name-drawer" id="drawerUserName">Khalil CEO</div>
+                <div class="user-role-drawer" id="drawerUserRole">Admin</div>
             </div>
-            <div style="margin-bottom:10px; font-size:0.8rem; color:#aaa;">المرسل: <strong id="mSender" style="color:#fff;"></strong></div>
-            <div class="notes-box" id="mNotes"></div>
-            <div id="replyArea">
-                <label style="font-size:0.8rem; color:#aaa; margin-bottom:5px; display:block;">الرد على البلاغ:</label>
-                <div class="reply-box"><textarea id="replyText" placeholder="اكتب ردك هنا... (اضغط Enter مرتين للإرسال)"></textarea></div>
-                <button class="btn-send" onclick="sendReply()"><i data-lucide="send" style="width:16px;"></i> إرسال ونقل للأرشيف</button>
+            <!-- صورة المستخدم (يمكنك تغيير الرابط من الـ API لاحقاً) -->
+            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
+        </a>
+
+        <!-- أيقونات التنقل (الوسط) -->
+        <div class="drawer-nav">
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
+            <a href="#" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
+        </div>
+
+        <!-- مساحة فارغة يمين لتحقيق التوازن البصري (اختياري) -->
+        <div style="width: 150px;"></div>
+    </div>
+
+    <!-- لوحة التحكم (Floating Box Card) -->
+    <div class="controller-overlay" id="controllerOverlay" onclick="closeControllerOnOverlay(event)">
+        <div class="controller-box" onclick="event.stopPropagation()">
+            <div class="controller-header">
+                <div class="controller-title"><i data-lucide="settings-2"></i> لوحة التحكم</div>
+                <button onclick="closeController()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <div class="controller-options" id="controllerOptions"></div>
+            <button class="btn-guide-close" onclick="closeController()" style="margin-top: 25px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); box-shadow: none;">إغلاق اللوحة</button>
+        </div>
+    </div>
+
+    <!-- نافذة الدليل -->
+    <div class="guide-overlay" id="guideOverlay" onclick="closeGuideOnOverlay(event)">
+        <div class="guide-box" onclick="event.stopPropagation()">
+            <div class="guide-title"><i data-lucide="sparkles"></i> مرحباً بك في مساحة العمل</div>
+            <ul class="guide-list" id="guideList"></ul>
+            <button class="btn-guide-close" onclick="closeGuide()">ابدأ العمل الآن</button>
+        </div>
+    </div>
+
+    <button class="toggle-btn toggle-right-side" onclick="toggleLeftSidebar()" id="btnToggleLeft" style="opacity: 1;">
+        <i data-lucide="sticky-note"></i>
+    </button>
+    <button class="toggle-btn toggle-left-side" onclick="toggleRightSidebar()" id="btnToggleRight" style="opacity: 1;">
+        <i data-lucide="layout-sidebar"></i>
+    </button>
+
+    <!-- الشريط الأيسر (الملاحظات) -->
+    <div class="sidebar-left hidden" id="sidebarLeft">
+        <div class="sidebar-header">
+            <div class="sidebar-title"><i data-lucide="sticky-note"></i> الملاحظات</div>
+            <button class="btn-add-note" onclick="addNewNote()"><i data-lucide="plus" style="width:16px;"></i></button>
+        </div>
+        <div class="notes-dock" id="notesDock"></div>
+    </div>
+
+    <!-- الشريط الأيمن (المساعد) -->
+    <div class="sidebar-right hidden" id="sidebarRight">
+        <div class="app-rail" id="appRail">
+            <div class="rail-divider" style="width:30px; height:1px; background:var(--glass-border); margin:5px 0;"></div>
+            <button class="btn-add-app" onclick="openCustomizeModal()" title="إضافة تطبيق" style="width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--text-muted); background: transparent; color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; margin-top: auto;"><i data-lucide="plus"></i></button>
+        </div>
+        <div class="app-view">
+            <div class="app-header">
+                <div class="app-title" id="appTitle">المساعد الجانبي</div>
+                <button class="modal-close" onclick="toggleRightSidebar()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <div class="iframe-container">
+                <div class="app-placeholder" id="appPlaceholder">
+                    <i data-lucide="mouse-pointer-2" style="width:30px; height:30px; opacity:0.5;"></i>
+                    <span style="font-size:0.8rem;">اختر تطبيقاً</span>
+                </div>
+                <iframe id="app-iframe" allow="autoplay; encrypted-media;"></iframe>
+            </div>
+            <div class="guide-btn-wrapper">
+                <button class="guide-btn-gradient" onclick="openGuide()">
+                    <i data-lucide="sparkles"></i> دليل الاستخدام
+                </button>
             </div>
         </div>
     </div>
+
+    <!-- مساحة العمل -->
+    <div id="workspace" ondblclick="toggleAllTools(event)">
+        <div class="main-content">
+            <div class="page-header"><div class="page-title">فواتير الشراء</div></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th class="serial-col">#</th><th>رقم الفاتورة</th><th>المورد</th><th>المبلغ الإجمالي</th></tr></thead>
+                    <tbody id="sortableTable">
+                        <tr><td class="serial-col">1</td><td class="td-id">PR-1001</td><td>شركة الأفق للتجارة</td><td class="td-amount">12,500.00 SAR</td></tr>
+                        <tr><td class="serial-col">2</td><td class="td-id">PR-1002</td><td>مؤسسة النور</td><td class="td-amount" style="color:#ef4444;">1,500.50 SAR</td></tr>
+                        <tr><td class="serial-col">3</td><td class="td-id">PR-1003</td><td>شركة الرياض</td><td class="td-amount">8,200.00 SAR</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
-        let isDragging = false, activeCard = null, activeData = null;
+
+        // =========================================
+        // ⚠️ 1. إعدادات النظام وبيانات المستخدم
+        // =========================================
+        const userRole = 'admin'; 
         
-        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
-        
-        async function loadData() {
+        // جلب بيانات المستخدم (يمكن استبدالها بـ localStorage.getItem('userName') لاحقاً)
+        const currentUser = {
+            name: "Khalil CEO",
+            role: "Admin",
+            avatar: "https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff"
+        };
+
+        // دالة وضع بيانات المستخدم في الشريط العلوي
+        function loadUserData() {
+            document.getElementById('drawerUserName').innerText = currentUser.name;
+            document.getElementById('drawerUserRole').innerText = currentUser.role;
+            document.getElementById('drawerUserAvatar').src = currentUser.avatar;
+        }
+        loadUserData();
+
+        // =========================================
+        // 2. إعدادات الدليل ولوحة التحكم
+        // =========================================
+        let guideData = [];
+        let controllerSettings = [];
+
+        async function loadAdminSettings() {
             try {
-                const res = await fetch('/api/status/notes/list');
-                const data = await res.json();
-                if (data.success && data.notes) {
-                    document.querySelectorAll('.card-list').forEach(el => el.innerHTML = '');
-                    document.getElementById('archiveBody').innerHTML = '';
-                    
-                    data.notes.forEach((n, index) => {
-                        let colId = 'col-open';
-                        if (n.status === 'develop') colId = 'col-develop';
-                        else if (n.status === 'review') colId = 'col-review';
-                        else if (n.status === 'works' || n.status === 'resolved') colId = 'col-works';
-                        else if (n.status === 'archive') colId = 'col-archive';
-                        
-                        // تحويل المصفوفة إلى نص إذا لزم الأمر
-                        const notesText = Array.isArray(n.notes) ? n.notes.join(' ') : (n.notes || '');
-                        
-                        const list = document.querySelector(`#${colId} .card-list`);
-                        if (list) list.innerHTML += createCardHTML(n, notesText);
-                        
-                        if (n.status === 'archive') {
-                            document.getElementById('archiveBody').innerHTML += `
-                                <tr><td>${index + 1}</td><td style="color:#a855f7; font-family:monospace;">${n.page || '-'}</td><td>${n.sender || '-'}</td><td>${notesText}</td><td><span style="color:#10b981;">${n.reply ? 'تم الرد' : 'مؤرشف'}</span></td></tr>
-                            `;
-                        }
-                    });
-                    updateCounts(); initSort();
-                }
-            } catch (e) { console.error(e); showToast('خطأ في تحميل البيانات'); }
-        }
+                guideData = [
+                    { icon: 'settings-2', title: 'لوحة التحكم:', desc: 'اضغط <kbd>C</kbd> لفتح لوحة التحكم.' },
+                    { icon: 'sticky-note', title: 'الملاحظات:', desc: 'اسحب الكارت لتعويمه. انقر <b>نقرتين</b> لإعادته.' },
+                    { icon: 'keyboard', title: 'اختصار Z:', desc: 'اضغط <kbd>Z</kbd> لإرجاع الملاحظات.' },
+                    { icon: 'layout-dashboard', title: 'اختصار X:', desc: 'اضغط <kbd>X</kbd> لإظهار/إخفاء الشريط العلوي.' }
+                ];
 
-        function createCardHTML(n, notesText) {
-            const safeNotes = notesText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            const safePage = (n.page || 'Unknown').replace(/'/g, "\\'");
-            return `<div class="card" id="card-${n.id}" onclick="openModal('${n.id}', '${safePage}', '${n.sender}', '${safeNotes}', event)">
-                <div class="card-body"><div class="card-title">${n.page || 'No Page'}</div><div class="card-notes">${notesText}</div></div>
-                <div class="card-footer"><div style="display:flex; align-items:center; gap:5px;"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(n.sender || 'U')}&background=random" class="avatar">${n.sender || 'User'}</div></div>
-            </div>`;
-        }
+                controllerSettings = [
+                    { id: 'toggleNotes', label: 'شريط الملاحظات (اليمين)', icon: 'sticky-note', target: 'sidebarLeft', btnTarget: 'btnToggleLeft', isOn: true },
+                    { id: 'toggleAssistant', label: 'شريط المساعد (اليسار)', icon: 'layout-sidebar', target: 'sidebarRight', btnTarget: 'btnToggleRight', isOn: true }
+                ];
 
-        async function updateAPI(id, newStatus, replyText = null) {
-            try {
-                const res = await fetch('/api/status/notes/update', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, status: newStatus, reply: replyText })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    showToast('تم الحفظ في قاعدة البيانات');
-                    if (newStatus === 'archive') setTimeout(() => loadData(), 500);
-                }
-            } catch (e) { showToast('فشل الاتصال'); }
+                renderGuide();
+                renderController();
+            } catch (e) { console.error(e); }
         }
+        loadAdminSettings();
 
-        function initSort() {
-            document.querySelectorAll('.card-list').forEach(list => {
-                new Sortable(list, {
-                    group: 'shared', animation: 150,
-                    onStart: () => isDragging = true,
-                    onEnd: (evt) => {
-                        updateCounts(); setTimeout(() => isDragging = false, 100);
-                        const cardId = evt.item.id.replace('card-', '');
-                        const newStatus = evt.to.dataset.status;
-                        if (newStatus) updateAPI(cardId, newStatus);
-                    }
-                });
+        function renderGuide() {
+            const list = document.getElementById('guideList');
+            list.innerHTML = '';
+            guideData.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'guide-item';
+                li.innerHTML = `<i data-lucide="${item.icon}"></i><div><b>${item.title}</b> ${item.desc}</div>`;
+                list.appendChild(li);
             });
-            new Sortable(document.getElementById('board'), { animation: 150, handle: '.column-header', draggable: '.column', direction: 'horizontal' });
+            lucide.createIcons();
         }
 
-        function openModal(id, page, sender, notes, e) {
-            if (isDragging) return;
-            activeCard = e.currentTarget; activeData = { id, page, sender, notes };
-            document.getElementById('mTitle').innerText = page; document.getElementById('mSender').innerText = sender; document.getElementById('mNotes').innerText = notes;
-            const colId = activeCard.closest('.column').id;
-            document.getElementById('replyArea').style.display = (colId === 'col-archive') ? 'none' : 'block';
-            document.getElementById('replyText').value = ''; document.getElementById('modal').classList.add('active');
+        function renderController() {
+            const container = document.getElementById('controllerOptions');
+            container.innerHTML = ''; 
+
+            if (userRole !== 'admin') {
+                document.getElementById('controllerOverlay').remove();
+                return;
+            }
+
+            controllerSettings.forEach((setting) => {
+                const row = document.createElement('div');
+                row.className = 'controller-row';
+                row.innerHTML = `
+                    <div class="controller-label"><i data-lucide="${setting.icon}"></i> ${setting.label}</div>
+                    <label class="switch">
+                        <input type="checkbox" id="${setting.id}" ${setting.isOn ? 'checked' : ''}>
+                        <span class="slider"></span>
+                    </label>
+                `;
+                const checkbox = row.querySelector(`#${setting.id}`);
+                checkbox.addEventListener('change', (e) => {
+                    toggleSidebarDynamically(setting.target, setting.btnTarget, e.target.checked);
+                    setting.isOn = e.target.checked;
+                });
+                container.appendChild(row);
+            });
+            lucide.createIcons();
         }
 
-        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        function toggleSidebarDynamically(targetId, btnId, isOn) {
+            userInteracted = true;
+            const bar = document.getElementById(targetId);
+            const btn = document.getElementById(btnId);
+            if (isOn) {
+                bar.classList.remove('disabled', 'hidden');
+                btn.classList.remove('disabled');
+                btn.style.opacity = '0';
+            } else {
+                bar.classList.add('disabled', 'hidden');
+                btn.classList.add('disabled');
+            }
+        }
 
-        let enterCount = 0, enterTimer;
-        document.getElementById('replyText').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); enterCount++;
-                if (enterCount === 1) enterTimer = setTimeout(() => enterCount = 0, 500);
-                else { clearTimeout(enterTimer); enterCount = 0; sendReply(); }
+        // =========================================
+        // 3. العرض التلقائي
+        // =========================================
+        let userInteracted = false; 
+
+        window.addEventListener('load', () => {
+            const leftBar = document.getElementById('sidebarLeft');
+            const rightBar = document.getElementById('sidebarRight');
+            const btnLeft = document.getElementById('btnToggleLeft');
+            const btnRight = document.getElementById('btnToggleRight');
+
+            setTimeout(() => {
+                if (userInteracted || !controllerSettings.find(s => s.id === 'toggleNotes')?.isOn) return;
+                leftBar.classList.remove('hidden');
+                rightBar.classList.remove('hidden');
+                btnLeft.style.opacity = '0';
+                btnRight.style.opacity = '0';
+            }, 200);
+
+            setTimeout(() => {
+                if (userInteracted || !controllerSettings.find(s => s.id === 'toggleNotes')?.isOn) return;
+                leftBar.classList.add('hidden');
+                rightBar.classList.add('hidden');
+                btnLeft.style.opacity = '1';
+                btnRight.style.opacity = '1';
+            }, 2500);
+        });
+
+        // =========================================
+        // 4. التحكم في الأشرطة
+        // =========================================
+        function openGuide() { document.getElementById('guideOverlay').classList.add('active'); }
+        function closeGuide() { document.getElementById('guideOverlay').classList.remove('active'); }
+        function closeGuideOnOverlay(e) { if(e.target.id === 'guideOverlay') closeGuide(); }
+
+        function openController() { document.getElementById('controllerOverlay').classList.add('active'); }
+        function closeController() { document.getElementById('controllerOverlay').classList.remove('active'); }
+        function closeControllerOnOverlay(e) { if(e.target.id === 'controllerOverlay') closeController(); }
+
+        const sidebarLeft = document.getElementById('sidebarLeft');
+        const sidebarRight = document.getElementById('sidebarRight');
+        
+        function toggleLeftSidebar() {
+            userInteracted = true; 
+            sidebarLeft.classList.toggle('hidden');
+            document.getElementById('btnToggleLeft').style.opacity = sidebarLeft.classList.contains('hidden') ? '1' : '0';
+        }
+        function toggleRightSidebar() {
+            userInteracted = true; 
+            sidebarRight.classList.toggle('hidden');
+            document.getElementById('btnToggleRight').style.opacity = sidebarRight.classList.contains('hidden') ? '1' : '0';
+        }
+        function toggleAllTools(e) {
+            if(e.target.closest('.sidebar-left') || e.target.closest('.sidebar-right') || e.target.closest('.note-card') || e.target.closest('.toggle-btn') || e.target.closest('.guide-trigger') || e.target.closest('.top-dashboard-drawer') || e.target.closest('.controller-overlay')) return;
+            userInteracted = true; 
+            sidebarLeft.classList.toggle('hidden');
+            sidebarRight.classList.toggle('hidden');
+            document.getElementById('btnToggleLeft').style.opacity = sidebarLeft.classList.contains('hidden') ? '1' : '0';
+            document.getElementById('btnToggleRight').style.opacity = sidebarRight.classList.contains('hidden') ? '1' : '0';
+        }
+
+        // =========================================
+        // 5. إدارة الملاحظات
+        // =========================================
+        const notesDock = document.getElementById('notesDock');
+        let zIndexCounter = 100;
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function addNewNote() {
+            const note = document.createElement('div');
+            note.className = 'note-card docked';
+            note.style.zIndex = ++zIndexCounter;
+            note.innerHTML = `
+                <div class="note-header">
+                    <div class="mac-dots"><div class="mac-dot red"></div><div class="mac-dot yellow"></div><div class="mac-dot green"></div></div>
+                    <button class="btn-del-note" onclick="this.closest('.note-card').remove()"><i data-lucide="x" style="width:16px;"></i></button>
+                </div>
+                <div class="note-body"><div class="inner-box">
+                    <textarea placeholder="اكتب ملاحظتك للأدمن..." ondblclick="event.stopPropagation()"></textarea>
+                    <div class="inner-tools">
+                        <button class="btn-send-admin" onclick="sendToAdmin(this)"><i data-lucide="send" style="width:14px;"></i> إرسال للأدمن</button>
+                    </div>
+                </div></div>
+            `;
+            notesDock.appendChild(note);
+            lucide.createIcons();
+            const textarea = note.querySelector('textarea');
+            textarea.addEventListener('input', function() { autoResize(this); });
+            setupNoteDrag(note);
+        }
+
+        async function sendToAdmin(btn) {
+            const noteCard = btn.closest('.note-card');
+            const textarea = noteCard.querySelector('textarea');
+            const text = textarea.value.trim();
+            if(!text) { alert('الرجاء كتابة ملاحظة قبل الإرسال.'); return; }
+            try {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+                textarea.value = '';
+                autoResize(textarea); 
+            } catch (e) { alert('فشل إرسال الملاحظة.'); }
+        }
+
+        function setupNoteDrag(note) {
+            let isDragging = false, startX, startY, startLeft, startTop;
+            const header = note.querySelector('.note-header');
+            const textarea = note.querySelector('textarea');
+
+            header.addEventListener('mousedown', (e) => {
+                if(e.target.closest('.btn-del-note')) return;
+                e.preventDefault();
+                isDragging = true;
+                note.style.zIndex = ++zIndexCounter;
+                if (note.classList.contains('docked')) {
+                    note.classList.remove('docked');
+                    note.classList.add('floating');
+                    const rect = note.getBoundingClientRect();
+                    note.style.left = rect.left + 'px';
+                    note.style.top = rect.top + 'px';
+                    document.body.appendChild(note);
+                }
+                startX = e.clientX; startY = e.clientY;
+                startLeft = parseInt(window.getComputedStyle(note).left, 10) || note.offsetLeft;
+                startTop = parseInt(window.getComputedStyle(note).top, 10) || note.offsetTop;
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                note.style.left = (startLeft + e.clientX - startX) + 'px';
+                note.style.top = (startTop + e.clientY - startY) + 'px';
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+
+            note.addEventListener('dblclick', (e) => {
+                if(e.target === textarea) return;
+                dockNote(note);
+            });
+            textarea.addEventListener('dblclick', (e) => e.stopPropagation());
+            header.addEventListener('dblclick', (e) => e.stopPropagation());
+        }
+
+        function dockNote(note) {
+            note.classList.remove('floating');
+            note.classList.add('docked');
+            note.style.left = ''; note.style.top = '';
+            notesDock.appendChild(note);
+        }
+
+        setTimeout(() => { addNewNote(); addNewNote(); }, 300);
+
+        // =========================================
+        // 6. الاختصارات
+        // =========================================
+        document.addEventListener('keydown', (e) => {
+            if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
+            if (e.key.toLowerCase() === 'z') document.querySelectorAll('.note-card.floating').forEach(dockNote);
+            if (e.key.toLowerCase() === 'x') document.getElementById('topDrawer').classList.toggle('active');
+            if (e.key.toLowerCase() === 'c' && userRole === 'admin') {
+                const overlay = document.getElementById('controllerOverlay');
+                if(overlay) overlay.classList.contains('active') ? closeController() : openController();
             }
         });
 
-        function sendReply() {
-            const text = document.getElementById('replyText').value.trim();
-            if (!text) return showToast('اكتب الرد أولاً');
-            closeModal();
-            if (activeData) updateAPI(activeData.id, 'archive', text);
-            if (activeCard) { activeCard.remove(); updateCounts(); activeCard = null; }
+        function updateSerialNumbers() {
+            document.querySelectorAll('#sortableTable tr').forEach((row, index) => {
+                if(row.cells[0]) row.cells[0].innerText = index + 1;
+            });
         }
+        new Sortable(document.getElementById('sortableTable'), { animation: 150, ghostClass: 'sortable-ghost', onEnd: updateSerialNumbers });
 
-        function updateCounts() { document.querySelectorAll('.column').forEach(col => { col.querySelector('.count').innerText = col.querySelectorAll('.card').length; }); }
-        function toggleArchive() { document.getElementById('archiveView').classList.toggle('active'); }
-        
-        window.onload = loadData;
     </script>
 </body>
 </html>
