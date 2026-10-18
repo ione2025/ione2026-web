@@ -3,228 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="robots" content="noindex, nofollow">
     <title>IONECENTER — إضافة مستخدم</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="icon" type="image/png" href="../../assets/logo.png">
-    <link rel="stylesheet" href="../admin.css">
-    <link rel="stylesheet" href="../_assets/dashboard.css">
-    <link rel="stylesheet" href="users.css">
-</head>
-<body class="dashboard-page">
-    
-    <div class="top-bar">
-        <div class="top-bar-logo">
-            <a href="../dashboard.html" style="text-decoration: none;">
-                <img src="../../assets/logo.png" alt="IONE CENTER">
-            </a>
-        </div>
-        <div class="top-bar-user">
-            <a href="list.html" class="logout-btn" style="text-decoration: none;">
-                <i data-lucide="arrow-right"></i>
-                <span>رجوع للقائمة</span>
-            </a>
-        </div>
-    </div>
-
-    <div class="dashboard-container">
+    <style>
+        :root {
+            --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-cyan: #06b6d4; --accent-green: #10b981; --accent-red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
         
-        <div class="page-header">
-            <div>
-                <h1 class="page-title">➕ إضافة مستخدم</h1>
-                <p class="page-subtitle">إنشاء حساب موظف جديد</p>
-            </div>
+        .create-container { width: 100%; max-width: 700px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative; }
+        .create-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+        .create-title { font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 10px; }
+        
+        .form-row { display: flex; gap: 15px; margin-bottom: 20px; }
+        .form-group { flex: 1; }
+        .form-label { display: block; font-size: 0.9rem; font-weight: 700; color: #ccc; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 14px; background: #000; border: 1px solid var(--glass-border); border-radius: 12px; color: #fff; font-family: inherit; outline: none; transition: 0.2s; font-size: 1rem; }
+        .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+        
+        .permissions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-top: 10px; }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; cursor: pointer; color: #ccc; }
+        .checkbox-label input { accent-color: var(--accent-cyan); width: 18px; height: 18px; cursor: pointer; }
+        
+        .btn-submit { width: 100%; padding: 16px; background: var(--accent-green); color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .btn-submit:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        
+        .btn-back { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 8px 15px; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; transition: 0.2s; }
+        .btn-back:hover { background: rgba(255,255,255,0.1); }
+
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 15px 30px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
+        .toast.show { bottom: 30px; }
+        .toast.error { background: var(--accent-red); }
+    </style>
+</head>
+<body>
+    <div class="toast" id="toast"><i data-lucide="check-circle"></i> <span id="toastMessage">تم بنجاح</span></div>
+
+    <div class="create-container">
+        <div class="create-header">
+            <div class="create-title"><i data-lucide="user-plus"></i> إضافة مستخدم جديد</div>
+            <a href="../../controller.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
         </div>
 
-        <form class="user-form" id="createUserForm">
-            
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i data-lucide="user"></i>
-                    <span>معلومات أساسية</span>
-                </h3>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="full_name">الاسم الكامل *</label>
-                        <input type="text" id="full_name" name="full_name" placeholder="مثال: مالك الحسن" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">البريد الإلكتروني *</label>
-                        <input type="email" id="email" name="email" placeholder="malek@ione.com" required>
-                    </div>
+        <form id="createUserForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">الاسم الكامل</label>
+                    <input type="text" id="userName" class="form-input" placeholder="مثال: أحمد محمد" required>
                 </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="password">كلمة المرور *</label>
-                        <input type="password" id="password" name="password" placeholder="كلمة مرور قوية" required minlength="8">
-                    </div>
-                    <div class="form-group">
-                        <label for="role">الدور *</label>
-                        <select id="role" name="role" required>
-                            <option value="operator">موظف (Operator)</option>
-                            <option value="manager">مدير (Manager)</option>
-                            <option value="viewer">مشاهد (Viewer)</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" id="userEmail" class="form-input" placeholder="ahmad@example.com" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور</label>
+                    <input type="password" id="userPassword" class="form-input" placeholder="******" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كود الدخول (للدخول السريع)</label>
+                    <input type="text" id="userCode" class="form-input" placeholder="1001" maxlength="6" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <input type="text" id="userPhone" class="form-input" placeholder="+966 50 123 4567">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">العنوان</label>
+                    <input type="text" id="userAddress" class="form-input" placeholder="المدينة، الحي">
                 </div>
             </div>
 
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i data-lucide="shield"></i>
-                    <span>الصلاحيات</span>
-                </h3>
-                
+            <div class="form-group" style="margin-top: 15px;">
+                <label class="form-label">الصلاحيات</label>
                 <div class="permissions-grid">
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_orders">
-                        <span>عرض الطلبات</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="create_orders">
-                        <span>إنشاء طلبات</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="edit_orders">
-                        <span>تعديل طلبات</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="delete_orders">
-                        <span>حذف طلبات</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_suppliers">
-                        <span>عرض الموردين</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="edit_suppliers">
-                        <span>تعديل الموردين</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_customers">
-                        <span>عرض العملاء</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_customer_real_data">
-                        <span>بيانات العملاء الحقيقية 🔒</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_boxes">
-                        <span>عرض الصناديق</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_profit">
-                        <span>عرض هامش الربح 🔒</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_invoices">
-                        <span>عرض الفواتير</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="create_invoices">
-                        <span>إنشاء فواتير</span>
-                    </label>
-                    <label class="permission-item">
-                        <input type="checkbox" name="permission" value="view_reports">
-                        <span>عرض التقارير</span>
-                    </label>
+                    <label class="checkbox-label"><input type="checkbox" value="admin" class="perm-checkbox"> مدير (Admin)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="sales" class="perm-checkbox"> مبيعات (Sales)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="accounting" class="perm-checkbox"> محاسبة (Accounting)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="support" class="perm-checkbox"> دعم (Support)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="warehouse" class="perm-checkbox"> مستودعات (Warehouse)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="hr" class="perm-checkbox"> موارد بشرية (HR)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="marketing" class="perm-checkbox"> تسويق (Marketing)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="viewer" class="perm-checkbox"> مشاهدة (Viewer)</label>
                 </div>
             </div>
 
-            <div class="form-section">
-                <h3 class="form-section-title">
-                    <i data-lucide="toggle-right"></i>
-                    <span>حالة الحساب</span>
-                </h3>
-                
-                <label class="permission-item">
-                    <input type="checkbox" id="active" name="active" checked>
-                    <span>الحساب نشط (يمكنه تسجيل الدخول)</span>
-                </label>
-            </div>
-
-            <div class="form-actions">
-                <a href="list.html" class="action-btn" style="text-decoration: none;">
-                    <i data-lucide="x"></i>
-                    <span>إلغاء</span>
-                </a>
-                <button type="submit" class="action-btn primary" id="submitBtn">
-                    <i data-lucide="save"></i>
-                    <span>إنشاء المستخدم</span>
-                </button>
-            </div>
-
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i data-lucide="save"></i> حفظ المستخدم
+            </button>
         </form>
-
     </div>
 
     <script>
-        const CREATE_API = 'https://ionecenter.com';
-        const CREATE_TOKEN = 'ione_admin_token';
-
-        if (window.lucide) lucide.createIcons();
-
-        if (!localStorage.getItem(CREATE_TOKEN)) {
-            window.location.replace('../login.html');
-        }
+        lucide.createIcons();
 
         document.getElementById('createUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span>جاري الإنشاء...</span>';
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> جاري الحفظ...';
+            lucide.createIcons();
+
+            // جمع البيانات
+            const name = document.getElementById('userName').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const userCode = document.getElementById('userCode').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+            const address = document.getElementById('userAddress').value.trim();
             
-            const permissions = Array.from(
-                document.querySelectorAll('input[name="permission"]:checked')
-            ).map(cb => cb.value);
+            const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
             
-            const data = {
-                email: document.getElementById('email').value.trim().toLowerCase(),
-                password: document.getElementById('password').value,
-                full_name: document.getElementById('full_name').value.trim(),
-                role: document.getElementById('role').value,
-                permissions: permissions,
-                active: document.getElementById('active').checked
-            };
-            
+            if (permissions.length === 0) {
+                showToast('يرجى تحديد صلاحية واحدة على الأقل', true);
+                resetBtn();
+                return;
+            }
+
+            const token = localStorage.getItem('ione_admin_token');
+            if (!token) {
+                showToast('انتهت الجلسة، يرجى تسجيل الدخول مجدداً', true);
+                setTimeout(() => window.location.href = '../../login.html', 1500);
+                return;
+            }
+
             try {
-                const token = localStorage.getItem(CREATE_TOKEN);
-                
-                const response = await fetch(`${CREATE_API}/users/create`, {
+                // إرسال البيانات إلى الـ API
+                const response = await fetch('/api/users/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        full_name: name,
+                        role: permissions.includes('admin') ? 'admin' : 'user',
+                        permissions: permissions,
+                        active: true
+                    })
                 });
-                
-                const result = await response.json();
-                
-                if (!result.success) {
-                    alert('فشل: ' + (result.error || 'خطأ'));
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
-                    if (window.lucide) lucide.createIcons();
+
+                const textResponse = await response.text();
+                let data;
+
+                try {
+                    data = JSON.parse(textResponse);
+                } catch (err) {
+                    console.error("Server returned non-JSON:", textResponse);
+                    showToast(`فشل (كود ${response.status}): المتصفح لم يستقبل JSON.`, true);
+                    resetBtn();
                     return;
                 }
+
+                if (!response.ok || !data.success) {
+                    showToast('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف'), true);
+                    resetBtn();
+                    return;
+                }
+
+                // نجاح
+                showToast('تم إضافة المستخدم بنجاح!');
                 
-                alert('✅ تم إنشاء المستخدم بنجاح!');
-                window.location.replace('list.html');
-                
+                // حفظ الكود في الـ LocalStorage (للدخول السريع لاحقاً)
+                let localUsers = JSON.parse(localStorage.getItem('ione_users') || '[]');
+                localUsers.push({ code: userCode, email: email, name: name });
+                localStorage.setItem('ione_users', JSON.stringify(localUsers));
+
+                setTimeout(() => {
+                    window.location.href = '../../controller.html';
+                }, 1500);
+
             } catch (error) {
-                console.error('Error:', error);
-                alert('خطأ في الاتصال');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i data-lucide="save"></i><span>إنشاء المستخدم</span>';
-                if (window.lucide) lucide.createIcons();
+                console.error("Fetch failed:", error);
+                showToast('فشل الاتصال بالسيرفر. تحقق من Console (F12).', true);
+                resetBtn();
+            }
+
+            function resetBtn() {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                lucide.createIcons();
             }
         });
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = msg;
+            toast.className = 'toast show' + (isError ? ' error' : '');
+            if (isError) toast.innerHTML = `<i data-lucide="alert-circle"></i> <span id="toastMessage">${msg}</span>`;
+            else toast.innerHTML = `<i data-lucide="check-circle"></i> <span id="toastMessage">${msg}</span>`;
+            
+            lucide.createIcons();
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        }
     </script>
-    
 </body>
 </html>
