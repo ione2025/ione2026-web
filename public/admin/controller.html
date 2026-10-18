@@ -433,10 +433,8 @@
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
                 
                 try {
-                    const apiUrl = 'https://ionecenter.com/api/users/create';
-                    console.log("Attempting to POST to:", apiUrl); // سترى هذا في الـ Console
-
-                    const response = await fetch(apiUrl, { 
+                    // نستخدم المسار الصحيح للـ API
+                    const response = await fetch('/api/users/create', { 
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -452,20 +450,17 @@
                         })
                     });
 
-                    const textResponse = await response.text();
-                    console.log("Response Status:", response.status); // سترى هذا في الـ Console
-                    
-                    let data;
-                    try {
-                        data = JSON.parse(textResponse);
-                    } catch (e) {
-                        console.error("Server returned non-JSON response:", textResponse);
-                        alert(`فشل الاتصال (كود ${response.status}).\nالمتصفح يحاول إرسال البيانات إلى رابط خاطئ.\nتأكد من عمل Purge Cache و Ctrl+F5.`);
-                        return; 
+                    // طباعة الخطأ الحقيقي إذا فشل
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        alert(`فشل الاتصال (كود ${response.status}).\nالسيرفر أرجع: ${errText.substring(0, 100)}`);
+                        return;
                     }
 
-                    if (!response.ok || !data.success) {
-                        alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف ' + response.status));
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف'));
                         return;
                     }
 
@@ -481,7 +476,7 @@
 
                 } catch (error) {
                     console.error("Fetch failed:", error);
-                    alert('فشل الاتصال بالسيرفر. افتح الـ Console (F12) لمعرفة السبب الدقيق.');
+                    alert('فشل الاتصال. افتح الـ Console (F12) لمعرفة السبب.');
                 }
             }
         }
