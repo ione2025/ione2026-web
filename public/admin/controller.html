@@ -433,7 +433,6 @@
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
                 
                 try {
-                    // المسار النسبي المباشر
                     const response = await fetch('/api/users/create', { 
                         method: 'POST',
                         headers: { 
@@ -450,7 +449,16 @@
                         })
                     });
 
-                    const data = await response.json();
+                    const textResponse = await response.text();
+                    let data;
+                    
+                    try {
+                        data = JSON.parse(textResponse);
+                    } catch (e) {
+                        console.error("Server returned HTML/Text instead of JSON:", textResponse);
+                        alert(`فشل الاتصال (كود ${response.status}).\nتأكد من أن ملف create.js موجود في المسار: functions/api/users/\n\nرسالة السيرفر: ${textResponse.substring(0, 100)}`);
+                        return; 
+                    }
 
                     if (!response.ok || !data.success) {
                         alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف ' + response.status));
@@ -468,8 +476,8 @@
                     showToast('تم حفظ المستخدم في السيرفر بنجاح');
 
                 } catch (error) {
-                    console.error(error);
-                    alert('فشل الاتصال. تأكد من وجود ملف create.js في المجلد الصحيح.');
+                    console.error("Fetch failed:", error);
+                    alert('فشل الاتصال بالسيرفر. افتح الـ Console (F12) لمعرفة السبب الدقيق.');
                 }
             }
         }
