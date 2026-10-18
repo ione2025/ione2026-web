@@ -267,11 +267,7 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">اسم البطاقة (مثال: المنتجات)</label>
-                    <input type="text" id="newCardTitle" class="form-input" placeholder="اسم البطاقة">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">اسم الأيقونة (مثال: package)</label>
-                    <input type="text" id="newCardIcon" class="form-input" placeholder="package" value="package">
+                    <input type="text" id="newCardTitle" class="form-input" placeholder="اكتب اسم البطاقة هنا...">
                 </div>
             </div>
             <div class="form-row">
@@ -279,18 +275,9 @@
                     <label class="form-label">الرابط (مثال: ordix/products.html)</label>
                     <input type="text" id="newCardLink" class="form-input" placeholder="ordix/products.html">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">القسم (Top للمربع، Mid للعريض، Bot للصغير)</label>
-                    <select id="newCardSection" class="form-input">
-                        <option value="top">Top (كبير)</option>
-                        <option value="mid">Mid (عريض)</option>
-                        <option value="bot">Bot (صغير)</option>
-                    </select>
-                </div>
             </div>
 
             <div class="modal-actions">
-                <!-- تم حذف زر الحفظ، الإغلاق فقط -->
                 <button class="btn-cancel" onclick="closeCardModal()">إلغاء (Esc)</button>
             </div>
         </div>
@@ -530,7 +517,6 @@
                     <div style="display:flex; align-items:center; gap:10px;">
                         ${card.count !== null ? `<input type="number" class="input-number" value="${card.count}" onchange="updateCount(${index}, this.value)">` : '<span style="color:#888; font-size:0.85rem;">لا يوجد رقم</span>'}
                         <label class="switch"><input type="checkbox" ${card.visible ? 'checked' : ''} onchange="updateVisibility(${index}, this.checked)"><span class="slider"></span></label>
-                        <!-- 🌟 أزرار التعديل والحذف -->
                         <button class="btn-icon edit" onclick="openCardModal(${index})" title="تعديل"><i data-lucide="edit-2" style="width:16px;"></i></button>
                         <button class="btn-icon delete" onclick="deleteDashboardCard(${index})" title="حذف"><i data-lucide="trash-2" style="width:16px;"></i></button>
                     </div>`;
@@ -606,7 +592,6 @@
             }
         }
 
-        // 🌟 التعديل على نافذة البطاقة لدعم التعديل والحفظ
         function openCardModal(index = null) {
             const modal = document.getElementById('newCardModal');
             const title = document.getElementById('cardModalTitle');
@@ -618,15 +603,11 @@
                 const card = config.cards[index];
                 document.getElementById('newCardTitle').value = card.title;
                 document.getElementById('newCardLink').value = card.link;
-                document.getElementById('newCardIcon').value = card.icon;
-                document.getElementById('newCardSection').value = card.section || 'bot';
             } else {
                 title.innerText = 'إضافة بطاقة جديدة للوحة التحكم';
                 editIndexInput.value = '';
                 document.getElementById('newCardTitle').value = '';
                 document.getElementById('newCardLink').value = '';
-                document.getElementById('newCardIcon').value = 'package';
-                document.getElementById('newCardSection').value = 'bot';
             }
 
             modal.classList.add('active');
@@ -638,29 +619,23 @@
         function saveNewCard() {
             const title = document.getElementById('newCardTitle').value.trim();
             const link = document.getElementById('newCardLink').value.trim();
-            const icon = document.getElementById('newCardIcon').value.trim();
-            const section = document.getElementById('newCardSection').value;
             const editIndex = document.getElementById('editingCardIndex').value;
 
             if (!title || !link) { alert('الرجاء إدخال اسم البطاقة والرابط.'); return; }
 
             if (editIndex !== '') {
-                // تعديل بطاقة موجودة
                 const card = config.cards[editIndex];
                 card.title = title;
                 card.link = link;
-                card.icon = icon || 'square';
-                card.section = section;
             } else {
-                // إضافة بطاقة جديدة
                 config.cards.push({
                     id: 'custom_' + Date.now(),
                     title: title,
                     visible: true,
                     count: 0,
                     link: link,
-                    icon: icon || 'square',
-                    section: section
+                    icon: 'package',
+                    section: 'bot'
                 });
             }
 
@@ -895,25 +870,22 @@
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // 🌟 السر هنا: ربط زر Enter بجميع الحقول
+        // ربط زر Enter بجميع الحقول
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 if (document.activeElement.tagName === 'TEXTAREA') return;
 
-                // إذا كانت نافذة المستخدم مفتوحة، احفظ المستخدم
                 if (document.getElementById('userModal').classList.contains('active')) {
                     e.preventDefault();
                     saveUser();
                 } 
-                // إذا كانت نافذة البطاقة مفتوحة، احفظ البطاقة
                 else if (document.getElementById('newCardModal').classList.contains('active')) {
                     e.preventDefault();
                     saveNewCard();
                 }
-                // في أي مكان آخر (مثل التعديل المباشر في القوائم)
                 else {
                     e.preventDefault();
-                    document.activeElement.blur(); // إزالة التركيز لتشغيل حدث onchange إن وجد
+                    document.activeElement.blur(); 
                     saveSettings();
                 }
             }
