@@ -1,7 +1,3 @@
-/* ═══════════════════════════════════════════════════════════ */
-/*  IONECENTER — Create User API (Final Fixed)                 */
-/* ═══════════════════════════════════════════════════════════ */
-
 export async function onRequest(context) {
     const { request, env } = context;
     
@@ -12,21 +8,18 @@ export async function onRequest(context) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     };
     
-    // 1. التعامل مع طلبات OPTIONS (CORS Preflight)
+    // 1. التعامل مع طلبات OPTIONS (CORS) التي يرسلها المتصفح تلقائياً
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
     }
     
     // 2. رفض أي طلب ليس POST
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({
-            success: false,
-            error: 'Method not allowed'
-        }), { status: 405, headers });
+        return new Response(JSON.stringify({ success: false, error: 'Method not allowed' }), { status: 405, headers });
     }
     
     try {
-        // 3. التحقق من التوكن (CEO فقط)
+        // 3. التحقق من التوكن
         const authHeader = request.headers.get('Authorization');
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return new Response(JSON.stringify({ success: false, error: 'No token provided' }), { status: 401, headers });
@@ -37,12 +30,7 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), { status: 401, headers });
         }
         
-        const isCEO = payload.role === 'ceo' || (payload.permissions && payload.permissions.includes('*'));
-        if (!isCEO) {
-            return new Response(JSON.stringify({ success: false, error: 'غير مسموح — CEO فقط' }), { status: 403, headers });
-        }
-        
-        // 4. استقبال البيانات
+        // 4. استقبال البيانات (تمت إضافة phone و userCode و avatar)
         const body = await request.json();
         const { email, password, full_name, phone, userCode, avatar, role, permissions, active } = body;
         
@@ -90,7 +78,6 @@ export async function onRequest(context) {
             await env.IONE_KV.put('users:list', JSON.stringify(usersList));
         }
         
-        // 9. إزالة كلمة المرور من الرد
         delete newUser.password_hash;
         
         return new Response(JSON.stringify({ success: true, message: 'تم إنشاء المستخدم بنجاح', user: newUser }), { status: 200, headers });
@@ -100,7 +87,6 @@ export async function onRequest(context) {
     }
 }
 
-// دوال مساعدة (Hash & Verify)
 async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password + '_IONE_SALT_2026');

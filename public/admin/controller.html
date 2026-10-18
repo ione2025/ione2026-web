@@ -433,7 +433,6 @@
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
                 
                 try {
-                    // نستخدم المسار الصحيح للـ API
                     const response = await fetch('/api/users/create', { 
                         method: 'POST',
                         headers: { 
@@ -444,13 +443,15 @@
                             email: email, 
                             password: password, 
                             full_name: name, 
+                            phone: phone,
+                            userCode: userCode,
+                            avatar: uploadedAvatarBase64,
                             role: permissions.includes('admin') ? 'admin' : 'user',
                             permissions: permissions,
                             active: true
                         })
                     });
 
-                    // طباعة الخطأ الحقيقي إذا فشل
                     if (!response.ok) {
                         const errText = await response.text();
                         alert(`فشل الاتصال (كود ${response.status}).\nالسيرفر أرجع: ${errText.substring(0, 100)}`);
