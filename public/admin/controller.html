@@ -408,7 +408,6 @@
         function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
         function previewImage(event) { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { uploadedAvatarBase64 = e.target.result; document.getElementById('avatarPreview').src = uploadedAvatarBase64; document.getElementById('avatarPreview').style.display = 'block'; document.getElementById('avatarFallback').style.display = 'none'; }; reader.readAsDataURL(file); } }
 
-        // --- ربط إضافة المستخدم بالـ API ---
         async function saveUser() {
             const name = document.getElementById('userName').value.trim(); 
             const email = document.getElementById('userEmail').value.trim();
@@ -424,23 +423,18 @@
             const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
             
             if (editingUserId) {
-                // للتعديل حالياً، سنكتفي بتعديل الـ LocalStorage (لأن الـ API الخاص بالتعديل لم يتم تسليمه بعد)
                 const user = config.users.find(u => u.id === editingUserId);
                 user.name = name; user.email = email; user.password = password; user.phone = phone; user.address = document.getElementById('userAddress').value; user.userCode = userCode; user.permissions = permissions;
                 if (uploadedAvatarBase64) user.avatar = uploadedAvatarBase64;
                 saveSettings(); closeUserModal(); renderUsers();
                 showToast('تم التعديل محلياً');
             } else {
-                // إضافة مستخدم جديد عبر الـ API
                 const token = localStorage.getItem('ione_admin_token');
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
-
-                const originalBtn = document.querySelector('.btn-cancel'); // Just for UI feedback
-                const btnGroup = document.querySelector('#userModal .modal-actions');
-                const saveBtnHTML = btnGroup.innerHTML;
                 
                 try {
-                    const response = await fetch('/api/users/create', { // تأكد من المسار الصحيح للـ API
+                    // --- المسار المباشر هنا لحل المشكلة ---
+                    const response = await fetch('https://ionecenter.com/api/users/create', { 
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -458,12 +452,11 @@
 
                     const data = await response.json();
 
-                    if (!data.success) {
-                        alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف'));
+                    if (!response.ok || !data.success) {
+                        alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف ' + response.status));
                         return;
                     }
 
-                    // نجح السيرفر، سنضيفه للـ LocalStorage أيضاً لكي يظهر في الواجهة فوراً
                     config.users.push({ 
                         id: 'u_' + Date.now(), userCode: userCode, name: name, email: email, password: password, phone: phone, address: document.getElementById('userAddress').value, 
                         permissions: permissions, avatar: uploadedAvatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff` 
@@ -476,7 +469,7 @@
 
                 } catch (error) {
                     console.error(error);
-                    alert('فشل الاتصال بالسيرفر.');
+                    alert('فشل الاتصال. تحقق من الكونسول (F12).');
                 }
             }
         }
