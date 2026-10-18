@@ -433,7 +433,8 @@
                 if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
                 
                 try {
-                    const response = await fetch('/api/users/create', { 
+                    // استخدام الرابط المطلق (Absolute URL) لضمان وصول الطلب
+                    const response = await fetch('https://ionecenter.com/api/users/create', { 
                         method: 'POST',
                         headers: { 
                             'Content-Type': 'application/json',
@@ -456,7 +457,7 @@
                         data = JSON.parse(textResponse);
                     } catch (e) {
                         console.error("Server returned HTML/Text instead of JSON:", textResponse);
-                        alert(`فشل الاتصال (كود ${response.status}).\nتأكد من أن ملف create.js موجود في المسار: functions/api/users/\n\nرسالة السيرفر: ${textResponse.substring(0, 100)}`);
+                        alert(`فشل الاتصال (كود ${response.status}).\nتأكد من أن ملف create.js موجود وتم رفعه بشكل صحيح.\n\nرسالة السيرفر: ${textResponse.substring(0, 100)}`);
                         return; 
                     }
 
