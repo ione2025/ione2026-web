@@ -2,162 +2,197 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>IONECENTER — حالة النظام</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER - لوحة المهام</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
+        :root { --bg: #050508; --border: #333; --text: #fff; --open: #ef4444; --dev: #f59e0b; --review: #3b82f6; --works: #10b981; --archive: #64748b; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .status-wrapper { position: fixed; inset: 0; display: flex; background: #0a0a0f; color: white; font-family: 'Cairo', sans-serif; z-index: 99999; }
-        .status-sidebar { width: 35%; background: #111118; border-left: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
-        .status-preview { width: 65%; background: #000; }
-        .status-preview iframe { width: 100%; height: 100%; border: none; background: white; }
-        .sidebar-header { padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .list-container { flex: 1; overflow-y: auto; padding: 10px; }
-        
-        .status-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: #1a1a24; border: 1px solid transparent; cursor: pointer; transition: 0.2s; }
-        .status-item:hover { background: #222233; }
-        .status-item.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-        .status-name { font-size: 0.85rem; font-family: monospace; direction: ltr; color: #ddd; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot-green { background: #10b981; } .dot-red { background: #ef4444; } .dot-yellow { background: #f59e0b; }
-        
-        .status-actions { display: flex; gap: 5px; }
-        .status-btn { flex: 1; padding: 4px; border: none; border-radius: 4px; font-family: inherit; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
-        .btn-green { background: rgba(16, 185, 129, 0.2); color: #10b981; } .btn-green.active { background: #10b981; color: white; }
-        .btn-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; } .btn-red.active { background: #ef4444; color: white; }
-        .btn-yellow { background: rgba(245, 158, 11, 0.2); color: #f59e0b; } .btn-yellow.active { background: #f59e0b; color: white; }
-        
-        .notes-section { display: none; margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; cursor: default; }
-        .notes-section.show { display: block; }
-        .note-item { background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 4px; margin-bottom: 5px; font-size: 0.8rem; color: #ccc; border-right: 2px solid #3b82f6; }
-        
-        .notes-input-row { display: flex; gap: 5px; margin-top: 8px; }
-        .notes-input { flex: 1; padding: 8px; background: #000; border: 1px solid #333; border-radius: 4px; color: white; font-family: inherit; font-size: 0.8rem; }
-        
-        .team-icons { display: flex; gap: 5px; margin-top: 8px; }
-        .team-icon { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
-        .team-icon.selected { border-color: #10b981; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-bottom: 1px solid var(--border); background: var(--bg); }
+        .header h1 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
+        .btn-dark { background: #333; color: white; }
+        .btn-archive { background: var(--archive); color: white; }
+        .board-wrapper { flex: 1; padding: 10px; overflow-x: auto; overflow-y: hidden; }
+        .board { display: flex; gap: 10px; height: 100%; min-width: 1300px; }
+        .column { flex: 1; min-width: 250px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; display: flex; flex-direction: column; height: 100%; }
+        .column-header { font-weight: bold; padding: 12px; border-bottom: 2px solid; display: flex; justify-content: space-between; align-items: center; cursor: grab; font-size: 0.9rem; }
+        #col-open .column-header { border-color: var(--open); color: var(--open); }
+        #col-develop .column-header { border-color: var(--dev); color: var(--dev); }
+        #col-review .column-header { border-color: var(--review); color: var(--review); }
+        #col-works .column-header { border-color: var(--works); color: var(--works); }
+        #col-archive .column-header { border-color: var(--archive); color: var(--archive); }
+        .card-list { flex: 1; overflow-y: auto; padding: 8px; min-height: 100px; }
+        .card { position: relative; border-radius: 8px; margin-bottom: 10px; background: #1a1a24; border: 1px solid var(--border); display: flex; flex-direction: column; cursor: grab; overflow: hidden; transition: 0.2s; }
+        .card:hover { transform: translateY(-2px); border-color: #555; }
+        .card::after { content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 4px; }
+        #col-open .card::after { background: var(--open); }
+        #col-develop .card::after { background: var(--dev); }
+        #col-review .card::after { background: var(--review); }
+        #col-works .card::after { background: var(--works); }
+        .card-body { padding: 12px; }
+        .card-title { font-size: 0.85rem; font-weight: bold; font-family: monospace; color: #a855f7; margin-bottom: 6px; }
+        .card-notes { font-size: 0.8rem; color: #ccc; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-footer { padding: 8px 12px; background: rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.7rem; color: #888; }
+        .avatar { width: 20px; height: 20px; border-radius: 50%; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 9999; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: #1a1a24; border: 1px solid var(--border); border-radius: 12px; padding: 20px; width: 90%; max-width: 500px; }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .notes-box { background: #000; padding: 12px; border-radius: 8px; border-right: 3px solid var(--review); margin-bottom: 15px; font-size: 0.9rem; line-height: 1.5; }
+        .reply-box textarea { width: 100%; height: 80px; padding: 10px; background: #000; border: 1px solid var(--border); border-radius: 8px; color: white; font-family: inherit; resize: none; margin-bottom: 10px; }
+        .btn-send { width: 100%; background: var(--works); color: white; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #archiveView { position: fixed; inset: 0; background: var(--bg); z-index: 900; padding: 20px; display: none; flex-direction: column; }
+        #archiveView.active { display: flex; }
+        .archive-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .table-container { background: #1a1a24; border-radius: 8px; overflow: auto; flex: 1; }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { background: #0f0f15; color: #aaa; position: sticky; top: 0; }
+        tr:hover { background: rgba(255,255,255,0.02); cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="status-wrapper">
-        <div class="status-sidebar">
-            <div class="sidebar-header">
-                <h2 style="font-size: 1.1rem;">حالة النظام</h2>
-                <a href="dashboard.html" style="color: #888; text-decoration: none; font-size: 0.8rem;">رجوع</a>
-            </div>
-            <div class="list-container" id="pagesList"></div>
+    <div id="toast">تم الحفظ بنجاح</div>
+    <div class="header">
+        <h1><i data-lucide="layout-dashboard"></i> لوحة إدارة مهام الفريق</h1>
+        <div>
+            <button class="btn btn-archive" onclick="toggleArchive()"><i data-lucide="archive"></i> الأرشيف</button>
+            <a href="/admin/dashboard" class="btn btn-dark"><i data-lucide="arrow-right"></i> رجوع</a>
         </div>
-        <div class="status-preview">
-            <iframe id="previewFrame" src="about:blank"></iframe>
+    </div>
+    <div class="board-wrapper" id="mainBoard">
+        <div class="board" id="board">
+            <div class="column" id="col-open"><div class="column-header">جديد / مفتوح <span class="count">0</span></div><div class="card-list" data-status="open"></div></div>
+            <div class="column" id="col-develop"><div class="column-header">قيد التطوير <span class="count">0</span></div><div class="card-list" data-status="develop"></div></div>
+            <div class="column" id="col-review"><div class="column-header">قيد المراجعة <span class="count">0</span></div><div class="card-list" data-status="review"></div></div>
+            <div class="column" id="col-works"><div class="column-header">يعمل (تم الحل) <span class="count">0</span></div><div class="card-list" data-status="works"></div></div>
+            <div class="column" id="col-archive"><div class="column-header">الأرشيف <span class="count">0</span></div><div class="card-list" data-status="archive"></div></div>
+        </div>
+    </div>
+    <div id="archiveView">
+        <div class="archive-header">
+            <h2><i data-lucide="archive"></i> سجل الأرشيف</h2>
+            <button class="btn btn-dark" onclick="toggleArchive()"><i data-lucide="x"></i> إغلاق</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>#</th><th>الصفحة</th><th>المرسل</th><th>الملاحظات</th><th>الحالة</th></tr></thead>
+                <tbody id="archiveBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="mTitle" style="color:#a855f7; font-family:monospace;">...</h3>
+                <button style="background:none; border:none; color:#fff; cursor:pointer; font-size:1.2rem;" onclick="closeModal()">×</button>
+            </div>
+            <div style="margin-bottom:10px; font-size:0.8rem; color:#aaa;">المرسل: <strong id="mSender" style="color:#fff;"></strong></div>
+            <div class="notes-box" id="mNotes"></div>
+            <div id="replyArea">
+                <label style="font-size:0.8rem; color:#aaa; margin-bottom:5px; display:block;">الرد على البلاغ:</label>
+                <div class="reply-box"><textarea id="replyText" placeholder="اكتب ردك هنا... (اضغط Enter مرتين للإرسال)"></textarea></div>
+                <button class="btn-send" onclick="sendReply()"><i data-lucide="send" style="width:16px;"></i> إرسال ونقل للأرشيف</button>
+            </div>
         </div>
     </div>
     <script>
-        let allTeam = []; let pageNotes = {}; let pageAssignees = {}; let currentStatuses = {};
-        const PAGES_CONFIG = [
-            { title: 'ORDIX — الطلبات', file: 'ordix/orders.html' },
-            { title: 'ORDIX — فواتير الشراء', file: 'ordix/purchases.html' },
-            { title: 'ORDIX — فواتير البيع', file: 'ordix/sales.html' },
-            { title: 'ORDIX — العملاء', file: 'ordix/customers.html' },
-            { title: 'ORDIX — الصناديق', file: 'ordix/banks.html' }
-        ];
-
-        async function init() {
-            lucide.createIcons();
-            const token = localStorage.getItem('ione_admin_token');
-            try { const res = await fetch('/api/status/list', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if (data.success) currentStatuses = data.statuses || {}; } catch(e) {}
-            try { const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if (data.success) allTeam = data.team || []; } catch(e) {}
-            renderList();
-            if (PAGES_CONFIG.length > 0) toggleNotes(PAGES_CONFIG[0].file);
-        }
-
-        function renderList() {
-            const container = document.getElementById('pagesList');
-            const statusWeight = { 'yellow': 1, 'red': 2, 'green': 3 };
-            PAGES_CONFIG.sort((a, b) => statusWeight[currentStatuses[a.file]?.status || 'yellow'] - statusWeight[currentStatuses[b.file]?.status || 'yellow']);
-
-            container.innerHTML = PAGES_CONFIG.map(p => {
-                const status = currentStatuses[p.file]?.status || 'yellow';
-                const notes = pageNotes[p.file] || [];
-                const selectedAssignee = pageAssignees[p.file];
-                const teamIcons = allTeam.map(t => `<img src="${t.image_url || 'https://ui-avatars.com/api/?name=' + t.name}" class="team-icon ${selectedAssignee === t.name ? 'selected' : ''}" onclick="event.stopPropagation(); selectAssignee('${p.file}', '${t.name}')">`).join('');
-
-                return `
-                <div class="status-item" id="item-${p.file.replace(/\//g, '-')}" onclick="toggleNotes('${p.file}')">
-                    <div class="status-header">
-                        <span class="status-name">${p.file}</span>
-                        <div class="status-dot dot-${status}"></div>
-                    </div>
-                    <div style="font-size: 0.75rem; color: #888; margin-bottom: 8px;">${p.title}</div>
-                    <div class="status-actions">
-                        <button class="status-btn btn-green ${status === 'green' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'green')">يعمل</button>
-                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'red')">مراجعة</button>
-                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'yellow')">تطوير</button>
-                    </div>
-                    
-                    <!-- تمت إضافة stopPropagation هنا لمنع إغلاق القائمة عند النقر على الملاحظات -->
-                    <div class="notes-section" id="notes-${p.file.replace(/\//g, '-')}" onclick="event.stopPropagation()">
-                        <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">الملاحظات:</div>
-                        <div id="notes-list-${p.file.replace(/\//g, '-')}">${notes.map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('')}</div>
-                        <div class="notes-input-row">
-                            <input type="text" class="notes-input" placeholder="اكتب ملاحظة ثم Enter (اضغط Enter فارغ للإرسال)" onkeydown="handleNoteEnter(event, '${p.file}')">
-                        </div>
-                        <div style="font-size: 0.8rem; color: #aaa; margin-top: 10px; margin-bottom: 5px;">إرسال إلى:</div>
-                        <div class="team-icons">${teamIcons}</div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function toggleNotes(file) {
-            const notesDiv = document.getElementById(`notes-${file.replace(/\//g, '-')}`);
-            const isVisible = notesDiv.classList.contains('show');
-            document.querySelectorAll('.notes-section').forEach(el => el.classList.remove('show'));
-            document.querySelectorAll('.status-item').forEach(el => el.classList.remove('active'));
-            document.getElementById('previewFrame').src = file;
-            if (!isVisible) {
-                document.getElementById(`item-${file.replace(/\//g, '-')}`).classList.add('active');
-                notesDiv.classList.add('show');
-            }
-        }
-
-        async function updateStatus(file, status) {
-            const token = localStorage.getItem('ione_admin_token');
+        lucide.createIcons();
+        let isDragging = false, activeCard = null, activeData = null;
+        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
+        async function loadData() {
             try {
-                await fetch('/api/status/update', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ page: file, status: status }) });
-                currentStatuses[file] = { status: status };
-                renderList();
-            } catch(e) {}
-        }
-
-        function selectAssignee(file, name) { pageAssignees[file] = name; renderList(); }
-
-        function handleNoteEnter(event, file) {
-            if (event.key === 'Enter') {
-                const input = event.target; const val = input.value.trim();
-                if (!pageNotes[file]) pageNotes[file] = [];
-                if (val === '') { sendNotes(file); } 
-                else {
-                    pageNotes[file].push(val); input.value = '';
-                    document.getElementById(`notes-list-${file.replace(/\//g, '-')}`).innerHTML = pageNotes[file].map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('');
-                }
-            }
-        }
-
-        async function sendNotes(file) {
-            const notes = pageNotes[file] || []; const assignee = pageAssignees[file] || 'Unassigned'; const token = localStorage.getItem('ione_admin_token');
-            let sender = 'Admin'; try { const user = JSON.parse(localStorage.getItem('ione_admin_user')); if (user) sender = user.username || user.email || 'Admin'; } catch(e) {}
-            if (notes.length === 0) return;
-            try {
-                const res = await fetch('/api/status/notes/save', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ page: file, notes: notes, assignee: assignee, sender: sender }) });
+                const res = await fetch('/api/status/notes/list');
                 const data = await res.json();
-                if (data.success) { pageNotes[file] = []; pageAssignees[file] = null; renderList(); alert('تم إرسال الملاحظات بنجاح!'); } 
-                else { alert('فشل الإرسال: ' + data.error); }
-            } catch(e) { alert('خطأ في الاتصال'); }
+                if (data.success && data.notes) {
+                    document.querySelectorAll('.card-list').forEach(el => el.innerHTML = '');
+                    document.getElementById('archiveBody').innerHTML = '';
+                    data.notes.forEach((n, index) => {
+                        let colId = 'col-open';
+                        if (n.status === 'develop') colId = 'col-develop';
+                        else if (n.status === 'review') colId = 'col-review';
+                        else if (n.status === 'works' || n.status === 'resolved') colId = 'col-works';
+                        else if (n.status === 'archive') colId = 'col-archive';
+                        const list = document.querySelector(`#${colId} .card-list`);
+                        if (list) list.innerHTML += createCardHTML(n);
+                        if (n.status === 'archive') {
+                            document.getElementById('archiveBody').innerHTML += `
+                                <tr><td>${index + 1}</td><td style="color:#a855f7; font-family:monospace;">${n.page || '-'}</td><td>${n.sender || '-'}</td><td>${n.notes || '-'}</td><td><span style="color:#10b981;">${n.reply ? 'تم الرد' : 'مؤرشف'}</span></td></tr>
+                            `;
+                        }
+                    });
+                    updateCounts(); initSort();
+                }
+            } catch (e) { showToast('خطأ في تحميل البيانات'); }
         }
-        window.onload = init;
+        function createCardHTML(n) {
+            const safeNotes = (n.notes || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safePage = (n.page || 'Unknown').replace(/'/g, "\\'");
+            return `<div class="card" id="card-${n.id}" onclick="openModal('${n.id}', '${safePage}', '${n.sender}', '${safeNotes}', event)">
+                <div class="card-body"><div class="card-title">${n.page || 'No Page'}</div><div class="card-notes">${n.notes}</div></div>
+                <div class="card-footer"><div style="display:flex; align-items:center; gap:5px;"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(n.sender || 'U')}&background=random" class="avatar">${n.sender || 'User'}</div></div>
+            </div>`;
+        }
+        async function updateAPI(id, newStatus, replyText = null) {
+            try {
+                const res = await fetch('/api/status/notes/update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, status: newStatus, reply: replyText })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم الحفظ في قاعدة البيانات');
+                    if (newStatus === 'archive') setTimeout(() => loadData(), 500);
+                }
+            } catch (e) { showToast('فشل الاتصال'); }
+        }
+        function initSort() {
+            document.querySelectorAll('.card-list').forEach(list => {
+                new Sortable(list, {
+                    group: 'shared', animation: 150,
+                    onStart: () => isDragging = true,
+                    onEnd: (evt) => {
+                        updateCounts(); setTimeout(() => isDragging = false, 100);
+                        const cardId = evt.item.id.replace('card-', '');
+                        const newStatus = evt.to.dataset.status;
+                        if (newStatus) updateAPI(cardId, newStatus);
+                    }
+                });
+            });
+            new Sortable(document.getElementById('board'), { animation: 150, handle: '.column-header', draggable: '.column', direction: 'horizontal' });
+        }
+        function openModal(id, page, sender, notes, e) {
+            if (isDragging) return;
+            activeCard = e.currentTarget; activeData = { id, page, sender, notes };
+            document.getElementById('mTitle').innerText = page; document.getElementById('mSender').innerText = sender; document.getElementById('mNotes').innerText = notes;
+            const colId = activeCard.closest('.column').id;
+            document.getElementById('replyArea').style.display = (colId === 'col-archive') ? 'none' : 'block';
+            document.getElementById('replyText').value = ''; document.getElementById('modal').classList.add('active');
+        }
+        function closeModal() { document.getElementById('modal').classList.remove('active'); }
+        let enterCount = 0, enterTimer;
+        document.getElementById('replyText').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); enterCount++;
+                if (enterCount === 1) enterTimer = setTimeout(() => enterCount = 0, 500);
+                else { clearTimeout(enterTimer); enterCount = 0; sendReply(); }
+            }
+        });
+        function sendReply() {
+            const text = document.getElementById('replyText').value.trim();
+            if (!text) return showToast('اكتب الرد أولاً');
+            closeModal();
+            if (activeData) updateAPI(activeData.id, 'archive', text);
+            if (activeCard) { activeCard.remove(); updateCounts(); activeCard = null; }
+        }
+        function updateCounts() { document.querySelectorAll('.column').forEach(col => { col.querySelector('.count').innerText = col.querySelectorAll('.card').length; }); }
+        function toggleArchive() { document.getElementById('archiveView').classList.toggle('active'); }
+        window.onload = loadData;
     </script>
 </body>
 </html>
