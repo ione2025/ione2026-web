@@ -147,7 +147,8 @@
         .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 25px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
         .row-info { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.05rem; }
         .row-info i { color: var(--accent-cyan); width: 22px; height: 22px; }
-        .input-number { width: 80px; padding: 8px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; font-weight: bold; font-size: 1rem; text-align: center; outline: none; }
+        .input-number { width: 80px; padding: 8px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; font-weight: bold; font-size: 1rem; text-align: center; outline: none; transition: 0.2s; }
+        .input-number:focus { border-color: var(--accent-cyan); }
         
         .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -155,6 +156,12 @@
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: #888; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); }
         input:checked + .slider:before { transform: translateX(22px); background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+
+        /* أيقونات الإجراءات (تعديل / حذف) */
+        .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .btn-icon.edit:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+        .btn-icon.delete:hover { color: var(--accent-red); border-color: var(--accent-red); }
 
         /* دليل المستخدم */
         .guide-list { display: flex; flex-direction: column; gap: 15px; max-width: 900px; margin: 0 auto; width: 100%; }
@@ -188,28 +195,13 @@
         /* =========================================
            قسم الوسائط والملاحظات (Media & Notes)
            ========================================= */
-        .media-upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
-            background: rgba(0,0,0,0.2);
-            max-width: 900px;
-            margin: 20px auto 0 auto;
-            width: 100%;
-        }
+        .media-upload-area { border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.2); max-width: 900px; margin: 20px auto 0 auto; width: 100%; }
         .media-upload-area:hover { border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.05); }
         .media-upload-area i { width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 10px; }
         .media-upload-area p { color: var(--text-muted); font-weight: 600; }
         
         .admin-playlist { max-width: 900px; margin: 20px auto 0 auto; width: 100%; display: flex; flex-direction: column; gap: 10px; }
-        .playlist-item {
-            display: flex; align-items: center; justify-content: space-between;
-            background: rgba(255,255,255,0.03); padding: 12px 20px; border-radius: 12px;
-            border: 1px solid var(--glass-border);
-        }
+        .playlist-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--glass-border); }
         .playlist-item-info { display: flex; align-items: center; gap: 12px; }
         .playlist-item-info i { color: var(--accent-orange); width: 20px; height: 20px; }
         .playlist-item-name { font-weight: 700; font-size: 0.95rem; }
@@ -217,7 +209,7 @@
         .playlist-item audio { height: 30px; outline: none; }
 
         /* =========================================
-           النوافذ المنبثقة (Modals)
+           النوافذ المنبثقة (Modals) - بدون أزرار حفظ
            ========================================= */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; }
         .modal-overlay.active { opacity: 1; visibility: visible; }
@@ -251,7 +243,6 @@
         .btn-delete-modal { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: var(--accent-red); font-family: inherit; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
         .btn-delete-modal:hover { background: rgba(239, 68, 68, 0.2); }
         .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: #fff; font-family: inherit; font-weight: 700; cursor: pointer; }
-        .btn-save-user { flex: 2; padding: 12px; border-radius: 10px; border: none; background: var(--accent-green); color: #fff; font-family: inherit; font-weight: 700; cursor: pointer; }
 
         .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
         .toast.show { bottom: 30px; }
@@ -261,16 +252,18 @@
 </head>
 <body>
 
-    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح</div>
+    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح (Enter)</div>
 
-    <!-- نافذة إضافة بطاقة جديدة للوحة التحكم -->
+    <!-- نافذة إضافة / تعديل بطاقة -->
     <div class="modal-overlay" id="newCardModal">
         <div class="modal-box">
             <div class="modal-header">
-                <div class="modal-title">إضافة بطاقة جديدة للوحة التحكم</div>
+                <div class="modal-title" id="cardModalTitle">إضافة بطاقة جديدة للوحة التحكم</div>
                 <button onclick="closeCardModal()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
             </div>
             
+            <input type="hidden" id="editingCardIndex">
+
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">اسم البطاقة (مثال: المنتجات)</label>
@@ -297,6 +290,7 @@
             </div>
 
             <div class="modal-actions">
+                <!-- تم حذف زر الحفظ، الإغلاق فقط -->
                 <button class="btn-cancel" onclick="closeCardModal()">إلغاء (Esc)</button>
             </div>
         </div>
@@ -464,19 +458,13 @@
 
             <!-- الوسائط والملاحظات -->
             <div id="section-media" class="settings-section">
-                <div class="settings-list" id="mediaSettings">
-                    <!-- سيتم توليد التوجلات هنا -->
-                </div>
-
+                <div class="settings-list" id="mediaSettings"></div>
                 <div class="media-upload-area" onclick="document.getElementById('audioUpload').click()">
                     <i data-lucide="upload-cloud"></i>
                     <p>اضغط هنا لرفع ملفات صوتية (MP3, WAV) لتكون متاحة للمستخدمين</p>
                 </div>
                 <input type="file" id="audioUpload" accept="audio/*" multiple style="display:none;" onchange="handleAudioUpload(event)">
-
-                <div class="admin-playlist" id="adminPlaylist">
-                    <!-- سيتم عرض الملفات المرفوعة هنا -->
-                </div>
+                <div class="admin-playlist" id="adminPlaylist"></div>
             </div>
         </div>
 
@@ -503,43 +491,26 @@
         ];
         const defaultUsers = [
             { id: 'u1', userCode: '1001', name: 'خليل المدير', email: 'khalil@ione.com', password: '123456', role: 'Admin', phone: '0500000000', address: 'الرياض', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop', permissions: ['admin'] },
-            { id: 'u2', userCode: '1002', name: 'أحمد المبيعات', email: 'ahmed@ione.com', password: '123456', role: 'Sales', phone: '0501111111', address: 'جدة', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop', permissions: ['sales', 'marketing'] },
-            { id: 'u3', userCode: '1003', name: 'سارة المحاسبة', email: 'sara@ione.com', password: '123456', role: 'Accounting', phone: '0502222222', address: 'الدمام', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=600&auto=format&fit=crop', permissions: ['accounting'] }
+            { id: 'u2', userCode: '1002', name: 'أحمد المبيعات', email: 'ahmed@ione.com', password: '123456', role: 'Sales', phone: '0501111111', address: 'جدة', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop', permissions: ['sales', 'marketing'] }
         ];
-        const defaultMediaConfig = {
-            allowNotes: true,
-            allowPlayer: true,
-            adminPlaylist: []
-        };
+        const defaultMediaConfig = { allowNotes: true, allowPlayer: true, adminPlaylist: [] };
 
         let config = JSON.parse(localStorage.getItem('adminConfig')) || {
-            cards: defaultCards,
-            apps: defaultApps,
-            guide: defaultGuide,
-            users: defaultUsers,
-            media: defaultMediaConfig
+            cards: defaultCards, apps: defaultApps, guide: defaultGuide, users: defaultUsers, media: defaultMediaConfig
         };
-
         if (!config.media) config.media = defaultMediaConfig;
 
         function openSettings(sectionId) {
             document.getElementById('mainView').style.display = 'none';
             document.getElementById('detailView').style.display = 'flex';
-            
             document.querySelectorAll('.settings-section').forEach(el => el.classList.remove('active'));
             document.getElementById('section-' + sectionId).classList.add('active');
 
             if (sectionId === 'dashboard') document.getElementById('detailTitle').innerHTML = '<i data-lucide="layout-dashboard"></i> التحكم في بطاقات اللوحة';
             if (sectionId === 'assistant') document.getElementById('detailTitle').innerHTML = '<i data-lucide="layout-sidebar"></i> إعدادات المساعد';
             if (sectionId === 'guide') document.getElementById('detailTitle').innerHTML = '<i data-lucide="book-open"></i> دليل المستخدم';
-            if (sectionId === 'media') {
-                document.getElementById('detailTitle').innerHTML = '<i data-lucide="music"></i> الوسائط والملاحظات';
-                renderMediaSettings();
-            }
-            if (sectionId === 'users') {
-                document.getElementById('detailTitle').innerHTML = '<i data-lucide="users"></i> إدارة المستخدمين';
-                renderUsers(); 
-            }
+            if (sectionId === 'media') { document.getElementById('detailTitle').innerHTML = '<i data-lucide="music"></i> الوسائط والملاحظات'; renderMediaSettings(); }
+            if (sectionId === 'users') { document.getElementById('detailTitle').innerHTML = '<i data-lucide="users"></i> إدارة المستخدمين'; renderUsers(); }
             
             lucide.createIcons();
         }
@@ -556,10 +527,12 @@
                 const row = document.createElement('div'); row.className = 'setting-row';
                 row.innerHTML = `
                     <div class="row-info"><i data-lucide="${card.icon || 'square'}"></i> ${card.title} <span style="font-size:0.75rem; color:#888; margin-right:10px;">(${card.link})</span></div>
-                    <div style="display:flex; align-items:center; gap:15px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
                         ${card.count !== null ? `<input type="number" class="input-number" value="${card.count}" onchange="updateCount(${index}, this.value)">` : '<span style="color:#888; font-size:0.85rem;">لا يوجد رقم</span>'}
                         <label class="switch"><input type="checkbox" ${card.visible ? 'checked' : ''} onchange="updateVisibility(${index}, this.checked)"><span class="slider"></span></label>
-                        <button class="btn-delete-guide" onclick="deleteDashboardCard(${index})" style="width:32px; height:32px;"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                        <!-- 🌟 أزرار التعديل والحذف -->
+                        <button class="btn-icon edit" onclick="openCardModal(${index})" title="تعديل"><i data-lucide="edit-2" style="width:16px;"></i></button>
+                        <button class="btn-icon delete" onclick="deleteDashboardCard(${index})" title="حذف"><i data-lucide="trash-2" style="width:16px;"></i></button>
                     </div>`;
                 cardsContainer.appendChild(row);
             });
@@ -593,21 +566,16 @@
 
             const playlistContainer = document.getElementById('adminPlaylist');
             playlistContainer.innerHTML = '';
-            
             if (config.media.adminPlaylist.length === 0) {
                 playlistContainer.innerHTML = '<p style="text-align:center; color:#888; font-size:0.9rem;">لا توجد ملفات صوتية مرفوعة من الإدارة حتى الآن.</p>';
             } else {
                 config.media.adminPlaylist.forEach((track, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'playlist-item';
+                    const item = document.createElement('div'); item.className = 'playlist-item';
                     item.innerHTML = `
-                        <div class="playlist-item-info">
-                            <i data-lucide="music"></i>
-                            <span class="playlist-item-name">${track.name}</span>
-                        </div>
+                        <div class="playlist-item-info"><i data-lucide="music"></i><span class="playlist-item-name">${track.name}</span></div>
                         <div class="playlist-item-actions">
                             <audio controls src="${track.url}"></audio>
-                            <button class="btn-delete-guide" onclick="deleteAudioTrack(${index})" style="width:32px; height:32px;"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                            <button class="btn-icon delete" onclick="deleteAudioTrack(${index})"><i data-lucide="trash-2" style="width:16px;"></i></button>
                         </div>
                     `;
                     playlistContainer.appendChild(item);
@@ -616,22 +584,15 @@
             lucide.createIcons();
         }
 
-        function updateMediaConfig(key, value) {
-            config.media[key] = value;
-        }
+        function updateMediaConfig(key, value) { config.media[key] = value; saveSettings(); }
 
         function handleAudioUpload(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
-
             Array.from(files).forEach(file => {
                 const audioUrl = URL.createObjectURL(file);
-                config.media.adminPlaylist.push({
-                    name: file.name,
-                    url: audioUrl
-                });
+                config.media.adminPlaylist.push({ name: file.name, url: audioUrl });
             });
-
             saveSettings();
             renderMediaSettings();
             event.target.value = '';
@@ -645,38 +606,63 @@
             }
         }
 
-        function openCardModal() {
-            document.getElementById('newCardTitle').value = '';
-            document.getElementById('newCardLink').value = '';
-            document.getElementById('newCardIcon').value = 'package';
-            document.getElementById('newCardSection').value = 'bot';
-            document.getElementById('newCardModal').classList.add('active');
+        // 🌟 التعديل على نافذة البطاقة لدعم التعديل والحفظ
+        function openCardModal(index = null) {
+            const modal = document.getElementById('newCardModal');
+            const title = document.getElementById('cardModalTitle');
+            const editIndexInput = document.getElementById('editingCardIndex');
+            
+            if (index !== null) {
+                title.innerText = 'تعديل البطاقة';
+                editIndexInput.value = index;
+                const card = config.cards[index];
+                document.getElementById('newCardTitle').value = card.title;
+                document.getElementById('newCardLink').value = card.link;
+                document.getElementById('newCardIcon').value = card.icon;
+                document.getElementById('newCardSection').value = card.section || 'bot';
+            } else {
+                title.innerText = 'إضافة بطاقة جديدة للوحة التحكم';
+                editIndexInput.value = '';
+                document.getElementById('newCardTitle').value = '';
+                document.getElementById('newCardLink').value = '';
+                document.getElementById('newCardIcon').value = 'package';
+                document.getElementById('newCardSection').value = 'bot';
+            }
+
+            modal.classList.add('active');
+            setTimeout(() => document.getElementById('newCardTitle').focus(), 100);
         }
 
-        function closeCardModal() {
-            document.getElementById('newCardModal').classList.remove('active');
-        }
+        function closeCardModal() { document.getElementById('newCardModal').classList.remove('active'); }
 
         function saveNewCard() {
             const title = document.getElementById('newCardTitle').value.trim();
             const link = document.getElementById('newCardLink').value.trim();
             const icon = document.getElementById('newCardIcon').value.trim();
             const section = document.getElementById('newCardSection').value;
+            const editIndex = document.getElementById('editingCardIndex').value;
 
-            if (!title || !link) {
-                alert('الرجاء إدخال اسم البطاقة والرابط.');
-                return;
+            if (!title || !link) { alert('الرجاء إدخال اسم البطاقة والرابط.'); return; }
+
+            if (editIndex !== '') {
+                // تعديل بطاقة موجودة
+                const card = config.cards[editIndex];
+                card.title = title;
+                card.link = link;
+                card.icon = icon || 'square';
+                card.section = section;
+            } else {
+                // إضافة بطاقة جديدة
+                config.cards.push({
+                    id: 'custom_' + Date.now(),
+                    title: title,
+                    visible: true,
+                    count: 0,
+                    link: link,
+                    icon: icon || 'square',
+                    section: section
+                });
             }
-
-            config.cards.push({
-                id: 'custom_' + Date.now(),
-                title: title,
-                visible: true,
-                count: 0,
-                link: link,
-                icon: icon || 'square',
-                section: section
-            });
 
             saveSettings();
             closeCardModal();
@@ -684,7 +670,7 @@
         }
 
         function deleteDashboardCard(index) {
-            if (confirm('هل أنت متأكد من حذف هذه البطاقة نهائياً من لوحة التحكم؟')) {
+            if (confirm('هل أنت متأكد من حذف هذه البطاقة نهائياً؟')) {
                 config.cards.splice(index, 1);
                 saveSettings();
                 renderSettings();
@@ -694,11 +680,10 @@
         function renderGuide() {
             const guideContainer = document.getElementById('guideSettings');
             guideContainer.innerHTML = '';
-            
             config.guide.forEach((item, index) => {
                 const div = document.createElement('div'); div.className = 'guide-item';
                 div.innerHTML = `
-                    <input type="text" class="guide-icon-input" value="${item.icon}" onchange="updateGuideItem(${index}, 'icon', this.value)" title="اسم الأيقونة">
+                    <input type="text" class="guide-icon-input" value="${item.icon}" onchange="updateGuideItem(${index}, 'icon', this.value)">
                     <div class="guide-text-inputs">
                         <input type="text" class="title-input" value="${item.title}" onchange="updateGuideItem(${index}, 'title', this.value)" placeholder="العنوان">
                         <input type="text" class="desc-input" value="${item.desc}" onchange="updateGuideItem(${index}, 'desc', this.value)" placeholder="الوصف">
@@ -707,19 +692,15 @@
                 `;
                 guideContainer.appendChild(div);
             });
-
             new Sortable(guideContainer, {
                 animation: 150, ghostClass: 'sortable-ghost',
                 onEnd: function() {
                     const newGuide = [];
                     document.querySelectorAll('.guide-item').forEach(el => {
-                        newGuide.push({
-                            icon: el.querySelector('.guide-icon-input').value,
-                            title: el.querySelector('.title-input').value,
-                            desc: el.querySelector('.desc-input').value
-                        });
+                        newGuide.push({ icon: el.querySelector('.guide-icon-input').value, title: el.querySelector('.title-input').value, desc: el.querySelector('.desc-input').value });
                     });
                     config.guide = newGuide;
+                    saveSettings();
                 }
             });
         }
@@ -727,21 +708,18 @@
         function renderUsers() {
             const grid = document.getElementById('usersGrid');
             grid.innerHTML = '';
-            
             config.users.forEach(user => {
                 const card = document.createElement('div'); 
                 card.className = 'user-card';
                 card.dataset.id = user.id;
-                card.onclick = () => editUser(user.id);
+                card.onclick = () => openUserModal(user.id);
 
                 const defaultBg = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=600&auto=format&fit=crop';
                 card.style.backgroundImage = `url(${user.avatar || defaultBg})`;
-
                 const rolesStr = user.permissions.length > 0 ? user.permissions.join(' | ') : 'بدون صلاحية';
 
                 card.innerHTML = `
                     <div class="user-code-badge">${user.userCode || '----'}</div>
-                    
                     <div class="user-card-content">
                         <div class="user-name">${user.name}</div>
                         <div class="user-role">${rolesStr}</div>
@@ -750,9 +728,7 @@
                 `;
                 grid.appendChild(card);
             });
-
             lucide.createIcons();
-
             new Sortable(grid, {
                 animation: 200, ghostClass: 'sortable-ghost',
                 onEnd: function() {
@@ -763,7 +739,7 @@
                         if (user) newUsersOrder.push(user);
                     });
                     config.users = newUsersOrder;
-                    localStorage.setItem('adminConfig', JSON.stringify(config));
+                    saveSettings();
                 }
             });
         }
@@ -776,13 +752,8 @@
         function togglePasswordVisibility() {
             const passInput = document.getElementById('userPassword');
             const eyeIcon = document.getElementById('eyeIcon');
-            if (passInput.type === 'password') {
-                passInput.type = 'text';
-                eyeIcon.setAttribute('data-lucide', 'eye-off');
-            } else {
-                passInput.type = 'password';
-                eyeIcon.setAttribute('data-lucide', 'eye');
-            }
+            if (passInput.type === 'password') { passInput.type = 'text'; eyeIcon.setAttribute('data-lucide', 'eye-off'); }
+            else { passInput.type = 'password'; eyeIcon.setAttribute('data-lucide', 'eye'); }
             lucide.createIcons();
         }
 
@@ -815,7 +786,6 @@
             if (id) {
                 title.innerText = 'تعديل بيانات المستخدم';
                 deleteBtn.style.display = 'flex';
-                
                 const user = config.users.find(u => u.id === id);
                 if (user) {
                     document.getElementById('userName').value = user.name || '';
@@ -824,12 +794,7 @@
                     document.getElementById('userPhone').value = user.phone || '';
                     document.getElementById('userAddress').value = user.address || '';
                     document.getElementById('userCode').value = user.userCode || '';
-                    
-                    if (user.avatar) {
-                        avatarPreview.src = user.avatar;
-                        avatarPreview.style.display = 'block';
-                        avatarFallback.style.display = 'none';
-                    }
+                    if (user.avatar) { avatarPreview.src = user.avatar; avatarPreview.style.display = 'block'; avatarFallback.style.display = 'none'; }
                     user.permissions.forEach(p => {
                         const cb = document.querySelector(`.perm-checkbox[value="${p}"]`);
                         if (cb) cb.checked = true;
@@ -838,7 +803,6 @@
             } else {
                 title.innerText = 'إضافة مستخدم جديد';
                 deleteBtn.style.display = 'none';
-                
                 let nextCode = 1001;
                 if (config.users.length > 0) {
                     const codes = config.users.map(u => parseInt(u.userCode) || 0);
@@ -851,9 +815,7 @@
             setTimeout(() => document.getElementById('userName').focus(), 100);
         }
 
-        function closeUserModal() {
-            document.getElementById('userModal').classList.remove('active');
-        }
+        function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
 
         function previewImage(event) {
             const file = event.target.files[0];
@@ -879,68 +841,46 @@
             const userCode = document.getElementById('userCode').value.trim();
             const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
 
-            if (!name || !phone || !userCode) {
-                alert('الرجاء إدخال الاسم ورقم الهاتف وكود الدخول على الأقل.');
-                return;
-            }
+            if (!name || !phone || !userCode) { alert('الرجاء إدخال الاسم ورقم الهاتف وكود الدخول على الأقل.'); return; }
 
             if (editingUserId) {
                 const user = config.users.find(u => u.id === editingUserId);
                 if (user) {
-                    user.name = name;
-                    user.email = email;
-                    user.password = password;
-                    user.phone = phone;
-                    user.address = address;
-                    user.userCode = userCode;
-                    user.permissions = permissions;
+                    user.name = name; user.email = email; user.password = password;
+                    user.phone = phone; user.address = address; user.userCode = userCode; user.permissions = permissions;
                     if (uploadedAvatarBase64) user.avatar = uploadedAvatarBase64;
                 }
             } else {
                 const newUser = {
-                    id: 'u_' + Date.now(),
-                    userCode: userCode,
-                    name: name,
-                    email: email,
-                    password: password,
-                    phone: phone,
-                    address: address,
-                    permissions: permissions,
+                    id: 'u_' + Date.now(), userCode: userCode, name: name, email: email, password: password,
+                    phone: phone, address: address, permissions: permissions,
                     avatar: uploadedAvatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`
                 };
                 config.users.push(newUser);
             }
 
-            localStorage.setItem('adminConfig', JSON.stringify(config));
+            saveSettings();
             closeUserModal();
             renderUsers();
-            
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function deleteCurrentUser() {
             if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
                 config.users = config.users.filter(u => u.id !== editingUserId);
-                localStorage.setItem('adminConfig', JSON.stringify(config));
+                saveSettings();
                 closeUserModal();
                 renderUsers();
-                const toast = document.getElementById('toast');
-                toast.classList.add('show');
-                setTimeout(() => toast.classList.remove('show'), 3000);
             }
         }
-
-        function editUser(id) { openUserModal(id); }
 
         function updateCount(index, val) { config.cards[index].count = parseInt(val) || 0; }
         function updateVisibility(index, val) { config.cards[index].visible = val; }
         function updateAppVisibility(index, val) { config.apps[index].visible = val; }
         function updateGuideItem(index, field, val) { config.guide[index][field] = val; }
+        
         function deleteGuideItem(index) {
             if(confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-                config.guide.splice(index, 1); renderGuide(); lucide.createIcons();
+                config.guide.splice(index, 1); renderGuide(); lucide.createIcons(); saveSettings();
             }
         }
         function addGuideItem() {
@@ -951,16 +891,13 @@
         function saveSettings() {
             localStorage.setItem('adminConfig', JSON.stringify(config));
             const toast = document.getElementById('toast');
-            toast.innerHTML = '<i data-lucide="check-circle"></i> تم الحفظ بنجاح';
-            lucide.createIcons();
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
-        // 🌟 الحفظ بالضغط على Enter
+        // 🌟 السر هنا: ربط زر Enter بجميع الحقول
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                // إذا كان المستخدم يكتب داخل حقل نصي (textarea)، لا تقم بالحفظ
                 if (document.activeElement.tagName === 'TEXTAREA') return;
 
                 // إذا كانت نافذة المستخدم مفتوحة، احفظ المستخدم
@@ -973,14 +910,14 @@
                     e.preventDefault();
                     saveNewCard();
                 }
-                // إذا كنا في صفحة الإعدادات، احفظ الإعدادات العامة
-                else if (document.getElementById('detailView').style.display === 'flex') {
+                // في أي مكان آخر (مثل التعديل المباشر في القوائم)
+                else {
                     e.preventDefault();
+                    document.activeElement.blur(); // إزالة التركيز لتشغيل حدث onchange إن وجد
                     saveSettings();
                 }
             }
 
-            // إغلاق النوافذ عند الضغط على Escape
             if (e.key === 'Escape') {
                 if (document.getElementById('userModal').classList.contains('active')) closeUserModal();
                 if (document.getElementById('newCardModal').classList.contains('active')) closeCardModal();
