@@ -104,7 +104,9 @@
     <script>
         lucide.createIcons();
         let isDragging = false, activeCard = null, activeData = null;
+        
         function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 3000); }
+        
         async function loadData() {
             try {
                 const res = await fetch('/api/status/notes/list');
@@ -112,32 +114,40 @@
                 if (data.success && data.notes) {
                     document.querySelectorAll('.card-list').forEach(el => el.innerHTML = '');
                     document.getElementById('archiveBody').innerHTML = '';
+                    
                     data.notes.forEach((n, index) => {
                         let colId = 'col-open';
                         if (n.status === 'develop') colId = 'col-develop';
                         else if (n.status === 'review') colId = 'col-review';
                         else if (n.status === 'works' || n.status === 'resolved') colId = 'col-works';
                         else if (n.status === 'archive') colId = 'col-archive';
+                        
+                        // تحويل المصفوفة إلى نص إذا لزم الأمر
+                        const notesText = Array.isArray(n.notes) ? n.notes.join(' ') : (n.notes || '');
+                        
                         const list = document.querySelector(`#${colId} .card-list`);
-                        if (list) list.innerHTML += createCardHTML(n);
+                        if (list) list.innerHTML += createCardHTML(n, notesText);
+                        
                         if (n.status === 'archive') {
                             document.getElementById('archiveBody').innerHTML += `
-                                <tr><td>${index + 1}</td><td style="color:#a855f7; font-family:monospace;">${n.page || '-'}</td><td>${n.sender || '-'}</td><td>${n.notes || '-'}</td><td><span style="color:#10b981;">${n.reply ? 'تم الرد' : 'مؤرشف'}</span></td></tr>
+                                <tr><td>${index + 1}</td><td style="color:#a855f7; font-family:monospace;">${n.page || '-'}</td><td>${n.sender || '-'}</td><td>${notesText}</td><td><span style="color:#10b981;">${n.reply ? 'تم الرد' : 'مؤرشف'}</span></td></tr>
                             `;
                         }
                     });
                     updateCounts(); initSort();
                 }
-            } catch (e) { showToast('خطأ في تحميل البيانات'); }
+            } catch (e) { console.error(e); showToast('خطأ في تحميل البيانات'); }
         }
-        function createCardHTML(n) {
-            const safeNotes = (n.notes || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+        function createCardHTML(n, notesText) {
+            const safeNotes = notesText.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             const safePage = (n.page || 'Unknown').replace(/'/g, "\\'");
             return `<div class="card" id="card-${n.id}" onclick="openModal('${n.id}', '${safePage}', '${n.sender}', '${safeNotes}', event)">
-                <div class="card-body"><div class="card-title">${n.page || 'No Page'}</div><div class="card-notes">${n.notes}</div></div>
+                <div class="card-body"><div class="card-title">${n.page || 'No Page'}</div><div class="card-notes">${notesText}</div></div>
                 <div class="card-footer"><div style="display:flex; align-items:center; gap:5px;"><img src="https://ui-avatars.com/api/?name=${encodeURIComponent(n.sender || 'U')}&background=random" class="avatar">${n.sender || 'User'}</div></div>
             </div>`;
         }
+
         async function updateAPI(id, newStatus, replyText = null) {
             try {
                 const res = await fetch('/api/status/notes/update', {
@@ -151,6 +161,7 @@
                 }
             } catch (e) { showToast('فشل الاتصال'); }
         }
+
         function initSort() {
             document.querySelectorAll('.card-list').forEach(list => {
                 new Sortable(list, {
@@ -166,6 +177,7 @@
             });
             new Sortable(document.getElementById('board'), { animation: 150, handle: '.column-header', draggable: '.column', direction: 'horizontal' });
         }
+
         function openModal(id, page, sender, notes, e) {
             if (isDragging) return;
             activeCard = e.currentTarget; activeData = { id, page, sender, notes };
@@ -174,7 +186,9 @@
             document.getElementById('replyArea').style.display = (colId === 'col-archive') ? 'none' : 'block';
             document.getElementById('replyText').value = ''; document.getElementById('modal').classList.add('active');
         }
+
         function closeModal() { document.getElementById('modal').classList.remove('active'); }
+
         let enterCount = 0, enterTimer;
         document.getElementById('replyText').addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -183,6 +197,7 @@
                 else { clearTimeout(enterTimer); enterCount = 0; sendReply(); }
             }
         });
+
         function sendReply() {
             const text = document.getElementById('replyText').value.trim();
             if (!text) return showToast('اكتب الرد أولاً');
@@ -190,8 +205,10 @@
             if (activeData) updateAPI(activeData.id, 'archive', text);
             if (activeCard) { activeCard.remove(); updateCounts(); activeCard = null; }
         }
+
         function updateCounts() { document.querySelectorAll('.column').forEach(col => { col.querySelector('.count').innerText = col.querySelectorAll('.card').length; }); }
         function toggleArchive() { document.getElementById('archiveView').classList.toggle('active'); }
+        
         window.onload = loadData;
     </script>
 </body>
