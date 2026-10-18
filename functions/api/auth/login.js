@@ -27,27 +27,29 @@ export async function onRequest(context) {
     
     try {
         const body = await request.json();
-        const { email, password } = body;
+        // استقبال userCode بدلاً من email فقط
+        const { userCode, password } = body;
         
         // Validation
-        if (!email || !password) {
+        if (!userCode || !password) {
             return new Response(JSON.stringify({
                 success: false,
-                error: 'البريد وكلمة المرور مطلوبان'
+                error: 'كود الدخول وكلمة المرور مطلوبان'
             }), { status: 400, headers });
         }
         
-        // Normalize email
-        const normalizedEmail = email.toLowerCase().trim();
+        // Normalize userCode (تحويل الحروف إلى صغيرة وإزالة المسافات)
+        const normalizedCode = userCode.toLowerCase().trim();
         
         // Get user from KV
-        const userKey = `user:${normalizedEmail}`;
+        // البحث سيكون بمفتاح مثل user:emp-1001 أو user:khalilceo@ione.com
+        const userKey = `user:${normalizedCode}`;
         const userRaw = await env.IONE_KV.get(userKey);
         
         if (!userRaw) {
             return new Response(JSON.stringify({
                 success: false,
-                error: 'البريد أو كلمة المرور غير صحيحة'
+                error: 'كود الدخول أو كلمة المرور غير صحيحة'
             }), { status: 401, headers });
         }
         
@@ -67,7 +69,7 @@ export async function onRequest(context) {
         if (passwordHash !== user.password_hash) {
             return new Response(JSON.stringify({
                 success: false,
-                error: 'البريد أو كلمة المرور غير صحيحة'
+                error: 'كود الدخول أو كلمة المرور غير صحيحة'
             }), { status: 401, headers });
         }
         
