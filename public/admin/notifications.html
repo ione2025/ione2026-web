@@ -2,80 +2,64 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>IONECENTER — سجل المشاكل والملاحظات</title>
+    <title>IONECENTER — سجل المشاكل</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root { --bg: #050508; --card-bg: #1a1a24; --border: #333; --primary: #3b82f6; --text: #fff; --text-muted: #aaa; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; padding: 20px; min-height: 100vh; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
         .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
         .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #2563eb; }
         .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
         .btn-dark { background: #333; color: white; text-decoration: none; }
-        
         .notes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
-        
         .note-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column; }
-        .note-card:hover { border-color: #555; }
-        
         .card-header { padding: 15px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .card-title { font-size: 1.1rem; font-weight: bold; color: var(--primary); font-family: monospace; }
         .card-meta { display: flex; flex-direction: column; gap: 5px; padding: 15px; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
         .meta-row { display: flex; justify-content: space-between; color: var(--text-muted); }
         .meta-row strong { color: #ddd; }
-        
         .notes-content { padding: 15px; display: none; background: rgba(0,0,0,0.4); }
         .note-card.expanded .notes-content { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-        
         .note-item { margin-bottom: 8px; font-size: 0.95rem; color: #ccc; padding-right: 15px; position: relative; }
         .note-item::before { content: attr(data-idx) "."; position: absolute; right: 0; color: var(--primary); font-weight: bold; }
-        
         .card-actions { padding: 15px; display: flex; gap: 10px; border-top: 1px solid var(--border); margin-top: auto; }
         .card-actions .btn { flex: 1; justify-content: center; padding: 10px; font-size: 0.85rem; }
-        
         .empty-state { text-align: center; padding: 50px; color: var(--text-muted); grid-column: 1 / -1; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1><i data-lucide="clipboard-list"></i> سجل المشاكل والملاحظات</h1>
-        <div style="display: flex; gap: 10px;">
-            <a href="status.html" class="btn btn-dark"><i data-lucide="arrow-right"></i> رجوع للحالة</a>
-        </div>
+        <div style="display: flex; gap: 10px;"><a href="status.html" class="btn btn-dark"><i data-lucide="arrow-right"></i> رجوع</a></div>
     </div>
-
-    <div class="notes-grid" id="notesGrid">
-        <div class="empty-state">جاري التحميل...</div>
-    </div>
+    <div class="notes-grid" id="notesGrid"><div class="empty-state">جاري التحميل...</div></div>
 
     <script src="admin.js"></script>
     <script>
         async function loadNotes() {
             const token = localStorage.getItem('ione_admin_token');
+            const grid = document.getElementById('notesGrid');
             try {
                 const res = await fetch('/api/status/notes/list', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
-                const grid = document.getElementById('notesGrid');
                 
-                if (!data.success || data.notes.length === 0) {
-                    grid.innerHTML = '<div class="empty-state"><i data-lucide="check-circle" style="width:48px;height:48px;margin-bottom:10px;color:#10b981;"></i><h2>لا توجد مشاكل حالياً! النظام يعمل بشكل ممتاز.</h2></div>';
-                    lucide.createIcons();
+                if (!data.success) {
+                    grid.innerHTML = `<div class="empty-state" style="color:red;">خطأ في الخادم: ${data.error}</div>`;
                     return;
                 }
+                if (data.notes.length === 0) {
+                    grid.innerHTML = '<div class="empty-state"><i data-lucide="check-circle" style="width:48px;height:48px;margin-bottom:10px;color:#10b981;"></i><h2>لا توجد مشاكل حالياً! النظام يعمل بشكل ممتاز.</h2></div>';
+                    lucide.createIcons(); return;
+                }
 
-                // ترتيب البلاغات من الأحدث للأقدم وتوليد الأرقام #01 #02
                 grid.innerHTML = data.notes.map((n, index) => {
                     const noteNumber = String(data.notes.length - index).padStart(2, '0');
                     const notesHtml = n.notes.map((text, i) => `<div class="note-item" data-idx="${i+1}">${text}</div>`).join('');
-                    
                     return `
                     <div class="note-card" id="card-${n.id}">
                         <div class="card-header" onclick="toggleCard('${n.id}')">
@@ -85,84 +69,49 @@
                         <div class="card-meta">
                             <div class="meta-row"><span>المرسل:</span> <strong>${n.sender || 'Admin'}</strong></div>
                             <div class="meta-row"><span>الموجه إليه:</span> <strong>${n.assignee || 'Unassigned'}</strong></div>
-                            <div class="meta-row"><span>التاريخ:</span> <span>${new Date(n.created_at).toLocaleString('ar-EG')}</span></div>
                         </div>
-                        <div class="notes-content">
-                            ${notesHtml}
-                        </div>
+                        <div class="notes-content">${notesHtml}</div>
                         <div class="card-actions">
                             <button class="btn btn-primary" onclick="printSingleCard('${n.id}')"><i data-lucide="printer"></i> PDF</button>
                             <button class="btn btn-dark" onclick="sendToDeepSeek('${n.page}', ${JSON.stringify(n.notes).replace(/"/g, '&quot;')})"><i data-lucide="bot"></i> DeepSeek</button>
                             <button class="btn btn-danger" onclick="resolveNote('${n.id}')"><i data-lucide="check"></i> تم الحل</button>
                         </div>
-                    </div>
-                    `;
+                    </div>`;
                 }).join('');
-
                 lucide.createIcons();
-
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                grid.innerHTML = `<div class="empty-state" style="color:red;">حدث خطأ: ${e.message}</div>`; 
+            }
         }
 
-        function toggleCard(id) {
-            document.getElementById(`card-${id}`).classList.toggle('expanded');
-        }
+        function toggleCard(id) { document.getElementById(`card-${id}`).classList.toggle('expanded'); }
 
         function sendToDeepSeek(page, notes) {
             const text = `أهلاً، لدي مشكلة في صفحة (${page}).\n\nالملاحظات:\n${notes.map((n, i) => `${i+1}. ${n}`).join('\n')}\n\nالرجاء مساعدتي في كتابة الكود أو حلها.`;
-            
-            // نسخ النص
             navigator.clipboard.writeText(text).then(() => {
                 alert('تم نسخ الملاحظات بنجاح! سيتم فتح DeepSeek الآن..');
-                // فتح الموقع
                 window.open('https://chat.deepseek.com/', '_blank');
             });
         }
 
         async function resolveNote(id) {
-            if (!confirm('هل أنت متأكد أن المشكلة تم حلها؟ سيتم حذفها من القائمة.')) return;
-            
+            if (!confirm('هل تم حل المشكلة؟ سيتم حذف البلاغ.')) return;
             const token = localStorage.getItem('ione_admin_token');
             try {
-                const res = await fetch('/api/status/notes/delete', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ note_id: id })
-                });
+                const res = await fetch('/api/status/notes/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ note_id: id }) });
                 const data = await res.json();
-                if (data.success) {
-                    document.getElementById(`card-${id}`).remove();
-                    alert('تم حل المشكلة وحذفها بنجاح!');
-                }
+                if (data.success) { document.getElementById(`card-${id}`).remove(); }
             } catch(e) { alert('فشل الحذف'); }
         }
 
         function printSingleCard(id) {
             const card = document.getElementById(`card-${id}`).cloneNode(true);
-            // إزالة أزرار الطباعة من الكرت المطبوع
             card.querySelector('.card-actions').remove();
-            card.classList.add('expanded'); // تأكيد أن الملاحظات مفتوحة
-
+            card.classList.add('expanded');
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html dir="rtl">
-                <head>
-                    <title>تقرير مشكلة</title>
-                    <style>
-                        body { font-family: 'Cairo', sans-serif; padding: 20px; }
-                        .note-card { border: 1px solid #ccc; border-radius: 8px; padding: 20px; max-width: 600px; margin: auto; }
-                        .card-header { font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 10px; }
-                        .meta-row { margin-bottom: 5px; }
-                        .note-item { margin-bottom: 5px; }
-                    </style>
-                </head>
-                <body onload="window.print();window.close();">
-                    ${card.outerHTML}
-                </body>
-                </html>
-            `);
+            printWindow.document.write(`<html dir="rtl"><head><title>تقرير مشكلة</title><style>body { font-family: 'Cairo', sans-serif; padding: 20px; } .note-card { border: 1px solid #ccc; border-radius: 8px; padding: 20px; } .card-header { font-size: 1.2rem; font-weight: bold; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 10px; }</style></head><body onload="window.print();window.close();">${card.outerHTML}</body></html>`);
             printWindow.document.close();
         }
-
         window.onload = loadNotes;
     </script>
 </body>

@@ -11,43 +11,28 @@
         .status-sidebar { width: 35%; background: #111118; border-left: 1px solid #222; display: flex; flex-direction: column; overflow: hidden; }
         .status-preview { width: 65%; background: #000; }
         .status-preview iframe { width: 100%; height: 100%; border: none; background: white; }
-        
         .sidebar-header { padding: 15px 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
         .list-container { flex: 1; overflow-y: auto; padding: 10px; }
-        
-        .status-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: #1a1a24; border: 1px solid transparent; }
+        .status-item { display: flex; flex-direction: column; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: #1a1a24; border: 1px solid transparent; cursor: pointer; }
+        .status-item:hover { background: #222233; }
         .status-item.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; cursor: pointer; }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
         .status-name { font-size: 0.85rem; font-family: monospace; direction: ltr; color: #ddd; }
         .status-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .dot-green { background: #10b981; }
-        .dot-red { background: #ef4444; }
-        .dot-yellow { background: #f59e0b; }
-        
+        .dot-green { background: #10b981; } .dot-red { background: #ef4444; } .dot-yellow { background: #f59e0b; }
         .status-actions { display: flex; gap: 5px; }
         .status-btn { flex: 1; padding: 4px; border: none; border-radius: 4px; font-family: inherit; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
-        .btn-green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
-        .btn-green:hover, .btn-green.active { background: #10b981; color: white; }
-        .btn-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-        .btn-red:hover, .btn-red.active { background: #ef4444; color: white; }
-        .btn-yellow { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
-        .btn-yellow:hover, .btn-yellow.active { background: #f59e0b; color: white; }
-
-        /* الملاحظات داخل البطاقة */
-        .notes-section { display: none; margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; }
-        .notes-section.show { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
+        .btn-green { background: rgba(16, 185, 129, 0.2); color: #10b981; } .btn-green.active { background: #10b981; color: white; }
+        .btn-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; } .btn-red.active { background: #ef4444; color: white; }
+        .btn-yellow { background: rgba(245, 158, 11, 0.2); color: #f59e0b; } .btn-yellow.active { background: #f59e0b; color: white; }
+        .notes-section { display: none; margin-top: 15px; border-top: 1px solid #222; padding-top: 10px; cursor: default; }
+        .notes-section.show { display: block; }
         .note-item { background: rgba(0,0,0,0.3); padding: 6px 10px; border-radius: 4px; margin-bottom: 5px; font-size: 0.8rem; color: #ccc; border-right: 2px solid #3b82f6; }
-        
         .notes-input-row { display: flex; gap: 5px; margin-top: 8px; }
         .notes-input { flex: 1; padding: 8px; background: #000; border: 1px solid #333; border-radius: 4px; color: white; font-family: inherit; font-size: 0.8rem; }
-        
-        .team-icons { display: flex; gap: 5px; margin-top: 8px; overflow-x: auto; padding-bottom: 5px; }
+        .team-icons { display: flex; gap: 5px; margin-top: 8px; }
         .team-icon { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; }
-        .team-icon:hover { border-color: #555; }
-        .team-icon.selected { border-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .team-icon.selected { border-color: #10b981; }
     </style>
 </head>
 <body>
@@ -63,12 +48,8 @@
             <iframe id="previewFrame" src="about:blank"></iframe>
         </div>
     </div>
-
     <script>
-        let allTeam = [];
-        let pageNotes = {}; 
-        let pageAssignees = {}; 
-        
+        let allTeam = []; let pageNotes = {}; let pageAssignees = {}; let currentStatuses = {};
         const PAGES_CONFIG = [
             { title: 'ORDIX — الطلبات', file: 'ordix/orders.html' },
             { title: 'ORDIX — فواتير الشراء', file: 'ordix/purchases.html' },
@@ -77,78 +58,50 @@
             { title: 'ORDIX — الصناديق', file: 'ordix/banks.html' }
         ];
 
-        let currentStatuses = {};
-
         async function init() {
             lucide.createIcons();
             const token = localStorage.getItem('ione_admin_token');
-            
-            try {
-                const res = await fetch('/api/status/list', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.success) currentStatuses = data.statuses || {};
-            } catch(e) {}
-
-            try {
-                const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
-                if (data.success) allTeam = data.team || [];
-            } catch(e) {}
-            
+            try { const res = await fetch('/api/status/list', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if (data.success) currentStatuses = data.statuses || {}; } catch(e) {}
+            try { const res = await fetch('/api/team/list', { headers: { 'Authorization': `Bearer ${token}` } }); const data = await res.json(); if (data.success) allTeam = data.team || []; } catch(e) {}
             renderList();
+            
+            // 🚀 التحديد التلقائي لأول صفحة
+            if (PAGES_CONFIG.length > 0) {
+                toggleNotes(PAGES_CONFIG[0].file);
+            }
         }
 
         function renderList() {
             const container = document.getElementById('pagesList');
-            
             const statusWeight = { 'yellow': 1, 'red': 2, 'green': 3 };
-            PAGES_CONFIG.sort((a, b) => {
-                const statusA = currentStatuses[a.file]?.status || 'yellow';
-                const statusB = currentStatuses[b.file]?.status || 'yellow';
-                return statusWeight[statusA] - statusWeight[statusB];
-            });
+            PAGES_CONFIG.sort((a, b) => statusWeight[currentStatuses[a.file]?.status || 'yellow'] - statusWeight[currentStatuses[b.file]?.status || 'yellow']);
 
             container.innerHTML = PAGES_CONFIG.map(p => {
-                const info = currentStatuses[p.file] || {};
-                const status = info.status || 'yellow';
+                const status = currentStatuses[p.file]?.status || 'yellow';
                 const notes = pageNotes[p.file] || [];
                 const selectedAssignee = pageAssignees[p.file];
-                
-                const teamIcons = allTeam.map(t => `
-                    <img src="${t.image_url || 'https://ui-avatars.com/api/?name=' + t.name}" 
-                         class="team-icon ${selectedAssignee === t.name ? 'selected' : ''}" 
-                         onclick="selectAssignee('${p.file}', '${t.name}')" 
-                         title="${t.name}">
-                `).join('');
+                const teamIcons = allTeam.map(t => `<img src="${t.image_url || 'https://ui-avatars.com/api/?name=' + t.name}" class="team-icon ${selectedAssignee === t.name ? 'selected' : ''}" onclick="event.stopPropagation(); selectAssignee('${p.file}', '${t.name}')">`).join('');
 
                 return `
-                <div class="status-item" id="item-${p.file.replace(/\//g, '-')}">
-                    <div class="status-header" onclick="toggleNotes('${p.file}')">
+                <div class="status-item" id="item-${p.file.replace(/\//g, '-')}" onclick="toggleNotes('${p.file}')">
+                    <div class="status-header">
                         <span class="status-name">${p.file}</span>
                         <div class="status-dot dot-${status}"></div>
                     </div>
                     <div style="font-size: 0.75rem; color: #888; margin-bottom: 8px;">${p.title}</div>
                     <div class="status-actions">
-                        <button class="status-btn btn-green ${status === 'green' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'green', event)">يعمل</button>
-                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'red', event)">مراجعة</button>
-                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="updateStatus('${p.file}', 'yellow', event)">تطوير</button>
+                        <button class="status-btn btn-green ${status === 'green' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'green')">يعمل</button>
+                        <button class="status-btn btn-red ${status === 'red' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'red')">مراجعة</button>
+                        <button class="status-btn btn-yellow ${status === 'yellow' ? 'active' : ''}" onclick="event.stopPropagation(); updateStatus('${p.file}', 'yellow')">تطوير</button>
                     </div>
-                    
                     <div class="notes-section" id="notes-${p.file.replace(/\//g, '-')}">
                         <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">الملاحظات:</div>
-                        <div id="notes-list-${p.file.replace(/\//g, '-')}">
-                            ${notes.map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('')}
-                        </div>
-                        
+                        <div id="notes-list-${p.file.replace(/\//g, '-')}">${notes.map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('')}</div>
                         <div class="notes-input-row">
-                            <input type="text" class="notes-input" placeholder="اكتب ملاحظة ثم Enter (اضغط Enter فارغ للإرسال)" 
-                                   onkeydown="handleNoteEnter(event, '${p.file}')">
+                            <input type="text" class="notes-input" placeholder="اكتب ملاحظة ثم Enter (اضغط Enter فارغ للإرسال)" onkeydown="handleNoteEnter(event, '${p.file}')">
                         </div>
-                        
                         <div style="font-size: 0.8rem; color: #aaa; margin-top: 10px; margin-bottom: 5px;">إرسال إلى:</div>
-                        <div class="team-icons">
-                            ${teamIcons}
-                        </div>
+                        <div class="team-icons">${teamIcons}</div>
                     </div>
                 </div>`;
             }).join('');
@@ -157,88 +110,49 @@
         function toggleNotes(file) {
             const notesDiv = document.getElementById(`notes-${file.replace(/\//g, '-')}`);
             const isVisible = notesDiv.classList.contains('show');
-            
             document.querySelectorAll('.notes-section').forEach(el => el.classList.remove('show'));
             document.querySelectorAll('.status-item').forEach(el => el.classList.remove('active'));
-            
+            document.getElementById('previewFrame').src = file;
             if (!isVisible) {
                 document.getElementById(`item-${file.replace(/\//g, '-')}`).classList.add('active');
                 notesDiv.classList.add('show');
-                document.getElementById('previewFrame').src = file;
             }
         }
 
-        async function updateStatus(file, status, event) {
-            event.stopPropagation();
+        async function updateStatus(file, status) {
             const token = localStorage.getItem('ione_admin_token');
             try {
-                await fetch('/api/status/update', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ page: file, status: status })
-                });
+                await fetch('/api/status/update', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ page: file, status: status }) });
                 currentStatuses[file] = { status: status };
                 renderList();
             } catch(e) {}
         }
 
-        function selectAssignee(file, name) {
-            pageAssignees[file] = name;
-            renderList(); 
-        }
+        function selectAssignee(file, name) { pageAssignees[file] = name; renderList(); }
 
         function handleNoteEnter(event, file) {
             if (event.key === 'Enter') {
-                const input = event.target;
-                const val = input.value.trim();
-                
+                const input = event.target; const val = input.value.trim();
                 if (!pageNotes[file]) pageNotes[file] = [];
-
-                if (val === '') {
-                    // حفظ وإرسال عند الضغط على Enter في حقل فارغ
-                    sendNotes(file);
-                } else {
-                    // إضافة ملاحظة جديدة
-                    pageNotes[file].push(val);
-                    input.value = '';
-                    // تحديث القائمة فوراً بدون إعادة رسم كاملة
-                    const listDiv = document.getElementById(`notes-list-${file.replace(/\//g, '-')}`);
-                    listDiv.innerHTML = pageNotes[file].map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('');
+                if (val === '') { sendNotes(file); } 
+                else {
+                    pageNotes[file].push(val); input.value = '';
+                    document.getElementById(`notes-list-${file.replace(/\//g, '-')}`).innerHTML = pageNotes[file].map((n, i) => `<div class="note-item">${i+1}. ${n}</div>`).join('');
                 }
             }
         }
 
         async function sendNotes(file) {
-            const notes = pageNotes[file] || [];
-            const assignee = pageAssignees[file] || 'Unassigned';
-            const token = localStorage.getItem('ione_admin_token');
-            
-            // جلب اسم المرسل
-            let sender = 'Admin';
-            try {
-                const user = JSON.parse(localStorage.getItem('ione_admin_user'));
-                if (user) sender = user.username || user.email || 'Admin';
-            } catch(e) {}
-
+            const notes = pageNotes[file] || []; const assignee = pageAssignees[file] || 'Unassigned'; const token = localStorage.getItem('ione_admin_token');
+            let sender = 'Admin'; try { const user = JSON.parse(localStorage.getItem('ione_admin_user')); if (user) sender = user.username || user.email || 'Admin'; } catch(e) {}
             if (notes.length === 0) return;
-
             try {
-                const res = await fetch('/api/status/notes/save', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ page: file, notes: notes, assignee: assignee, sender: sender })
-                });
+                const res = await fetch('/api/status/notes/save', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ page: file, notes: notes, assignee: assignee, sender: sender }) });
                 const data = await res.json();
-                
-                if (data.success) {
-                    pageNotes[file] = [];
-                    pageAssignees[file] = null;
-                    renderList();
-                    alert('تم إرسال الملاحظات بنجاح!');
-                } else {
-                    alert('فشل الإرسال: ' + data.error);
-                }
-            } catch(e) { alert('خطأ في الاتصال بالخادم'); }
+                if (data.success) { pageNotes[file] = []; pageAssignees[file] = null; renderList(); alert('تم إرسال الملاحظات بنجاح!'); } 
+                else { alert('فشل الإرسال: ' + data.error); }
+            } catch(e) { alert('خطأ في الاتصال'); }
         }
-
         window.onload = init;
     </script>
 </body>

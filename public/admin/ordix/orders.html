@@ -29,7 +29,10 @@
         .orders-table th { background: var(--bg-secondary); padding: 14px 16px; text-align: right; font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
         .orders-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); color: var(--text-primary); font-size: 0.9rem; }
         .orders-table tr:last-child td { border-bottom: none; }
-        .orders-table tr:hover { background: var(--bg-card-hover); }
+        
+        /* تأثير النقر على الصف */
+        .orders-table tr { transition: background 0.15s; }
+        .orders-table tr:hover { background: var(--bg-card-hover); cursor: pointer; }
         
         .orders-table tr.row-yellow { border-right: 4px solid #FF9F0A; }
         .orders-table tr.row-red { border-right: 4px solid #FF3B30; }
@@ -145,21 +148,26 @@
             const container = document.getElementById('ordersContainer');
             if (filteredOrders.length === 0) { container.innerHTML = `<div class="empty-state"><i data-lucide="inbox"></i><h3>لا توجد طلبات</h3></div>`; lucide.createIcons(); return; }
             const labels = { 'new': 'جديد', 'pending': 'بانتظار', 'progress': 'قيد التنفيذ', 'done': 'مكتمل', 'cancelled': 'ملغي' };
+            
             container.innerHTML = `<div class="orders-table-wrap"><table class="orders-table"><thead><tr><th>#</th><th>رقم الطلب</th><th>العميل</th><th>المنتج</th><th>الحالة</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>
-                ${filteredOrders.map(o => `<tr class="row-${o.color || 'yellow'}">
+                ${filteredOrders.map(o => `
+                <tr class="row-${o.color || 'yellow'}" onclick="viewOrder('${o.order_code}')">
                     <td><span class="seq-num">${o.seq}</span></td>
                     <td><span class="order-code">${o.order_code}</span></td>
                     <td>${o.customer_name}</td>
                     <td>${(o.product_description||'').substring(0,30)}...</td>
                     <td><span class="status-badge status-${o.status}">${labels[o.status]}</span></td>
                     <td>${new Date(o.created_at).toLocaleDateString('ar-EG')}</td>
-                    <td><div class="actions-cell">
-                        <button class="action-icon view" onclick="viewOrder('${o.order_code}')"><i data-lucide="eye"></i></button>
-                        ${o.status==='new'?`<button class="action-icon pay" onclick="confirmPayment('${o.order_code}')"><i data-lucide="dollar-sign"></i></button>`:''}
-                        <button class="action-icon delete" onclick="deleteOrder('${o.order_code}')"><i data-lucide="trash-2"></i></button>
-                    </div></td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-icon view" onclick="event.stopPropagation(); viewOrder('${o.order_code}')"><i data-lucide="eye"></i></button>
+                            ${o.status==='new'?`<button class="action-icon pay" onclick="event.stopPropagation(); confirmPayment('${o.order_code}')"><i data-lucide="dollar-sign"></i></button>`:''}
+                            <button class="action-icon delete" onclick="event.stopPropagation(); deleteOrder('${o.order_code}')"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </td>
                 </tr>`).join('')}
             </tbody></table></div>`;
+            
             lucide.createIcons();
         }
 
