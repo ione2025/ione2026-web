@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IONECENTER — Dashboard Workspace</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    
     <style>
         :root {
             --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
@@ -182,24 +180,23 @@
     </style>
 </head>
 <body>
-
     <div class="toast" id="toast"><i data-lucide="check-circle"></i> تمت العملية بنجاح</div>
 
     <div class="top-dashboard-drawer" id="topDrawer">
         <a href="/admin/profile" class="user-profile-drawer">
             <div class="user-info-drawer">
-                <div class="user-name-drawer" id="drawerUserName">Khalil CEO</div>
-                <div class="user-role-drawer" id="drawerUserRole">Admin</div>
+                <div class="user-name-drawer" id="drawerUserName">جاري التحميل...</div>
+                <div class="user-role-drawer" id="drawerUserRole">...</div>
             </div>
-            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
+            <img src="" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
         </a>
         <div class="drawer-nav">
-            <a href="/admin/dashboard" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
-            <a href="/admin/ordix/orders.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
-            <a href="/admin/ordix/customers.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
-            <a href="/admin/ordix/products.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
-            <a href="/admin/ordix/purchases.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
-            <a href="/admin/ordix/settings.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
+            <a href="dashboard.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
+            <a href="ordix/orders.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
+            <a href="ordix/customers.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
+            <a href="ordix/products.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
+            <a href="ordix/purchases.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
+            <a href="ordix/settings.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
         </div>
         <div style="width: 150px;"></div>
     </div>
@@ -286,31 +283,45 @@
     <script>
         lucide.createIcons();
 
-        let userRole = localStorage.getItem('userRole') || 'admin'; 
-        let currentUser = { name: localStorage.getItem('userName') || "Khalil CEO", role: localStorage.getItem('userRoleName') || "Admin", avatar: localStorage.getItem('userAvatar') || "https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" };
+        // --- نظام الصلاحيات ---
+        const userRole = localStorage.getItem('userRole') || 'user';
+        const userPermissions = JSON.parse(localStorage.getItem('userPermissions') || '[]');
+        const isAdmin = userRole === 'ceo' || userRole === 'admin' || userPermissions.includes('*') || userPermissions.includes('admin');
+        
+        const currentUser = { 
+            name: localStorage.getItem('userName') || "مستخدم", 
+            role: userRole.charAt(0).toUpperCase() + userRole.slice(1), 
+            avatar: localStorage.getItem('userAvatar') || "https://ui-avatars.com/api/?name=User&background=8b5cf6&color=fff" 
+        };
+        
         document.getElementById('drawerUserName').innerText = currentUser.name;
         document.getElementById('drawerUserRole').innerText = currentUser.role;
         document.getElementById('drawerUserAvatar').src = currentUser.avatar;
 
-        // دالة جلب البطاقات من الذاكرة (التي أضفتها من صفحة التحكم)
+        // --- الفلترة وإخفاء البطاقات الإدارية ---
         function getDashboardCards() {
             const saved = localStorage.getItem('adminConfig');
+            let cards = [];
             if (saved) { 
                 try { 
                     const config = JSON.parse(saved); 
                     if (config.cards && Array.isArray(config.cards)) {
-                        // إرجاع البطاقات التي حالتها visible ليست false
-                        return config.cards.filter(c => c.visible !== false); 
+                        cards = config.cards.filter(c => c.visible !== false); 
                     }
-                } catch(e) {
-                    console.error("Error parsing config", e);
-                } 
+                } catch(e) { console.error("Error parsing config", e); } 
             }
-            // إذا لم يجد بيانات، يعرض البطاقات الافتراضية
-            return [
-                { id: 'orders', title: 'الطلبات', count: 10, link: 'ordix/orders.html', icon: 'shopping-bag', section: 'top' },
-                { id: 'customers', title: 'العملاء', count: 150, link: 'ordix/customers.html', icon: 'users', section: 'top' }
-            ]; 
+            if (cards.length === 0) {
+                cards = [
+                    { id: 'orders', title: 'الطلبات', count: 10, link: 'ordix/orders.html', icon: 'shopping-bag', section: 'top' },
+                    { id: 'customers', title: 'العملاء', count: 150, link: 'ordix/customers.html', icon: 'users', section: 'top' }
+                ]; 
+            }
+
+            if (!isAdmin) {
+                const adminOnlyCards = ['users', 'settings', 'team', 'controller', 'reports'];
+                cards = cards.filter(card => !adminOnlyCards.includes(card.id));
+            }
+            return cards;
         }
 
         let savedBgs = JSON.parse(localStorage.getItem('cardBackgrounds') || '{}');
@@ -320,9 +331,7 @@
             document.getElementById('section-mid').innerHTML = '';
             document.getElementById('section-bot').innerHTML = '';
             
-            // جلب البطاقات المحدثة
             const cardsToRender = getDashboardCards();
-
             cardsToRender.forEach(card => {
                 const a = document.createElement('a');
                 a.href = card.link;
@@ -332,14 +341,12 @@
                 if (savedBgs[card.id]) { a.style.backgroundImage = `linear-gradient(rgba(10, 11, 15, 0.7), rgba(10, 11, 15, 0.7)), url(${savedBgs[card.id]})`; }
                 
                 let cardContent = `<div class="card-icon-wrap"><i data-lucide="${card.icon || 'package'}"></i></div>`;
-                
                 if (card.id === 'orders' && card.count !== null) {
                     cardContent += `<div class="card-hero-stat">${card.count}</div><div class="card-text-content"><h3 class="card-title">${card.title}</h3><span class="card-subtitle">${card.subtitle || 'إدارة الطلبات'}</span></div>`;
                 } else {
                     if (card.count !== null && card.count !== undefined) { a.innerHTML += `<div class="card-badge">${card.count}</div>`; }
                     cardContent += `<div class="card-text-content"><h3 class="card-title">${card.title}</h3><span class="card-subtitle">${card.subtitle || 'صفحة النظام'}</span></div>`;
                 }
-                
                 a.innerHTML += cardContent;
                 const targetSection = card.section === 'top' ? 'section-top' : (card.section === 'mid' ? 'section-mid' : 'section-bot');
                 document.getElementById(targetSection).appendChild(a);
@@ -351,11 +358,14 @@
 
         function initSortableGrid() {
             document.querySelectorAll('.dropzone').forEach(sec => {
-                new Sortable(sec, { group: 'shared', animation: 200, ghostClass: 'sortable-ghost', onAdd: function () { lucide.createIcons(); } });
+                if (isAdmin) {
+                    new Sortable(sec, { group: 'shared', animation: 200, ghostClass: 'sortable-ghost', onAdd: function () { lucide.createIcons(); } });
+                }
             });
         }
 
         document.getElementById('bentoGrid').addEventListener('contextmenu', function(e) {
+            if (!isAdmin) return; 
             const card = e.target.closest('.card'); if (!card) return; e.preventDefault();
             const fileInput = document.createElement('input'); fileInput.type = 'file'; fileInput.accept = 'image/*';
             fileInput.onchange = (event) => {
@@ -437,8 +447,14 @@
         renderGuide();
 
         function renderController() {
-            const container = document.getElementById('controllerOptions'); container.innerHTML = ''; 
-            if (userRole !== 'admin') { document.getElementById('controllerOverlay').remove(); return; }
+            const container = document.getElementById('controllerOptions'); 
+            if (!container) return;
+            container.innerHTML = ''; 
+            if (!isAdmin) { 
+                const overlay = document.getElementById('controllerOverlay'); 
+                if(overlay) overlay.remove(); 
+                return; 
+            }
             controllerSettings.forEach((setting) => {
                 const row = document.createElement('div'); row.className = 'controller-row';
                 row.innerHTML = `<div class="controller-label"><i data-lucide="${setting.icon}"></i> ${setting.label}</div><label class="switch"><input type="checkbox" id="${setting.id}" ${setting.isOn ? 'checked' : ''}><span class="slider"></span></label>`;
@@ -465,8 +481,8 @@
         function openGuide() { document.getElementById('guideOverlay').classList.add('active'); }
         function closeGuide() { document.getElementById('guideOverlay').classList.remove('active'); }
         function closeGuideOnOverlay(e) { if(e.target.id === 'guideOverlay') closeGuide(); }
-        function openController() { document.getElementById('controllerOverlay').classList.add('active'); }
-        function closeController() { document.getElementById('controllerOverlay').classList.remove('active'); }
+        function openController() { const overlay = document.getElementById('controllerOverlay'); if(overlay) overlay.classList.add('active'); }
+        function closeController() { const overlay = document.getElementById('controllerOverlay'); if(overlay) overlay.classList.remove('active'); }
         function closeControllerOnOverlay(e) { if(e.target.id === 'controllerOverlay') closeController(); }
         
         const sidebarLeft = document.getElementById('sidebarLeft'); const sidebarRight = document.getElementById('sidebarRight');
@@ -505,7 +521,7 @@
             if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
             if (e.key.toLowerCase() === 'z') document.querySelectorAll('.note-card.floating').forEach(dockNote);
             if (e.key.toLowerCase() === 'x') document.getElementById('topDrawer').classList.toggle('active');
-            if (e.key.toLowerCase() === 'c' && userRole === 'admin') { const overlay = document.getElementById('controllerOverlay'); if(overlay) overlay.classList.contains('active') ? closeController() : openController(); }
+            if (e.key.toLowerCase() === 'c' && isAdmin) { const overlay = document.getElementById('controllerOverlay'); if(overlay) overlay.classList.contains('active') ? closeController() : openController(); }
         });
     </script>
 </body>

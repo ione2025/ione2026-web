@@ -123,7 +123,7 @@
     </style>
 </head>
 <body>
-    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح (Enter)</div>
+    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح</div>
 
     <!-- نافذة إضافة / تعديل بطاقة -->
     <div class="modal-overlay" id="newCardModal">
@@ -408,20 +408,79 @@
         function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
         function previewImage(event) { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { uploadedAvatarBase64 = e.target.result; document.getElementById('avatarPreview').src = uploadedAvatarBase64; document.getElementById('avatarPreview').style.display = 'block'; document.getElementById('avatarFallback').style.display = 'none'; }; reader.readAsDataURL(file); } }
 
-        function saveUser() {
-            const name = document.getElementById('userName').value.trim(); const phone = document.getElementById('userPhone').value.trim(); const userCode = document.getElementById('userCode').value.trim();
-            if (!name || !phone || !userCode) { alert('أدخل الاسم والهاتف والكود.'); return; }
-            const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
-            if (editingUserId) {
-                const user = config.users.find(u => u.id === editingUserId);
-                user.name = name; user.email = document.getElementById('userEmail').value; user.password = document.getElementById('userPassword').value; user.phone = phone; user.address = document.getElementById('userAddress').value; user.userCode = userCode; user.permissions = permissions;
-                if (uploadedAvatarBase64) user.avatar = uploadedAvatarBase64;
-            } else {
-                config.users.push({ id: 'u_' + Date.now(), userCode: userCode, name: name, email: document.getElementById('userEmail').value, password: document.getElementById('userPassword').value, phone: phone, address: document.getElementById('userAddress').value, permissions: permissions, avatar: uploadedAvatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff` });
+        // --- ربط إضافة المستخدم بالـ API ---
+        async function saveUser() {
+            const name = document.getElementById('userName').value.trim(); 
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const phone = document.getElementById('userPhone').value.trim(); 
+            const userCode = document.getElementById('userCode').value.trim();
+            
+            if (!name || !phone || !userCode || !email || !password) { 
+                alert('الرجاء إدخال الاسم، البريد، كلمة المرور، الهاتف، والكود.'); 
+                return; 
             }
-            saveSettings(); closeUserModal(); renderUsers();
+
+            const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
+            
+            if (editingUserId) {
+                // للتعديل حالياً، سنكتفي بتعديل الـ LocalStorage (لأن الـ API الخاص بالتعديل لم يتم تسليمه بعد)
+                const user = config.users.find(u => u.id === editingUserId);
+                user.name = name; user.email = email; user.password = password; user.phone = phone; user.address = document.getElementById('userAddress').value; user.userCode = userCode; user.permissions = permissions;
+                if (uploadedAvatarBase64) user.avatar = uploadedAvatarBase64;
+                saveSettings(); closeUserModal(); renderUsers();
+                showToast('تم التعديل محلياً');
+            } else {
+                // إضافة مستخدم جديد عبر الـ API
+                const token = localStorage.getItem('ione_admin_token');
+                if (!token) { alert('انتهت الجلسة، يرجى تسجيل الدخول مجدداً.'); return; }
+
+                const originalBtn = document.querySelector('.btn-cancel'); // Just for UI feedback
+                const btnGroup = document.querySelector('#userModal .modal-actions');
+                const saveBtnHTML = btnGroup.innerHTML;
+                
+                try {
+                    const response = await fetch('/api/users/create', { // تأكد من المسار الصحيح للـ API
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ 
+                            email: email, 
+                            password: password, 
+                            full_name: name, 
+                            role: permissions.includes('admin') ? 'admin' : 'user',
+                            permissions: permissions,
+                            active: true
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!data.success) {
+                        alert('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف'));
+                        return;
+                    }
+
+                    // نجح السيرفر، سنضيفه للـ LocalStorage أيضاً لكي يظهر في الواجهة فوراً
+                    config.users.push({ 
+                        id: 'u_' + Date.now(), userCode: userCode, name: name, email: email, password: password, phone: phone, address: document.getElementById('userAddress').value, 
+                        permissions: permissions, avatar: uploadedAvatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff` 
+                    });
+                    
+                    saveSettings(); 
+                    closeUserModal(); 
+                    renderUsers();
+                    showToast('تم حفظ المستخدم في السيرفر بنجاح');
+
+                } catch (error) {
+                    console.error(error);
+                    alert('فشل الاتصال بالسيرفر.');
+                }
+            }
         }
-        function deleteCurrentUser() { if (confirm('حذف المستخدم؟')) { config.users = config.users.filter(u => u.id !== editingUserId); saveSettings(); closeUserModal(); renderUsers(); } }
+        function deleteCurrentUser() { if (confirm('حذف المستخدم؟ (ملاحظة: سيتم حذفه من الواجهة فقط حالياً)')) { config.users = config.users.filter(u => u.id !== editingUserId); saveSettings(); closeUserModal(); renderUsers(); } }
 
         function updateCount(index, val) { config.cards[index].count = parseInt(val) || 0; }
         function updateVisibility(index, val) { config.cards[index].visible = val; }
@@ -431,6 +490,7 @@
         function addGuideItem() { config.guide.push({ icon: 'star', title: 'عنوان جديد', desc: 'وصف جديد...' }); renderGuide(); }
 
         function saveSettings() { localStorage.setItem('adminConfig', JSON.stringify(config)); const toast = document.getElementById('toast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.innerHTML = `<i data-lucide="check-circle"></i> ${msg}`; lucide.createIcons(); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
 
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
