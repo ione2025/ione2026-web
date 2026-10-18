@@ -3,430 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IONECENTER — Dashboard Workspace</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>IONECENTER — Admin Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    
     <style>
         :root {
-            --bg-body: #0b0c10;
-            --bg-surface: rgba(18, 20, 28, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-primary: #8b5cf6;
-            --accent-cyan: #06b6d4;
-            --accent-green: #10b981;
-            --sidebar-width: 380px;
-            --notes-width: 340px;
+            --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-primary: #8b5cf6; --accent-cyan: #06b6d4;
+            --accent-green: #10b981; --accent-red: #ef4444; --accent-orange: #f59e0b;
         }
-        
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+        .app-container { width: 100%; height: 100%; max-width: 100%; display: flex; flex-direction: column; padding: 30px; position: relative; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); flex-shrink: 0; }
+        .page-title { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 12px; }
+        .btn-mirror { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 12px; font-family: inherit; font-weight: 700; font-size: 0.95rem; text-decoration: none; cursor: pointer; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s; color: #fff; }
+        .btn-mirror:hover { border-color: var(--accent-primary); box-shadow: 0 0 20px rgba(168,85,247,0.3); transform: translateY(-2px); }
         
-        body { 
-            font-family: 'Cairo', sans-serif; 
-            background-color: var(--bg-body); 
-            background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); 
-            color: var(--text-main); 
-            height: 100vh;
-            overflow: hidden; 
-            position: relative; 
-            user-select: none; 
-        }
+        #mainView { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 0; animation: fadeIn 0.4s ease; }
+        .cards-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; max-width: 1400px; }
+        .control-card { background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 25px 15px; cursor: pointer; transition: 0.3s; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 15px; }
+        .control-card:hover { transform: translateY(-8px); border-color: var(--accent-cyan); box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(6, 182, 212, 0.2); }
+        .control-card .icon-box { width: 70px; height: 70px; border-radius: 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; justify-content: center; align-items: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
+        .control-card .icon-box i { width: 32px; height: 32px; color: var(--accent-cyan); }
+        .control-card h3 { font-size: 1.1rem; font-weight: 800; }
+        .control-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.6; }
+
+        #detailView { flex: 1; display: none; flex-direction: column; padding-top: 20px; overflow-y: auto; animation: fadeIn 0.3s ease; }
+        .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0; }
+        .detail-title { font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .settings-section { display: none; }
+        .settings-section.active { display: block; }
+
+        .settings-list { display: flex; flex-direction: column; gap: 12px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 25px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; }
+        .row-info { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.05rem; }
+        .row-info i { color: var(--accent-cyan); width: 22px; height: 22px; }
+        .input-number { width: 80px; padding: 8px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; font-weight: bold; font-size: 1rem; text-align: center; outline: none; }
         
-        #workspace { 
-            width: 100vw; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column;
-            overflow: hidden; 
-            z-index: 1; 
-            padding: 20px 30px; 
-        }
-        
-        /* شريط الأدوات العلوي (X) */
-        .top-dashboard-drawer { position: fixed; top: 0; left: 0; right: 0; background: rgba(10, 11, 15, 0.95); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.05); transform: translateY(-100%); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .top-dashboard-drawer.active { transform: translateY(0); }
-        
-        .drawer-nav { display: flex; justify-content: center; gap: 30px; flex: 1; }
-        .user-profile-drawer { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; transition: 0.3s; text-decoration: none; color: #fff; }
-        .user-profile-drawer:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-2px); }
-        .user-avatar-drawer { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); box-shadow: 0 0 10px rgba(139, 92, 246, 0.4); }
-        .user-info-drawer { display: flex; flex-direction: column; align-items: flex-start; }
-        .user-name-drawer { font-size: 0.85rem; font-weight: 800; color: #fff; line-height: 1.2; }
-        .user-role-drawer { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
-        
-        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #888; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s; }
-        .drawer-icon-wrap { width: 56px; height: 56px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 15px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; transition: 0.3s; }
-        .drawer-icon-wrap::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent); pointer-events: none; }
-        .drawer-icon-wrap i { width: 24px; height: 24px; color: #d4d4d8; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); z-index: 1; }
-        .drawer-item:hover { color: #fff; }
-        .drawer-item:hover .drawer-icon-wrap { background: rgba(255, 255, 255, 0.08); border-color: rgba(255,255,255,0.2); transform: translateY(-3px); }
-
-        /* الشريط الأيسر (الملاحظات) */
-        .sidebar-left { width: var(--notes-width); height: calc(100vh - 30px); margin: 15px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; position: fixed; right: 15px; top: 0; z-index: 100; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.2s ease-in-out; }
-        .sidebar-left.hidden { transform: translateX(calc(100% + 30px)); opacity: 0; pointer-events: none; }
-        .sidebar-left.disabled { display: none; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
-        .sidebar-title { font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-        .btn-add-note { background: var(--accent-cyan); color: #fff; border: none; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(6, 182, 212, 0.4); transition: 0.2s; }
-        .btn-add-note:hover { transform: scale(1.05); }
-        .notes-dock { flex: 1; overflow-y: auto; padding: 15px 15px 20px 15px; display: flex; flex-direction: column; gap: 25px; }
-        .notes-dock::-webkit-scrollbar { width: 4px; }
-        .notes-dock::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
-
-        /* كارت الملاحظة */
-        .note-card { position: relative; border-radius: 24px; background: #18181b; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.6); transition: transform 0.2s; z-index: 1; height: auto; }
-        .note-card::before { content: ""; position: absolute; inset: -1.5px; border-radius: 25.5px; background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000); background-size: 400%; z-index: -1; animation: glowing 20s linear infinite; }
-        @keyframes glowing { 0% { background-position: 0 0; } 50% { background-position: 400% 0; } 100% { background-position: 0 0; } }
-        .note-card.docked { width: 100%; cursor: grab; }
-        .note-card.floating { position: fixed; width: 320px; z-index: 9999; cursor: default; animation: popOut 0.3s ease; }
-        @keyframes popOut { 0% { transform: scale(0.95); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
-        .note-header { height: 40px; background: transparent; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; }
-        .docked .note-header { cursor: grab; }
-        .mac-dots { display: flex; gap: 6px; }
-        .mac-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .mac-dot.red { background: #ff5f56; }
-        .mac-dot.yellow { background: #ffbd2e; }
-        .mac-dot.green { background: #27c93f; }
-        .note-body { padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; }
-        .inner-box { background: #27272a; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; flex: 1; }
-        .note-card textarea { width: 100%; background: transparent; border: none; resize: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 0.9rem; font-weight: 600; color: #fff; line-height: 1.6; margin-bottom: 10px; flex: none; min-height: 40px; overflow-y: hidden; }
-        .note-card textarea::placeholder { color: rgba(255,255,255,0.3); }
-        .inner-tools { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; flex-shrink: 0; }
-        .btn-send-admin { display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); color: var(--accent-green); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3); cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.75rem; transition: 0.2s; }
-        .btn-send-admin:hover { background: rgba(16, 185, 129, 0.2); transform: translateY(-1px); }
-        .btn-del-note { background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.3); display: flex; align-items: center; transition: 0.2s; }
-        .btn-del-note:hover { color: #ef4444; transform: rotate(90deg); }
-
-        /* الشريط الأيمن (المساعد) */
-        .sidebar-right { width: var(--sidebar-width); height: calc(100vh - 30px); margin: 15px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; position: fixed; left: 15px; top: 0; z-index: 100; display: flex; box-shadow: 0 20px 50px rgba(0,0,0,0.6); transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.2s ease-in-out; overflow: hidden; }
-        .sidebar-right.hidden { transform: translateX(calc(-100% - 30px)); opacity: 0; pointer-events: none; }
-        .sidebar-right.disabled { display: none; }
-        .app-rail { width: 70px; background: rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center; padding: 15px 0; gap: 15px; border-left: 1px solid var(--glass-border); border-radius: 0 20px 20px 0; }
-        .rail-icon { width: 46px; height: 46px; border-radius: 12px; background: rgba(255,255,255,0.05); color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
-        .rail-icon:hover { background: rgba(255,255,255,0.1); color: var(--text-main); transform: translateY(-2px); }
-        .rail-icon.active { background: rgba(139, 92, 246, 0.2); color: var(--accent-primary); border-color: rgba(139, 92, 246, 0.4); }
-        .rail-icon i { width: 22px; height: 22px; }
-        .rail-divider { width: 30px; height: 1px; background: var(--glass-border); margin: 5px 0; }
-        .btn-add-app { width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--text-muted); background: transparent; color: var(--text-muted); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; margin-top: auto; }
-        .btn-add-app:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); transform: rotate(90deg); }
-        .app-view { flex: 1; display: flex; flex-direction: column; border-radius: 20px 0 0 20px; }
-        .app-header { height: 55px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--glass-border); }
-        .app-title { font-size: 0.85rem; font-weight: 700; }
-        .yt-search-container { padding: 10px; background: #000; display: none; border-bottom: 1px solid var(--glass-border); }
-        .yt-search-container input { width: 100%; padding: 8px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: #fff; outline: none; font-family: 'Cairo', sans-serif; }
-        .iframe-container { flex: 1; position: relative; background: #000; display: flex; flex-direction: column; }
-        #app-iframe { width: 100%; flex: 1; border: none; display: none; }
-        .app-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted); gap: 10px; }
-        .guide-btn-wrapper { padding: 15px; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); }
-        .guide-btn-gradient { width: 100%; padding: 12px 20px; border-radius: 50px; border: none; background: linear-gradient(90deg, #ff4e00 0%, #ec9f05 50%, #8bc34a 100%); color: #fff; font-family: inherit; font-size: 0.95rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 78, 0, 0.3); transition: transform 0.2s, box-shadow 0.2s; }
-        .guide-btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 78, 0, 0.5); }
-
-        /* =========================================
-           لوحة التحكم (3 أقسام مرنة)
-           ========================================= */
-        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); flex-shrink: 0; }
-        .page-title { font-size: 1.4rem; font-weight: 800; }
-        
-        .dashboard-sections {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            gap: 15px;
-            min-height: 0;
-        }
-
-        .dropzone {
-            display: flex;
-            gap: 15px;
-            min-height: 0;
-            border: 1px dashed rgba(255,255,255,0.05);
-            border-radius: 20px;
-            padding: 5px;
-            transition: background 0.3s;
-        }
-        .dropzone:hover { background: rgba(255,255,255,0.02); }
-
-        .section-top { flex: 1.2; }
-        .section-mid { flex: 1; }
-        .section-bot { flex: 1; }
-
-        .card {
-            position: relative; border-radius: 20px; padding: 15px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            text-decoration: none; color: #fff; cursor: grab; overflow: hidden;
-            background: #18181b; backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s, background-image 0.3s;
-            z-index: 1;
-            flex: 1;
-            width: 100%;
-            background-size: cover;
-            background-position: center;
-        }
-        
-        .card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-            background: linear-gradient(to bottom, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 100%);
-            pointer-events: none; z-index: -1;
-        }
-
-        .card::after {
-            content: '';
-            position: absolute;
-            top: 0; bottom: 0; left: 0;
-            width: 5px;
-            background-color: var(--card-accent, rgba(255,255,255,0.1));
-            border-radius: 20px 0 0 20px;
-            z-index: 3;
-        }
-
-        .card:active { cursor: grabbing; }
-        .card:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 15px 30px rgba(0,0,0,0.6), 0 0 15px rgba(139, 92, 246, 0.2);
-            border-color: rgba(139, 92, 246, 0.4);
-        }
-
-        .card-badge {
-            position: absolute; top: 15px; left: 15px;
-            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);
-            color: #fff; font-size: 0.75rem; font-weight: 800;
-            padding: 2px 8px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2);
-            z-index: 2;
-        }
-
-        .card-hero-stat {
-            font-family: 'Inter', sans-serif;
-            font-size: 2.5rem; font-weight: 800; line-height: 1;
-            margin-top: auto; margin-bottom: 5px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            z-index: 2;
-        }
-
-        .card-icon-wrap { 
-            width: 42px; height: 42px; border-radius: 12px; display: flex; justify-content: center; align-items: center; 
-            background: rgba(255, 255, 255, 0.03); margin-bottom: auto;
-            border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            z-index: 2;
-        }
-        .card i { width: 22px; height: 22px; filter: drop-shadow(0 0 8px currentColor); }
-        
-        .card-text-content { z-index: 2; }
-        .card-title { font-size: 1rem; font-weight: 800; margin: 0; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-        .card-subtitle { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-top: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
-
-        /* الألوان المخصصة للخطوط والأيقونات */
-        .card[data-id="orders"] { --card-accent: #00F0FF; } .card[data-id="orders"] .card-icon-wrap i, .card[data-id="orders"] .card-hero-stat { color: #00F0FF; }
-        .card[data-id="banks"] { --card-accent: #34C759; } .card[data-id="banks"] .card-icon-wrap i { color: #34C759; }
-        .card[data-id="vouchers"] { --card-accent: #FF3B30; } .card[data-id="vouchers"] .card-icon-wrap i { color: #FF3B30; }
-        .card[data-id="journal"] { --card-accent: #FF9F0A; } .card[data-id="journal"] .card-icon-wrap i { color: #FF9F0A; }
-        .card[data-id="expenses"] { --card-accent: #FF007F; } .card[data-id="expenses"] .card-icon-wrap i { color: #FF007F; }
-        .card[data-id="suppliers"] { --card-accent: #8B5CF6; } .card[data-id="suppliers"] .card-icon-wrap i { color: #8B5CF6; }
-        .card[data-id="customers"] { --card-accent: #10B981; } .card[data-id="customers"] .card-icon-wrap i { color: #10B981; }
-        .card[data-id="reports"] { --card-accent: #F59E0B; } .card[data-id="reports"] .card-icon-wrap i { color: #F59E0B; }
-        .card[data-id="status"] { --card-accent: #6366F1; } .card[data-id="status"] .card-icon-wrap i { color: #6366F1; }
-        .card[data-id="users"] { --card-accent: #EC4899; } .card[data-id="users"] .card-icon-wrap i { color: #EC4899; }
-        .card[data-id="settings"] { --card-accent: #9CA3AF; } .card[data-id="settings"] .card-icon-wrap i { color: #9CA3AF; }
-        .card[data-id="purchases"] { --card-accent: #3B82F6; } .card[data-id="purchases"] .card-icon-wrap i { color: #3B82F6; }
-        .card[data-id="sales"] { --card-accent: #14B8A6; } .card[data-id="sales"] .card-icon-wrap i { color: #14B8A6; }
-        .card[data-id="team"] { --card-accent: #F43F5E; } .card[data-id="team"] .card-icon-wrap i { color: #F43F5E; }
-
-        .sortable-ghost { opacity: 0.3; border: 2px dashed var(--accent-primary); background: rgba(139, 92, 246, 0.1); }
-
-        /* أزرار إظهار/إخفاء الأشرطة */
-        .toggle-btn { position: fixed; top: 50%; transform: translateY(-50%); background: var(--bg-surface); border: 1px solid var(--glass-border); color: var(--text-main); padding: 20px 10px; cursor: pointer; z-index: 101; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .toggle-right-side { right: 0; border-radius: 10px 0 0 10px; }
-        .toggle-left-side { left: 0; border-radius: 0 10px 10px 0; }
-        .toggle-btn:hover { background: var(--accent-primary); color: #fff; }
-        .toggle-btn.disabled { display: none; }
-
-        /* النوافذ (Controller & Guide & Customize) */
-        .controller-overlay, .guide-overlay, .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
-        .controller-overlay.active, .guide-overlay.active, .modal-overlay.active { opacity: 1; visibility: visible; }
-        .controller-box, .modal-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 90%; max-width: 450px; padding: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: translateY(20px) scale(0.95); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; }
-        .controller-overlay.active .controller-box, .modal-overlay.active .modal-box { transform: translateY(0) scale(1); }
-        .controller-box::before, .modal-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff); border-radius: 24px 24px 0 0; }
-        .controller-header, .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .controller-title, .modal-title { font-size: 1.1rem; font-weight: 800; display: flex; align-items: center; gap: 8px; }
-        .controller-options { display: flex; flex-direction: column; gap: 12px; }
-        .controller-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 14px; transition: background 0.2s; }
-        .controller-label { font-size: 0.95rem; font-weight: 600; color: #ccc; display: flex; align-items: center; gap: 10px; }
-        .controller-label i { width: 18px; height: 18px; color: var(--accent-cyan); }
-        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; inset: 0; background-color: #27272a; transition: .4s; border-radius: 34px; border: 1px solid rgba(255,255,255,0.1); }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #888; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: #888; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: rgba(16, 185, 129, 0.2); border-color: var(--accent-green); }
-        input:checked + .slider:before { transform: translateX(20px); background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(22px); background-color: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
 
-        .guide-overlay { align-items: flex-end; }
-        .guide-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-bottom: none; border-radius: 24px 24px 0 0; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
-        .guide-overlay.active .guide-box { transform: translateY(0); }
-        .guide-box::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #ff0000, #ff7300, #fffb00, #48ff00, #00ffd5, #002bff, #7a00ff); border-radius: 24px 24px 0 0; }
-        .guide-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: #fff;}
-        .guide-list { list-style: none; display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-        .guide-item { display: flex; align-items: flex-start; gap: 12px; font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
-        .guide-item i { color: var(--accent-cyan); flex-shrink: 0; margin-top: 3px; }
-        .guide-item kbd { background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 6px; font-family: 'Inter', monospace; font-weight: bold; color: #fff; border: 1px solid rgba(255,255,255,0.2); }
-        .btn-guide-close { width: 100%; padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; transition: 0.2s; }
-        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4); display: flex; align-items: center; gap: 8px; }
-        .toast.show { bottom: 30px; }
-        .app-list { display: flex; flex-direction: column; gap: 10px; }
-        .app-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s; }
-        .app-item:hover { border-color: var(--text-muted); }
-        .app-item.selected { border-color: var(--accent-primary); background: rgba(139, 92, 246, 0.1); }
-        .app-item i { width: 24px; height: 24px; color: var(--text-muted); }
-        .app-item.selected i { color: var(--accent-primary); }
-        .app-item-info { flex: 1; }
-        .app-item-title { font-weight: 700; font-size: 0.95rem; }
-        .app-item-desc { font-size: 0.75rem; color: var(--text-muted); }
+        .btn-icon { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ccc; width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.2s; }
+        .btn-icon:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .btn-icon.edit:hover { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+        .btn-icon.delete:hover { color: var(--accent-red); border-color: var(--accent-red); }
+
+        .guide-list { display: flex; flex-direction: column; gap: 15px; max-width: 900px; margin: 0 auto; width: 100%; }
+        .guide-item { display: flex; gap: 15px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 15px; cursor: grab; }
+        .guide-icon-input { width: 55px; height: 55px; background: #000; border: 1px solid var(--glass-border); border-radius: 12px; color: var(--accent-cyan); text-align: center; font-size: 1.2rem; outline: none; font-weight: bold; }
+        .guide-text-inputs { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+        .guide-text-inputs input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; }
+        .btn-delete-guide { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: var(--accent-red); width: 45px; height: 45px; border-radius: 12px; display: flex; justify-content: center; align-items: center; cursor: pointer; align-self: center; }
+        .add-guide-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 18px; margin-top: 20px; border: 2px dashed rgba(255, 255, 255, 0.1); border-radius: 16px; background: transparent; color: var(--text-muted); font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; }
+        .add-guide-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(6, 182, 212, 0.05); }
+
+        .users-toolbar { display: flex; justify-content: flex-end; align-items: center; width: 100%; margin-bottom: 20px; padding: 0 10px; }
+        .add-user-btn { background: var(--accent-green); color: #fff; padding: 10px 20px; border-radius: 12px; border: none; font-family: inherit; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .users-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; width: 100%; margin: 0 auto; }
+        .user-card { position: relative; height: 280px; border-radius: 20px; overflow: hidden; background-size: cover; background-position: center; background-color: #18181b; border: 1px solid var(--glass-border); display: flex; flex-direction: column; justify-content: flex-end; padding: 15px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .user-card:hover { transform: translateY(-5px); border-color: var(--accent-cyan); }
+        .user-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.4) 50%, transparent 100%); z-index: 1; }
+        .user-card-content { position: relative; z-index: 2; text-align: right; width: 100%; }
+        .user-code-badge { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.7); color: var(--accent-cyan); font-family: monospace; font-weight: bold; padding: 4px 10px; border-radius: 8px; border: 1px solid var(--accent-cyan); z-index: 3; font-size: 0.85rem; }
+        .user-name { font-size: 1.1rem; font-weight: 800; color: #fff; }
+        .user-role { display: inline-block; font-size: 0.7rem; color: var(--accent-cyan); font-weight: 800; background: rgba(6, 182, 212, 0.2); padding: 2px 8px; border-radius: 6px; margin-bottom: 6px; }
+        .user-details { font-size: 0.75rem; color: #ccc; display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+
+        .media-upload-area { border: 2px dashed rgba(255, 255, 255, 0.2); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; background: rgba(0,0,0,0.2); max-width: 900px; margin: 20px auto 0 auto; width: 100%; }
+        .media-upload-area:hover { border-color: var(--accent-cyan); background: rgba(6, 182, 212, 0.05); }
+        .media-upload-area i { width: 40px; height: 40px; color: var(--text-muted); margin-bottom: 10px; }
+        .media-upload-area p { color: var(--text-muted); font-weight: 600; }
+        .admin-playlist { max-width: 900px; margin: 20px auto 0 auto; width: 100%; display: flex; flex-direction: column; gap: 10px; }
+        .playlist-item { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--glass-border); }
+        .playlist-item-info { display: flex; align-items: center; gap: 12px; }
+        .playlist-item-info i { color: var(--accent-orange); width: 20px; height: 20px; }
+        .playlist-item-name { font-weight: 700; font-size: 0.95rem; }
+        .playlist-item-actions { display: flex; align-items: center; gap: 10px; }
+        .playlist-item audio { height: 30px; outline: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box { background: #12141c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; width: 90%; max-width: 600px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); transform: scale(0.95); transition: 0.3s; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
+        .modal-title { font-size: 1.2rem; font-weight: 800; color: var(--accent-cyan); }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; }
+        .form-label { display: block; font-size: 0.9rem; font-weight: 700; color: #ccc; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; transition: 0.2s; }
+        .form-input:focus { border-color: var(--accent-cyan); }
         
-        @media (max-width: 1024px) {
-            .section-top, .section-mid, .section-bot { flex-wrap: wrap; }
-            .card { min-width: 45%; }
-        }
-        @media (max-width: 768px) {
-            .dropzone { flex-direction: column; overflow-y: auto; }
-            .card { min-width: 100%; height: 100px; }
-            #workspace { padding: 10px; }
-        }
+        .password-wrapper { position: relative; }
+        .password-wrapper .form-input { padding-left: 40px; }
+        .toggle-password-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #888; cursor: pointer; }
+        
+        .avatar-upload { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .avatar-preview { width: 100px; height: 100px; border-radius: 50%; border: 2px dashed var(--glass-border); object-fit: cover; background: #000; display: flex; justify-content: center; align-items: center; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; }
+        .avatar-preview:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+        
+        .permissions-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .permissions-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); }
+        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: #ccc; }
+        .checkbox-label input { accent-color: var(--accent-cyan); width: 18px; height: 18px; cursor: pointer; }
+        .select-all-perms-label { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; cursor: pointer; color: var(--accent-primary); font-weight: bold; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 25px; }
+        .btn-delete-modal { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); color: var(--accent-red); font-family: inherit; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--glass-border); background: transparent; color: #fff; font-family: inherit; font-weight: 700; cursor: pointer; }
+
+        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 14px 28px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
+        .toast.show { bottom: 30px; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
+    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تم الحفظ بنجاح (Enter)</div>
 
-    <div class="toast" id="toast"><i data-lucide="check-circle"></i> تمت العملية بنجاح</div>
-
-    <!-- شريط الأدوات العلوي -->
-    <div class="top-dashboard-drawer" id="topDrawer">
-        <a href="/admin/profile" class="user-profile-drawer">
-            <div class="user-info-drawer">
-                <div class="user-name-drawer" id="drawerUserName">Khalil CEO</div>
-                <div class="user-role-drawer" id="drawerUserRole">Admin</div>
-            </div>
-            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="User" class="user-avatar-drawer" id="drawerUserAvatar">
-        </a>
-        <div class="drawer-nav">
-            <a href="/admin/dashboard" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>الرئيسية</a>
-            <a href="/admin/ordix/orders.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>الطلبات</a>
-            <a href="/admin/ordix/customers.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
-            <a href="/admin/ordix/products.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
-            <a href="/admin/ordix/purchases.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
-            <a href="/admin/ordix/settings.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
-        </div>
-        <div style="width: 150px;"></div>
-    </div>
-
-    <!-- لوحة التحكم -->
-    <div class="controller-overlay" id="controllerOverlay" onclick="closeControllerOnOverlay(event)">
-        <div class="controller-box" onclick="event.stopPropagation()">
-            <div class="controller-header">
-                <div class="controller-title"><i data-lucide="settings-2"></i> لوحة التحكم</div>
-                <button onclick="closeController()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
-            </div>
-            <div class="controller-options" id="controllerOptions"></div>
-            <button class="btn-guide-close" onclick="clearAllBackgrounds()" style="margin-top: 15px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); box-shadow: none; color: #ef4444;">إزالة خلفيات البطاقات</button>
-            <button class="btn-guide-close" onclick="closeController()" style="margin-top: 15px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); box-shadow: none;">إغلاق اللوحة</button>
-        </div>
-    </div>
-
-    <!-- نافذة الدليل -->
-    <div class="guide-overlay" id="guideOverlay" onclick="closeGuideOnOverlay(event)">
-        <div class="guide-box" onclick="event.stopPropagation()">
-            <div class="guide-title"><i data-lucide="sparkles"></i> مرحباً بك في مساحة العمل</div>
-            <ul class="guide-list" id="guideList"></ul>
-            <button class="btn-guide-close" onclick="closeGuide()">ابدأ العمل الآن</button>
-        </div>
-    </div>
-
-    <!-- نافذة تخصيص التطبيقات -->
-    <div class="modal-overlay" id="customizeModal" onclick="closeCustomizeModal(event)">
-        <div class="modal-box" onclick="event.stopPropagation()">
+    <!-- نافذة إضافة / تعديل بطاقة -->
+    <div class="modal-overlay" id="newCardModal">
+        <div class="modal-box">
             <div class="modal-header">
-                <div class="modal-title">إدارة التطبيقات</div>
-                <button onclick="closeCustomizeModal(event)" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
+                <div class="modal-title" id="cardModalTitle">إضافة بطاقة جديدة للوحة التحكم</div>
+                <button onclick="closeCardModal()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
             </div>
-            <div class="app-list" id="appList"></div>
-        </div>
-    </div>
-
-    <button class="toggle-btn toggle-right-side" onclick="toggleLeftSidebar()" id="btnToggleLeft" style="opacity: 1;"><i data-lucide="sticky-note"></i></button>
-    <button class="toggle-btn toggle-left-side" onclick="toggleRightSidebar()" id="btnToggleRight" style="opacity: 1;"><i data-lucide="layout-sidebar"></i></button>
-
-    <!-- الشريط الأيسر (الملاحظات) -->
-    <div class="sidebar-left hidden" id="sidebarLeft">
-        <div class="sidebar-header">
-            <div class="sidebar-title"><i data-lucide="sticky-note"></i> الملاحظات</div>
-            <button class="btn-add-note" onclick="addNewNote()"><i data-lucide="plus" style="width:16px;"></i></button>
-        </div>
-        <div class="notes-dock" id="notesDock"></div>
-    </div>
-
-    <!-- الشريط الأيمن (المساعد) -->
-    <div class="sidebar-right hidden" id="sidebarRight">
-        <div class="app-rail" id="appRail">
-            <div class="rail-divider"></div>
-            <button class="btn-add-app" onclick="openCustomizeModal()" title="إضافة تطبيق"><i data-lucide="plus"></i></button>
-        </div>
-        <div class="app-view">
-            <div class="app-header">
-                <div class="app-title" id="appTitle">المساعد الجانبي</div>
-                <button class="modal-close" onclick="toggleRightSidebar()" style="background:none; border:none; color:var(--text-muted); cursor:pointer;"><i data-lucide="x"></i></button>
-            </div>
-            <div class="yt-search-container" id="ytSearchContainer">
-                <input type="text" id="ytSearchInput" placeholder="ابحث في يوتيوب (يفتح في تبويب جديد)..." onkeydown="if(event.key==='Enter') searchYouTube()">
-            </div>
-            <div class="iframe-container">
-                <div class="app-placeholder" id="appPlaceholder">
-                    <i data-lucide="mouse-pointer-2" style="width:30px; height:30px; opacity:0.5;"></i>
-                    <span style="font-size:0.8rem;">اختر تطبيقاً</span>
+            <input type="hidden" id="editingCardIndex">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">اسم البطاقة (مثال: المنتجات)</label>
+                    <input type="text" id="newCardTitle" class="form-input" placeholder="اكتب اسم البطاقة هنا...">
                 </div>
-                <iframe id="app-iframe" allow="autoplay; encrypted-media;"></iframe>
             </div>
-            <div class="guide-btn-wrapper">
-                <button class="guide-btn-gradient" onclick="openGuide()">
-                    <i data-lucide="sparkles"></i> دليل الاستخدام
-                </button>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">الرابط (مثال: ordix/products.html)</label>
+                    <input type="text" id="newCardLink" class="form-input" placeholder="ordix/products.html">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeCardModal()">إلغاء (Esc)</button>
             </div>
         </div>
     </div>
 
-    <!-- مساحة العمل (لوحة التحكم Bento) -->
-    <div id="workspace" ondblclick="toggleAllTools(event)">
-        <div class="dashboard-header">
-            <h1 class="page-title">مرحباً بك في لوحة التحكم</h1>
+    <!-- نافذة إضافة / تعديل مستخدم -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">إضافة مستخدم جديد</div>
+                <button onclick="closeUserModal()" style="background:none; border:none; color:#888; cursor:pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <input type="hidden" id="userIdInput">
+            <div class="avatar-upload">
+                <label for="avatarInput" style="cursor:pointer;">
+                    <img id="avatarPreview" class="avatar-preview" src="" alt="اضغط لرفع صورة" onerror="this.style.display='none'; document.getElementById('avatarFallback').style.display='flex';">
+                    <div id="avatarFallback" class="avatar-preview" style="display:none;">رفع صورة</div>
+                </label>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="previewImage(event)">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">الاسم الكامل</label>
+                    <input type="text" id="userName" class="form-input" placeholder="مثال: أحمد محمد">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" id="userEmail" class="form-input" placeholder="ahmad@example.com">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">كلمة المرور</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="userPassword" class="form-input" placeholder="******">
+                        <button type="button" class="toggle-password-btn" onclick="togglePasswordVisibility()">
+                            <i data-lucide="eye" id="eyeIcon" style="width:18px;"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">كود الدخول (رقم)</label>
+                    <input type="text" id="userCode" class="form-input" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);" placeholder="1001" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <input type="text" id="userPhone" class="form-input" placeholder="+966 50 123 4567">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">العنوان</label>
+                    <input type="text" id="userAddress" class="form-input" placeholder="المدينة، الحي">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 10px;">
+                <div class="permissions-header">
+                    <label class="form-label" style="margin-bottom: 0;">الصلاحيات</label>
+                    <label class="select-all-perms-label"><input type="checkbox" id="selectAllPermissions" onchange="toggleSelectAllPermissions(this)"> تحديد الكل</label>
+                </div>
+                <div class="permissions-grid">
+                    <label class="checkbox-label"><input type="checkbox" value="admin" class="perm-checkbox"> مدير (Admin)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="sales" class="perm-checkbox"> مبيعات (Sales)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="accounting" class="perm-checkbox"> محاسبة (Accounting)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="support" class="perm-checkbox"> دعم (Support)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="warehouse" class="perm-checkbox"> مستودعات (Warehouse)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="hr" class="perm-checkbox"> موارد بشرية (HR)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="marketing" class="perm-checkbox"> تسويق (Marketing)</label>
+                    <label class="checkbox-label"><input type="checkbox" value="viewer" class="perm-checkbox"> مشاهدة فقط (Viewer)</label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-delete-modal" id="deleteUserBtn" style="display: none;" onclick="deleteCurrentUser()"><i data-lucide="trash-2" style="width:16px;"></i> حذف</button>
+                <button class="btn-cancel" onclick="closeUserModal()">إلغاء (Esc)</button>
+            </div>
         </div>
-        
-        <div class="dashboard-sections" id="bentoGrid">
-            <div class="dropzone section-top" id="section-top" data-section="top"></div>
-            <div class="dropzone section-mid" id="section-mid" data-section="mid"></div>
-            <div class="dropzone section-bot" id="section-bot" data-section="bot"></div>
+    </div>
+
+    <div class="app-container">
+        <div id="mainView">
+            <div class="page-header" style="width: 100%; max-width: 1400px; margin-bottom: 40px;">
+                <h1 class="page-title"><i data-lucide="settings-2"></i> لوحة تحكم الأدمن</h1>
+                <a href="dashboard.html" class="btn-mirror"><i data-lucide="home"></i> الرئيسية</a>
+            </div>
+            <div class="cards-grid">
+                <div class="control-card" onclick="openSettings('dashboard')"><div class="icon-box"><i data-lucide="layout-dashboard"></i></div><h3>بطاقات اللوحة</h3><p>إضافة وتعديل بطاقات لوحة التحكم.</p></div>
+                <div class="control-card" onclick="openSettings('assistant')"><div class="icon-box"><i data-lucide="layout-sidebar"></i></div><h3>تطبيقات المساعد</h3><p>تحديد التطبيقات.</p></div>
+                <div class="control-card" onclick="openSettings('guide')"><div class="icon-box"><i data-lucide="book-open"></i></div><h3>دليل المستخدم</h3><p>تعديل نصوص الدليل.</p></div>
+                <div class="control-card" onclick="openSettings('users')"><div class="icon-box"><i data-lucide="users"></i></div><h3>إدارة المستخدمين</h3><p>إضافة مستخدمين وصلاحيات.</p></div>
+                <div class="control-card" onclick="openSettings('media')"><div class="icon-box"><i data-lucide="music"></i></div><h3>الوسائط والملاحظات</h3><p>التحكم في الموسيقى والملاحظات.</p></div>
+            </div>
+        </div>
+
+        <div id="detailView">
+            <div class="detail-header">
+                <div class="detail-title" id="detailTitle">عنوان الإعداد</div>
+                <div style="display:flex; gap:15px;" id="headerActions">
+                    <a href="dashboard.html" class="btn-mirror"><i data-lucide="home"></i> الرئيسية</a>
+                    <button class="btn-mirror" onclick="closeSettings()"><i data-lucide="arrow-right"></i> رجوع</button>
+                </div>
+            </div>
+            <div id="section-dashboard" class="settings-section">
+                <div class="settings-list" id="cardsSettings"></div>
+                <button class="add-guide-btn" onclick="openCardModal()" style="margin-top: 15px;"><i data-lucide="plus-circle"></i> إضافة بطاقة جديدة</button>
+            </div>
+            <div id="section-assistant" class="settings-section"><div class="settings-list" id="appsSettings"></div></div>
+            <div id="section-guide" class="settings-section">
+                <div class="guide-list" id="guideSettings"></div>
+                <button class="add-guide-btn" onclick="addGuideItem()"><i data-lucide="plus-circle"></i> إضافة عنصر جديد</button>
+            </div>
+            <div id="section-users" class="settings-section">
+                <div class="users-toolbar"><button class="add-user-btn" onclick="openUserModal()"><i data-lucide="user-plus"></i> إضافة مستخدم جديد</button></div>
+                <div class="users-grid" id="usersGrid"></div>
+            </div>
+            <div id="section-media" class="settings-section">
+                <div class="settings-list" id="mediaSettings"></div>
+                <div class="media-upload-area" onclick="document.getElementById('audioUpload').click()"><i data-lucide="upload-cloud"></i><p>اضغط لرفع ملفات صوتية</p></div>
+                <input type="file" id="audioUpload" accept="audio/*" multiple style="display:none;" onchange="handleAudioUpload(event)">
+                <div class="admin-playlist" id="adminPlaylist"></div>
+            </div>
         </div>
     </div>
 
     <script>
         lucide.createIcons();
-
-        // =========================================
-        // 1. بيانات المستخدم
-        // =========================================
-        let userRole = localStorage.getItem('userRole') || 'admin'; 
-        let currentUser = {
-            name: localStorage.getItem('userName') || "Khalil CEO",
-            role: localStorage.getItem('userRoleName') || "Admin",
-            avatar: localStorage.getItem('userAvatar') || "https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff"
-        };
-        document.getElementById('drawerUserName').innerText = currentUser.name;
-        document.getElementById('drawerUserRole').innerText = currentUser.role;
-        document.getElementById('drawerUserAvatar').src = currentUser.avatar;
-
-        // =========================================
-        // 2. جلب البيانات من الـ Controller
-        // =========================================
         const defaultCards = [
             { id: 'orders', title: 'الطلبات', visible: true, count: 10, link: 'ordix/orders.html', icon: 'shopping-bag', section: 'top' },
             { id: 'purchases', title: 'فواتير الشراء', visible: true, count: 5, link: 'ordix/purchases.html', icon: 'shopping-cart', section: 'mid' },
@@ -434,368 +278,171 @@
             { id: 'customers', title: 'العملاء', visible: true, count: 150, link: 'ordix/customers.html', icon: 'users', section: 'top' },
             { id: 'settings', title: 'الإعدادات', visible: true, count: null, link: 'ordix/settings.html', icon: 'settings', section: 'bot' }
         ];
+        const defaultApps = [{ id: 'youtube', title: 'YouTube', visible: true }, { id: 'whatsapp', title: 'WhatsApp', visible: true }];
+        const defaultGuide = [{ icon: 'sticky-note', title: 'الملاحظات:', desc: 'اسحب الكارت لتعويمه.' }];
+        const defaultUsers = [{ id: 'u1', userCode: '1001', name: 'خليل المدير', email: 'khalil@ione.com', password: '123456', phone: '0500000000', address: 'الرياض', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop', permissions: ['admin'] }];
+        const defaultMediaConfig = { allowNotes: true, allowPlayer: true, adminPlaylist: [] };
 
-        function getDashboardCards() {
-            const saved = localStorage.getItem('adminConfig');
-            if (saved) {
-                try {
-                    const config = JSON.parse(saved);
-                    if (config.cards && Array.isArray(config.cards)) {
-                        return config.cards.filter(c => c.visible !== false);
-                    }
-                } catch(e) {}
-            }
-            return defaultCards.filter(c => c.visible !== false);
-        }
+        let config = JSON.parse(localStorage.getItem('adminConfig')) || { cards: defaultCards, apps: defaultApps, guide: defaultGuide, users: defaultUsers, media: defaultMediaConfig };
+        if (!config.media) config.media = defaultMediaConfig;
 
-        let savedBgs = JSON.parse(localStorage.getItem('cardBackgrounds') || '{}');
-
-        function renderCards() {
-            document.getElementById('section-top').innerHTML = '';
-            document.getElementById('section-mid').innerHTML = '';
-            document.getElementById('section-bot').innerHTML = '';
-
-            const cardsToRender = getDashboardCards();
-
-            cardsToRender.forEach(card => {
-                const a = document.createElement('a');
-                a.href = card.link;
-                // تحويل اسم القسم إلى كلاس CSS
-                a.className = `card ${card.section === 'top' ? 'card-large' : (card.section === 'mid' ? 'card-wide' : 'card-small')}`;
-                a.dataset.id = card.id;
-                
-                if (savedBgs[card.id]) {
-                    a.style.backgroundImage = `linear-gradient(rgba(10, 11, 15, 0.7), rgba(10, 11, 15, 0.7)), url(${savedBgs[card.id]})`;
-                }
-
-                let cardContent = `
-                    <div class="card-icon-wrap"><i data-lucide="${card.icon || 'package'}"></i></div>
-                `;
-
-                if (card.id === 'orders' && card.count !== null) {
-                    cardContent += `
-                        <div class="card-hero-stat">${card.count}</div>
-                        <div class="card-text-content">
-                            <h3 class="card-title">${card.title}</h3>
-                            <span class="card-subtitle">${card.subtitle || 'إدارة الطلبات'}</span>
-                        </div>
-                    `;
-                } else {
-                    if (card.count !== null && card.count !== undefined) {
-                        a.innerHTML += `<div class="card-badge">${card.count}</div>`;
-                    }
-                    cardContent += `
-                        <div class="card-text-content">
-                            <h3 class="card-title">${card.title}</h3>
-                            <span class="card-subtitle">${card.subtitle || 'صفحة النظام'}</span>
-                        </div>
-                    `;
-                }
-
-                a.innerHTML += cardContent;
-                
-                // تحديد القسم المستهدف
-                const targetSection = card.section === 'top' ? 'section-top' : (card.section === 'mid' ? 'section-mid' : 'section-bot');
-                document.getElementById(targetSection).appendChild(a);
-            });
-            
-            if (window.lucide) lucide.createIcons();
-            initSortableGrid();
-        }
-
-        function initSortableGrid() {
-            const sections = document.querySelectorAll('.dropzone');
-            sections.forEach(sec => {
-                new Sortable(sec, {
-                    group: 'shared', 
-                    animation: 200, 
-                    ghostClass: 'sortable-ghost',
-                    onAdd: function (evt) {
-                        lucide.createIcons();
-                    }
-                });
-            });
-        }
-
-        // =========================================
-        // 3. إضافة خلفية بالزر الأيمن (Right Click)
-        // =========================================
-        document.getElementById('bentoGrid').addEventListener('contextmenu', function(e) {
-            const card = e.target.closest('.card');
-            if (!card) return;
-            e.preventDefault();
-            
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*';
-            
-            fileInput.onchange = (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (r) => {
-                        const base64Image = r.target.result;
-                        card.style.backgroundImage = `linear-gradient(rgba(10, 11, 15, 0.7), rgba(10, 11, 15, 0.7)), url(${base64Image})`;
-                        savedBgs[card.dataset.id] = base64Image;
-                        localStorage.setItem('cardBackgrounds', JSON.stringify(savedBgs));
-                        showToast('تم تحديث خلفية البطاقة');
-                    };
-                    reader.readAsDataURL(file);
-                }
-            };
-            fileInput.click();
-        });
-
-        function clearAllBackgrounds() {
-            localStorage.removeItem('cardBackgrounds');
-            savedBgs = {};
-            renderCards();
-            closeController();
-            showToast('تمت إزالة جميع الخلفيات');
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerHTML = `<i data-lucide="check-circle"></i> ${msg}`;
+        function openSettings(sectionId) {
+            document.getElementById('mainView').style.display = 'none';
+            document.getElementById('detailView').style.display = 'flex';
+            document.querySelectorAll('.settings-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('section-' + sectionId).classList.add('active');
+            if (sectionId === 'dashboard') document.getElementById('detailTitle').innerHTML = '<i data-lucide="layout-dashboard"></i> التحكم في البطاقات';
+            if (sectionId === 'assistant') document.getElementById('detailTitle').innerHTML = '<i data-lucide="layout-sidebar"></i> إعدادات المساعد';
+            if (sectionId === 'guide') document.getElementById('detailTitle').innerHTML = '<i data-lucide="book-open"></i> دليل المستخدم';
+            if (sectionId === 'media') { document.getElementById('detailTitle').innerHTML = '<i data-lucide="music"></i> الوسائط والملاحظات'; renderMediaSettings(); }
+            if (sectionId === 'users') { document.getElementById('detailTitle').innerHTML = '<i data-lucide="users"></i> إدارة المستخدمين'; renderUsers(); }
             lucide.createIcons();
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+        function closeSettings() { document.getElementById('mainView').style.display = 'flex'; document.getElementById('detailView').style.display = 'none'; }
+
+        function renderSettings() {
+            const cardsContainer = document.getElementById('cardsSettings'); cardsContainer.innerHTML = '';
+            config.cards.forEach((card, index) => {
+                const row = document.createElement('div'); row.className = 'setting-row';
+                row.innerHTML = `
+                    <div class="row-info"><i data-lucide="${card.icon || 'square'}"></i> ${card.title} <span style="font-size:0.75rem; color:#888;">(${card.link})</span></div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${card.count !== null ? `<input type="number" class="input-number" value="${card.count}" onchange="updateCount(${index}, this.value)">` : '<span style="color:#888; font-size:0.85rem;">لا يوجد رقم</span>'}
+                        <label class="switch"><input type="checkbox" ${card.visible ? 'checked' : ''} onchange="updateVisibility(${index}, this.checked)"><span class="slider"></span></label>
+                        <button class="btn-icon edit" onclick="openCardModal(${index})" title="تعديل"><i data-lucide="edit-2" style="width:16px;"></i></button>
+                        <button class="btn-icon delete" onclick="deleteDashboardCard(${index})" title="حذف"><i data-lucide="trash-2" style="width:16px;"></i></button>
+                    </div>`;
+                cardsContainer.appendChild(row);
+            });
+            const appsContainer = document.getElementById('appsSettings'); appsContainer.innerHTML = '';
+            config.apps.forEach((app, index) => {
+                const row = document.createElement('div'); row.className = 'setting-row';
+                row.innerHTML = `<div class="row-info"><i data-lucide="${app.id === 'youtube' ? 'youtube' : 'message-circle'}"></i> ${app.title}</div><label class="switch"><input type="checkbox" ${app.visible ? 'checked' : ''} onchange="updateAppVisibility(${index}, this.checked)"><span class="slider"></span></label>`;
+                appsContainer.appendChild(row);
+            });
+            renderGuide(); lucide.createIcons();
         }
 
-        // =========================================
-        // 4. المساعد الجانبي
-        // =========================================
-        const AVAILABLE_APPS = [
-            { id: 'youtube', name: 'YouTube', desc: 'مشاهدة الفيديوهات', icon: 'youtube', url: 'https://www.youtube.com/embed/videoseries?list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG' },
-            { id: 'whatsapp', name: 'WhatsApp', desc: 'محادثات العمل', icon: 'message-circle', url: 'https://web.whatsapp.com/' }
-        ];
-        let userApps = JSON.parse(localStorage.getItem('userApps')) || ['youtube', 'whatsapp'];
-        let activeApp = localStorage.getItem('activeApp') || null;
-        const iframe = document.getElementById('app-iframe');
-        const placeholder = document.getElementById('appPlaceholder');
-        const appTitle = document.getElementById('appTitle');
-        const appRail = document.getElementById('appRail');
-        const ytSearchContainer = document.getElementById('ytSearchContainer');
-        let whatsappWindow = null;
-
-        function renderRail() {
-            appRail.querySelectorAll('.rail-icon').forEach(el => el.remove());
-            userApps.forEach(appId => {
-                const app = AVAILABLE_APPS.find(a => a.id === appId);
-                if (!app) return;
-                const btn = document.createElement('div');
-                btn.className = `rail-icon ${activeApp === app.id ? 'active' : ''}`;
-                btn.innerHTML = `<i data-lucide="${app.icon}"></i>`;
-                btn.onclick = () => loadApp(app.id, app.url, app.name);
-                appRail.insertBefore(btn, appRail.querySelector('.rail-divider'));
+        function renderMediaSettings() {
+            const container = document.getElementById('mediaSettings');
+            container.innerHTML = `
+                <div class="setting-row"><div class="row-info"><i data-lucide="sticky-note"></i> السماح بالملاحظات</div><label class="switch"><input type="checkbox" ${config.media.allowNotes ? 'checked' : ''} onchange="updateMediaConfig('allowNotes', this.checked)"><span class="slider"></span></label></div>
+                <div class="setting-row"><div class="row-info"><i data-lucide="play-circle"></i> السماح بالموسيقى</div><label class="switch"><input type="checkbox" ${config.media.allowPlayer ? 'checked' : ''} onchange="updateMediaConfig('allowPlayer', this.checked)"><span class="slider"></span></label></div>
+            `;
+            const playlistContainer = document.getElementById('adminPlaylist'); playlistContainer.innerHTML = '';
+            config.media.adminPlaylist.forEach((track, index) => {
+                const item = document.createElement('div'); item.className = 'playlist-item';
+                item.innerHTML = `<div class="playlist-item-info"><i data-lucide="music"></i><span class="playlist-item-name">${track.name}</span></div><div class="playlist-item-actions"><audio controls src="${track.url}"></audio><button class="btn-icon delete" onclick="deleteAudioTrack(${index})"><i data-lucide="trash-2" style="width:16px;"></i></button></div>`;
+                playlistContainer.appendChild(item);
             });
             lucide.createIcons();
         }
 
-        function loadApp(id, url, name) {
-            activeApp = id;
-            localStorage.setItem('activeApp', id);
-            renderRail();
-            ytSearchContainer.style.display = id === 'youtube' ? 'block' : 'none';
-            placeholder.style.display = 'none';
-            iframe.style.display = 'block';
-            appTitle.innerText = name;
-
-            if (id === 'whatsapp') {
-                if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.focus();
-                else whatsappWindow = window.open(url, 'WhatsAppPopup', 'width=900,height=700');
-                iframe.style.display = 'none';
-                placeholder.style.display = 'flex';
-                return;
-            }
-            iframe.src = url;
+        function updateMediaConfig(key, value) { config.media[key] = value; saveSettings(); }
+        function handleAudioUpload(event) {
+            const files = event.target.files; if (!files) return;
+            Array.from(files).forEach(file => { config.media.adminPlaylist.push({ name: file.name, url: URL.createObjectURL(file) }); });
+            saveSettings(); renderMediaSettings(); event.target.value = '';
         }
+        function deleteAudioTrack(index) { if (confirm('حذف الملف؟')) { config.media.adminPlaylist.splice(index, 1); saveSettings(); renderMediaSettings(); } }
 
-        function searchYouTube() {
-            const query = document.getElementById('ytSearchInput').value.trim();
-            if(!query) return;
-            window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank');
+        function openCardModal(index = null) {
+            const modal = document.getElementById('newCardModal'); const title = document.getElementById('cardModalTitle');
+            if (index !== null) { title.innerText = 'تعديل البطاقة'; document.getElementById('editingCardIndex').value = index; const card = config.cards[index]; document.getElementById('newCardTitle').value = card.title; document.getElementById('newCardLink').value = card.link; } 
+            else { title.innerText = 'إضافة بطاقة جديدة'; document.getElementById('editingCardIndex').value = ''; document.getElementById('newCardTitle').value = ''; document.getElementById('newCardLink').value = ''; }
+            modal.classList.add('active'); setTimeout(() => document.getElementById('newCardTitle').focus(), 100);
         }
-
-        function openCustomizeModal() {
-            const listContainer = document.getElementById('appList');
-            listContainer.innerHTML = '';
-            AVAILABLE_APPS.forEach(app => {
-                const isSelected = userApps.includes(app.id);
-                const item = document.createElement('div');
-                item.className = `app-item ${isSelected ? 'selected' : ''}`;
-                item.innerHTML = `
-                    <i data-lucide="${app.icon}"></i>
-                    <div class="app-item-info"><div class="app-item-title">${app.name}</div><div class="app-item-desc">${app.desc}</div></div>
-                    ${isSelected ? '<i data-lucide="check-circle" style="color:var(--accent-primary);"></i>' : ''}
-                `;
-                item.onclick = () => toggleAppSelection(app.id);
-                listContainer.appendChild(item);
-            });
-            lucide.createIcons();
-            document.getElementById('customizeModal').classList.add('active');
+        function closeCardModal() { document.getElementById('newCardModal').classList.remove('active'); }
+        function saveNewCard() {
+            const title = document.getElementById('newCardTitle').value.trim(); const link = document.getElementById('newCardLink').value.trim(); const editIndex = document.getElementById('editingCardIndex').value;
+            if (!title || !link) { alert('الرجاء إدخال الاسم والرابط.'); return; }
+            if (editIndex !== '') { config.cards[editIndex].title = title; config.cards[editIndex].link = link; } 
+            else { config.cards.push({ id: 'custom_' + Date.now(), title: title, visible: true, count: 0, link: link, icon: 'package', section: 'bot' }); }
+            saveSettings(); closeCardModal(); renderSettings();
         }
-
-        function closeCustomizeModal(e) {
-            if (!e || e.target.id === 'customizeModal' || e.target.closest('.modal-close')) {
-                document.getElementById('customizeModal').classList.remove('active');
-            }
-        }
-
-        function toggleAppSelection(appId) {
-            if (userApps.includes(appId)) {
-                userApps = userApps.filter(id => id !== appId);
-                if (activeApp === appId) {
-                    activeApp = null; localStorage.removeItem('activeApp');
-                    iframe.style.display = 'none'; placeholder.style.display = 'flex'; ytSearchContainer.style.display = 'none'; appTitle.innerText = 'المساعد الجانبي';
-                }
-            } else { userApps.push(appId); }
-            localStorage.setItem('userApps', JSON.stringify(userApps));
-            renderRail(); openCustomizeModal(); 
-        }
-
-        if (activeApp) {
-            const app = AVAILABLE_APPS.find(a => a.id === activeApp);
-            if (app) loadApp(app.id, app.url, app.name);
-        } else { renderRail(); }
-
-        // =========================================
-        // 5. الدليل ولوحة التحكم
-        // =========================================
-        let guideData = [
-            { icon: 'mouse-pointer-2', title: 'الخلفيات:', desc: 'اضغط <b>بالزر الأيمن</b> على أي بطاقة لاختيار صورة خلفية.' },
-            { icon: 'settings-2', title: 'لوحة التحكم:', desc: 'اضغط <kbd>C</kbd> لفتح لوحة التحكم وإزالة الخلفيات.' },
-            { icon: 'sticky-note', title: 'الملاحظات:', desc: 'اسحب الكارت لتعويمه. انقر <b>نقرتين</b> لإعادته.' },
-            { icon: 'keyboard', title: 'اختصار Z:', desc: 'اضغط <kbd>Z</kbd> لإرجاع الملاحظات.' }
-        ];
-        let controllerSettings = [
-            { id: 'toggleNotes', label: 'شريط الملاحظات (اليمين)', icon: 'sticky-note', target: 'sidebarLeft', btnTarget: 'btnToggleLeft', isOn: true },
-            { id: 'toggleAssistant', label: 'شريط المساعد (اليسار)', icon: 'layout-sidebar', target: 'sidebarRight', btnTarget: 'btnToggleRight', isOn: true }
-        ];
+        function deleteDashboardCard(index) { if (confirm('حذف البطاقة؟')) { config.cards.splice(index, 1); saveSettings(); renderSettings(); } }
 
         function renderGuide() {
-            const list = document.getElementById('guideList'); list.innerHTML = '';
-            guideData.forEach(item => {
-                const li = document.createElement('li'); li.className = 'guide-item';
-                li.innerHTML = `<i data-lucide="${item.icon}"></i><div><b>${item.title}</b> ${item.desc}</div>`;
-                list.appendChild(li);
-            }); lucide.createIcons();
-        }
-        renderGuide();
-
-        function renderController() {
-            const container = document.getElementById('controllerOptions'); container.innerHTML = ''; 
-            if (userRole !== 'admin') { document.getElementById('controllerOverlay').remove(); return; }
-            controllerSettings.forEach((setting) => {
-                const row = document.createElement('div'); row.className = 'controller-row';
-                row.innerHTML = `
-                    <div class="controller-label"><i data-lucide="${setting.icon}"></i> ${setting.label}</div>
-                    <label class="switch"><input type="checkbox" id="${setting.id}" ${setting.isOn ? 'checked' : ''}><span class="slider"></span></label>
-                `;
-                const checkbox = row.querySelector(`#${setting.id}`);
-                checkbox.addEventListener('change', (e) => {
-                    toggleSidebarDynamically(setting.target, setting.btnTarget, e.target.checked);
-                    setting.isOn = e.target.checked;
-                });
-                container.appendChild(row);
-            }); lucide.createIcons();
-        }
-        renderController();
-
-        function toggleSidebarDynamically(targetId, btnId, isOn) {
-            userInteracted = true;
-            const bar = document.getElementById(targetId); const btn = document.getElementById(btnId);
-            if (isOn) { bar.classList.remove('disabled', 'hidden'); btn.classList.remove('disabled'); btn.style.opacity = '0'; }
-            else { bar.classList.add('disabled', 'hidden'); btn.classList.add('disabled'); }
-        }
-
-        // =========================================
-        // 6. العرض التلقائي والتحكم
-        // =========================================
-        let userInteracted = false; 
-        window.addEventListener('load', () => {
-            const leftBar = document.getElementById('sidebarLeft'); const rightBar = document.getElementById('sidebarRight');
-            const btnLeft = document.getElementById('btnToggleLeft'); const btnRight = document.getElementById('btnToggleRight');
-            setTimeout(() => {
-                if (userInteracted || !controllerSettings.find(s => s.id === 'toggleNotes')?.isOn) return;
-                leftBar.classList.remove('hidden'); rightBar.classList.remove('hidden');
-                btnLeft.style.opacity = '0'; btnRight.style.opacity = '0';
-            }, 200);
-            setTimeout(() => {
-                if (userInteracted || !controllerSettings.find(s => s.id === 'toggleNotes')?.isOn) return;
-                leftBar.classList.add('hidden'); rightBar.classList.add('hidden');
-                btnLeft.style.opacity = '1'; btnRight.style.opacity = '1';
-            }, 2500);
-            renderCards();
-        });
-
-        function openGuide() { document.getElementById('guideOverlay').classList.add('active'); }
-        function closeGuide() { document.getElementById('guideOverlay').classList.remove('active'); }
-        function closeGuideOnOverlay(e) { if(e.target.id === 'guideOverlay') closeGuide(); }
-        function openController() { document.getElementById('controllerOverlay').classList.add('active'); }
-        function closeController() { document.getElementById('controllerOverlay').classList.remove('active'); }
-        function closeControllerOnOverlay(e) { if(e.target.id === 'controllerOverlay') closeController(); }
-        const sidebarLeft = document.getElementById('sidebarLeft'); const sidebarRight = document.getElementById('sidebarRight');
-        function toggleLeftSidebar() { userInteracted = true; sidebarLeft.classList.toggle('hidden'); document.getElementById('btnToggleLeft').style.opacity = sidebarLeft.classList.contains('hidden') ? '1' : '0'; }
-        function toggleRightSidebar() { userInteracted = true; sidebarRight.classList.toggle('hidden'); document.getElementById('btnToggleRight').style.opacity = sidebarRight.classList.contains('hidden') ? '1' : '0'; }
-        function toggleAllTools(e) {
-            if(e.target.closest('.sidebar-left') || e.target.closest('.sidebar-right') || e.target.closest('.note-card') || e.target.closest('.toggle-btn') || e.target.closest('.guide-trigger') || e.target.closest('.top-dashboard-drawer') || e.target.closest('.controller-overlay')) return;
-            userInteracted = true; sidebarLeft.classList.toggle('hidden'); sidebarRight.classList.toggle('hidden');
-            document.getElementById('btnToggleLeft').style.opacity = sidebarLeft.classList.contains('hidden') ? '1' : '0';
-            document.getElementById('btnToggleRight').style.opacity = sidebarRight.classList.contains('hidden') ? '1' : '0';
-        }
-
-        // =========================================
-        // 7. الملاحظات
-        // =========================================
-        const notesDock = document.getElementById('notesDock'); let zIndexCounter = 100;
-        function autoResize(textarea) { textarea.style.height = 'auto'; textarea.style.height = textarea.scrollHeight + 'px'; }
-        function addNewNote() {
-            const note = document.createElement('div'); note.className = 'note-card docked'; note.style.zIndex = ++zIndexCounter;
-            note.innerHTML = `
-                <div class="note-header"><div class="mac-dots"><div class="mac-dot red"></div><div class="mac-dot yellow"></div><div class="mac-dot green"></div></div><button class="btn-del-note" onclick="this.closest('.note-card').remove()"><i data-lucide="x" style="width:16px;"></i></button></div>
-                <div class="note-body"><div class="inner-box"><textarea placeholder="اكتب ملاحظتك للأدمن..." ondblclick="event.stopPropagation()"></textarea><div class="inner-tools"><button class="btn-send-admin" onclick="sendToAdmin(this)"><i data-lucide="send" style="width:14px;"></i> إرسال للأدمن</button></div></div></div>
-            `;
-            notesDock.appendChild(note); lucide.createIcons();
-            const textarea = note.querySelector('textarea'); textarea.addEventListener('input', function() { autoResize(this); }); setupNoteDrag(note);
-        }
-        async function sendToAdmin(btn) {
-            const noteCard = btn.closest('.note-card'); const textarea = noteCard.querySelector('textarea'); const text = textarea.value.trim();
-            if(!text) { alert('الرجاء كتابة ملاحظة قبل الإرسال.'); return; }
-            const originalText = btn.innerHTML; btn.innerHTML = '<i data-lucide="loader" class="spin" style="width:14px;"></i> جاري الإرسال...'; lucide.createIcons();
-            try {
-                const response = await fetch('/api/status/notes/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ page: window.location.pathname, notes: text, sender: currentUser.name }) });
-                const data = await response.json();
-                if (data.success) { showToast('تم إرسال الملاحظة للأدمن'); textarea.value = ''; autoResize(textarea); }
-                else { alert('حدث خطأ في الخادم: ' + data.error); }
-            } catch (e) { alert('فشل الاتصال بالخادم.'); } finally { btn.innerHTML = originalText; lucide.createIcons(); }
-        }
-        function setupNoteDrag(note) {
-            let isDragging = false, startX, startY, startLeft, startTop;
-            const header = note.querySelector('.note-header'); const textarea = note.querySelector('textarea');
-            header.addEventListener('mousedown', (e) => {
-                if(e.target.closest('.btn-del-note')) return; e.preventDefault(); isDragging = true; note.style.zIndex = ++zIndexCounter;
-                if (note.classList.contains('docked')) { note.classList.remove('docked'); note.classList.add('floating'); const rect = note.getBoundingClientRect(); note.style.left = rect.left + 'px'; note.style.top = rect.top + 'px'; document.body.appendChild(note); }
-                startX = e.clientX; startY = e.clientY; startLeft = parseInt(window.getComputedStyle(note).left, 10) || note.offsetLeft; startTop = parseInt(window.getComputedStyle(note).top, 10) || note.offsetTop;
-                document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+            const guideContainer = document.getElementById('guideSettings'); guideContainer.innerHTML = '';
+            config.guide.forEach((item, index) => {
+                const div = document.createElement('div'); div.className = 'guide-item';
+                div.innerHTML = `<input type="text" class="guide-icon-input" value="${item.icon}" onchange="updateGuideItem(${index}, 'icon', this.value)"><div class="guide-text-inputs"><input type="text" class="title-input" value="${item.title}" onchange="updateGuideItem(${index}, 'title', this.value)" placeholder="العنوان"><input type="text" class="desc-input" value="${item.desc}" onchange="updateGuideItem(${index}, 'desc', this.value)" placeholder="الوصف"></div><button class="btn-delete-guide" onclick="deleteGuideItem(${index})"><i data-lucide="trash-2"></i></button>`;
+                guideContainer.appendChild(div);
             });
-            function onMouseMove(e) { if (!isDragging) return; note.style.left = (startLeft + e.clientX - startX) + 'px'; note.style.top = (startTop + e.clientY - startY) + 'px'; }
-            function onMouseUp() { isDragging = false; document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); }
-            note.addEventListener('dblclick', (e) => { if(e.target === textarea) return; dockNote(note); });
-            textarea.addEventListener('dblclick', (e) => e.stopPropagation()); header.addEventListener('dblclick', (e) => e.stopPropagation());
+            new Sortable(guideContainer, { animation: 150, onEnd: function() { const newGuide = []; document.querySelectorAll('.guide-item').forEach(el => { newGuide.push({ icon: el.querySelector('.guide-icon-input').value, title: el.querySelector('.title-input').value, desc: el.querySelector('.desc-input').value }); }); config.guide = newGuide; saveSettings(); } });
         }
-        function dockNote(note) { note.classList.remove('floating'); note.classList.add('docked'); note.style.left = ''; note.style.top = ''; notesDock.appendChild(note); }
-        setTimeout(() => { addNewNote(); }, 300);
 
-        // 8. الاختصارات
-        document.addEventListener('keydown', (e) => {
-            if (document.activeElement.tagName === 'TEXTAREA' || document.activeElement.tagName === 'INPUT') return;
-            if (e.key.toLowerCase() === 'z') document.querySelectorAll('.note-card.floating').forEach(dockNote);
-            if (e.key.toLowerCase() === 'x') document.getElementById('topDrawer').classList.toggle('active');
-            if (e.key.toLowerCase() === 'c' && userRole === 'admin') {
-                const overlay = document.getElementById('controllerOverlay'); if(overlay) overlay.classList.contains('active') ? closeController() : openController();
+        function renderUsers() {
+            const grid = document.getElementById('usersGrid'); grid.innerHTML = '';
+            config.users.forEach(user => {
+                const card = document.createElement('div'); card.className = 'user-card'; card.dataset.id = user.id; card.onclick = () => openUserModal(user.id);
+                card.style.backgroundImage = `url(${user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=600&auto=format&fit=crop'})`;
+                card.innerHTML = `<div class="user-code-badge">${user.userCode}</div><div class="user-card-content"><div class="user-name">${user.name}</div><div class="user-role">${user.permissions.join(' | ') || 'بدون صلاحية'}</div><div class="user-details"><i data-lucide="phone" style="width:12px;"></i> ${user.phone}</div></div>`;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function toggleSelectAllPermissions(master) { document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = master.checked); }
+        function togglePasswordVisibility() { const p = document.getElementById('userPassword'); const e = document.getElementById('eyeIcon'); if (p.type === 'password') { p.type = 'text'; e.setAttribute('data-lucide', 'eye-off'); } else { p.type = 'password'; e.setAttribute('data-lucide', 'eye'); } lucide.createIcons(); }
+
+        let editingUserId = null; let uploadedAvatarBase64 = '';
+        function openUserModal(id = null) {
+            editingUserId = id; uploadedAvatarBase64 = '';
+            document.getElementById('userName').value = ''; document.getElementById('userEmail').value = ''; document.getElementById('userPassword').value = ''; document.getElementById('userPhone').value = ''; document.getElementById('userAddress').value = '';
+            document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = false); document.getElementById('selectAllPermissions').checked = false;
+            document.getElementById('avatarPreview').style.display = 'none'; document.getElementById('avatarFallback').style.display = 'flex';
+            if (id) {
+                document.getElementById('modalTitle').innerText = 'تعديل مستخدم'; document.getElementById('deleteUserBtn').style.display = 'flex';
+                const user = config.users.find(u => u.id === id);
+                document.getElementById('userName').value = user.name; document.getElementById('userEmail').value = user.email; document.getElementById('userPassword').value = user.password; document.getElementById('userPhone').value = user.phone; document.getElementById('userAddress').value = user.address; document.getElementById('userCode').value = user.userCode;
+                if (user.avatar) { document.getElementById('avatarPreview').src = user.avatar; document.getElementById('avatarPreview').style.display = 'block'; document.getElementById('avatarFallback').style.display = 'none'; }
+                user.permissions.forEach(p => { const cb = document.querySelector(`.perm-checkbox[value="${p}"]`); if (cb) cb.checked = true; });
+            } else {
+                document.getElementById('modalTitle').innerText = 'إضافة مستخدم'; document.getElementById('deleteUserBtn').style.display = 'none';
+                let nextCode = config.users.length > 0 ? Math.max(...config.users.map(u => parseInt(u.userCode) || 0)) + 1 : 1001;
+                document.getElementById('userCode').value = nextCode;
             }
+            document.getElementById('userModal').classList.add('active'); setTimeout(() => document.getElementById('userName').focus(), 100);
+        }
+        function closeUserModal() { document.getElementById('userModal').classList.remove('active'); }
+        function previewImage(event) { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { uploadedAvatarBase64 = e.target.result; document.getElementById('avatarPreview').src = uploadedAvatarBase64; document.getElementById('avatarPreview').style.display = 'block'; document.getElementById('avatarFallback').style.display = 'none'; }; reader.readAsDataURL(file); } }
+
+        function saveUser() {
+            const name = document.getElementById('userName').value.trim(); const phone = document.getElementById('userPhone').value.trim(); const userCode = document.getElementById('userCode').value.trim();
+            if (!name || !phone || !userCode) { alert('أدخل الاسم والهاتف والكود.'); return; }
+            const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
+            if (editingUserId) {
+                const user = config.users.find(u => u.id === editingUserId);
+                user.name = name; user.email = document.getElementById('userEmail').value; user.password = document.getElementById('userPassword').value; user.phone = phone; user.address = document.getElementById('userAddress').value; user.userCode = userCode; user.permissions = permissions;
+                if (uploadedAvatarBase64) user.avatar = uploadedAvatarBase64;
+            } else {
+                config.users.push({ id: 'u_' + Date.now(), userCode: userCode, name: name, email: document.getElementById('userEmail').value, password: document.getElementById('userPassword').value, phone: phone, address: document.getElementById('userAddress').value, permissions: permissions, avatar: uploadedAvatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff` });
+            }
+            saveSettings(); closeUserModal(); renderUsers();
+        }
+        function deleteCurrentUser() { if (confirm('حذف المستخدم؟')) { config.users = config.users.filter(u => u.id !== editingUserId); saveSettings(); closeUserModal(); renderUsers(); } }
+
+        function updateCount(index, val) { config.cards[index].count = parseInt(val) || 0; }
+        function updateVisibility(index, val) { config.cards[index].visible = val; }
+        function updateAppVisibility(index, val) { config.apps[index].visible = val; }
+        function updateGuideItem(index, field, val) { config.guide[index][field] = val; }
+        function deleteGuideItem(index) { if(confirm('حذف العنصر؟')) { config.guide.splice(index, 1); renderGuide(); saveSettings(); } }
+        function addGuideItem() { config.guide.push({ icon: 'star', title: 'عنوان جديد', desc: 'وصف جديد...' }); renderGuide(); }
+
+        function saveSettings() { localStorage.setItem('adminConfig', JSON.stringify(config)); const toast = document.getElementById('toast'); toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 3000); }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                if (document.activeElement.tagName === 'TEXTAREA') return;
+                if (document.getElementById('userModal').classList.contains('active')) { e.preventDefault(); saveUser(); }
+                else if (document.getElementById('newCardModal').classList.contains('active')) { e.preventDefault(); saveNewCard(); }
+                else { e.preventDefault(); document.activeElement.blur(); saveSettings(); }
+            }
+            if (e.key === 'Escape') { if (document.getElementById('userModal').classList.contains('active')) closeUserModal(); if (document.getElementById('newCardModal').classList.contains('active')) closeCardModal(); }
         });
+
+        renderSettings();
     </script>
 </body>
 </html>
