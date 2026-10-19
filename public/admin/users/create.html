@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معاينة كاملة - إضافة مستخدم</title>
+    <title>IONECENTER — إضافة مستخدم</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -17,6 +17,9 @@
         .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: rgba(10, 11, 15, 0.95); border-bottom: 1px solid var(--glass-border); flex-shrink: 0; }
         .user-profile-header { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid var(--glass-border); text-decoration: none; color: #fff; }
         .user-avatar-header { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); }
+        .user-info-header { display: flex; flex-direction: column; align-items: flex-start; }
+        .user-name-header { font-size: 0.85rem; font-weight: 800; }
+        .user-role-header { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
         .btn-back { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 8px 16px; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; transition: 0.2s; font-size: 0.9rem; }
         
         .main-container { flex: 1; display: flex; padding: 15px 25px; gap: 20px; overflow: hidden; }
@@ -25,9 +28,11 @@
         
         .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
         .form-label { font-size: 0.8rem; font-weight: 700; color: #ccc; display: flex; justify-content: space-between; align-items: center;}
-        .form-input { width: 100%; padding: 10px 40px 10px 10px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; font-size: 0.9rem; transition: 0.2s; }
+        /* ✅ إصلاح #11: الحشو الأيسر 40px لأيقونة العين */
+        .form-input { width: 100%; padding: 10px 10px 10px 40px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; font-size: 0.9rem; transition: 0.2s; }
         .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
-        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; cursor: pointer; width: 20px; height: 20px; margin-top: 10px; }
+        /* ✅ إصلاح #12: إزالة margin-top الترقيعي */
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; cursor: pointer; width: 20px; height: 20px; }
 
         .image-upload-box { position: relative; border: 2px dashed var(--glass-border); border-radius: 16px; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; background-color: #000; background-size: cover; background-position: center; transition: 0.3s; flex-shrink: 0; margin-bottom: 5px; overflow: hidden; }
         .image-upload-box:hover { border-color: var(--accent-primary); }
@@ -61,6 +66,7 @@
 
         .action-row { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
         .btn-save { width: 100%; padding: 12px; background: var(--accent-green); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .country-search-wrapper { position: relative; }
         .country-dropdown { position: absolute; top: 100%; right: 0; left: 0; background: #12141c; border: 1px solid var(--glass-border); border-radius: 10px; margin-top: 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
@@ -81,12 +87,12 @@
     <div class="top-header">
         <a href="#" class="user-profile-header">
             <div class="user-info-header">
-                <div class="user-name-header">خليل المدير</div>
-                <div class="user-role-header">CEO</div>
+                <div class="user-name-header" id="headerUserName">جاري التحميل...</div>
+                <div class="user-role-header" id="headerUserRole">...</div>
             </div>
-            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="Admin" class="user-avatar-header">
+            <img src="" alt="Admin" class="user-avatar-header" id="headerUserAvatar">
         </a>
-        <a href="#" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+        <a href="list.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
     </div>
 
     <div class="main-container">
@@ -118,7 +124,7 @@
 
             <div class="form-group">
                 <label class="form-label">البريد الإلكتروني</label>
-                <input type="text" id="userEmail" class="form-input" placeholder="11@qq.com" dir="ltr" style="text-align: left; padding-left: 10px;" required>
+                <input type="text" id="userEmail" class="form-input" placeholder="11@qq.com" dir="ltr" style="text-align: left; padding-left: 10px; padding-right: 10px;" required>
             </div>
 
             <div class="form-group">
@@ -139,12 +145,12 @@
 
             <div class="form-group">
                 <label class="form-label">رقم الهاتف</label>
-                <input type="text" id="userPhone" class="form-input" placeholder="50 123 4567" style="text-align: left; direction: ltr;">
+                <input type="text" id="userPhone" class="form-input" placeholder="50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;">
             </div>
 
             <div class="form-group">
                 <label class="form-label">رقم الواتساب</label>
-                <input type="text" id="userWhatsApp" class="form-input" placeholder="+966 50 123 4567" style="text-align: left; direction: ltr;">
+                <input type="text" id="userWhatsApp" class="form-input" placeholder="+966 50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;">
             </div>
 
             <div class="form-group">
@@ -176,20 +182,20 @@
             <button class="btn-select-all-large" type="button" onclick="toggleAllPerms()"><i data-lucide="check-square"></i> تحديد الكل / إلغاء الكل</button>
 
             <div class="permissions-grid">
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="shield"></i><span>مدير</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="users"></i><span>مساعد مدير</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="shopping-cart"></i><span>مبيعات</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="calculator"></i><span>محاسبة</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="headphones"></i><span>دعم</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="package"></i><span>مستودعات</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="facebook"></i><span>فيسبوك</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="youtube"></i><span>يوتيوب</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="music"></i><span>تيك توك</span></div>
-                <div class="perm-card" onclick="togglePerm(this)"><i data-lucide="truck"></i><span>تصدير بضائع</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="admin"><i data-lucide="shield"></i><span>مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="assistant"><i data-lucide="users"></i><span>مساعد مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="sales"><i data-lucide="shopping-cart"></i><span>مبيعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="accounting"><i data-lucide="calculator"></i><span>محاسبة</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="support"><i data-lucide="headphones"></i><span>دعم</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="warehouse"><i data-lucide="package"></i><span>مستودعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="facebook"><i data-lucide="facebook"></i><span>فيسبوك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="youtube"><i data-lucide="youtube"></i><span>يوتيوب</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="tiktok"><i data-lucide="music"></i><span>تيك توك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="export"><i data-lucide="truck"></i><span>تصدير بضائع</span></div>
             </div>
 
             <div class="action-row">
-                <button class="btn-save" type="button">
+                <button class="btn-save" type="button" id="saveBtn">
                     <i data-lucide="save"></i> حفظ المستخدم
                 </button>
             </div>
@@ -199,41 +205,94 @@
     <script>
         lucide.createIcons();
 
+        // ===== أدوات مساعدة آمنة =====
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+        function escapeAttr(s) { return escapeHtml(s); }
+
+        // ===== 1. تحميل بيانات الأدمن =====
+        const adminName = localStorage.getItem('userName') || 'المدير';
+        const adminRole = localStorage.getItem('userRole') || 'Admin';
+        const adminAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=8b5cf6&color=fff`;
+        document.getElementById('headerUserName').innerText = adminName;
+        document.getElementById('headerUserRole').innerText = adminRole;
+        document.getElementById('headerUserAvatar').src = adminAvatar;
+
+        // ===== ✅ إصلاح #1: showCustomAlert آمن ضد XSS ومتعدد الاستدعاء =====
+        let alertTimer = null;
         function showCustomAlert(msg, isError = false) {
             const alertBox = document.getElementById('customAlert');
-            document.getElementById('alertText').innerText = msg;
             alertBox.className = 'custom-alert show' + (isError ? ' error' : '');
-            if(isError) alertBox.innerHTML = `<i data-lucide="alert-circle"></i> <span id="alertText">${msg}</span>`;
-            else alertBox.innerHTML = `<i data-lucide="check-circle"></i> <span id="alertText">${msg}</span>`;
+            alertBox.innerHTML = `<i data-lucide="${isError ? 'alert-circle' : 'check-circle'}"></i><span id="alertText"></span>`;
+            alertBox.querySelector('#alertText').textContent = msg;  // ✅ textContent آمن
             lucide.createIcons();
-            setTimeout(() => alertBox.classList.remove('show'), 3000);
+            clearTimeout(alertTimer);
+            alertTimer = setTimeout(() => alertBox.classList.remove('show'), 3000);
         }
 
+        // ===== كود الدخول =====
         function generateCode() { document.getElementById('fastCode').value = Math.floor(1000 + Math.random() * 9000); }
         generateCode();
 
+        // ===== ✅ إصلاح #7: حفظ ملف الصورة للإرسال =====
+        let avatarFile = null;
         function previewImage(event) {
             const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreviewBox').style.backgroundImage = `url(${e.target.result})`;
-                };
-                reader.readAsDataURL(file);
-            }
+            if (!file) return;
+            if (!file.type.startsWith('image/')) { showCustomAlert('الملف ليس صورة صالحة', true); return; }
+            if (file.size > 5 * 1024 * 1024) { showCustomAlert('حجم الصورة أكبر من 5 ميجابايت', true); return; }
+            avatarFile = file;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreviewBox').style.backgroundImage = `url(${e.target.result})`;
+            };
+            reader.readAsDataURL(file);
         }
 
+        // ===== ✅ إصلاح #8: بصمة وجه حقيقية عبر WebAuthn =====
         async function startFaceID() {
             if (!window.PublicKeyCredential) { showCustomAlert('جهازك لا يدعم بصمة الوجه.', true); return; }
             try {
                 const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                if (available) {
-                    showCustomAlert('جاري التحقق من البصمة...');
-                    setTimeout(() => showCustomAlert('تم التحقق بنجاح!'), 1500);
-                } else { showCustomAlert('لا يوجد مستشعر بصمة في هذا الجهاز.', true); }
-            } catch (e) { showCustomAlert('حدث خطأ.', true); }
+                if (!available) { showCustomAlert('لا يوجد مستشعر بصمة في هذا الجهاز.', true); return; }
+
+                const email = document.getElementById('userEmail').value.trim();
+                const fullName = document.getElementById('userName').value.trim();
+                if (!email || !fullName) { showCustomAlert('يرجى إدخال الاسم والبريد أولاً لتفعيل البصمة', true); return; }
+
+                showCustomAlert('جاري التحقق من البصمة...');
+                const cred = await navigator.credentials.create({
+                    publicKey: {
+                        challenge: crypto.getRandomValues(new Uint8Array(32)),
+                        rp: { name: 'IONECENTER' },
+                        user: {
+                            id: crypto.getRandomValues(new Uint8Array(16)),
+                            name: email,
+                            displayName: fullName
+                        },
+                        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+                        authenticatorSelection: {
+                            authenticatorAttachment: 'platform',
+                            userVerification: 'required'
+                        },
+                        timeout: 60000
+                    }
+                });
+                if (cred) {
+                    // نحفظ credential id مؤقتاً للإرسال مع الطلب
+                    window.__faceCredentialId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+                    showCustomAlert('تم تفعيل بصمة الوجه بنجاح!');
+                }
+            } catch (e) {
+                console.error(e);
+                if (e.name === 'NotAllowedError') showCustomAlert('تم إلغاء عملية البصمة', true);
+                else if (e.name === 'InvalidStateError') showCustomAlert('هذا الجهاز مسجل بالفعل', true);
+                else showCustomAlert('تعذّر تفعيل البصمة: ' + (e.message || 'خطأ غير معروف'), true);
+            }
         }
 
+        // ===== كلمة المرور =====
         function togglePassword() {
             const input = document.getElementById('userPassword');
             const icon = document.getElementById('togglePass');
@@ -242,6 +301,7 @@
             lucide.createIcons();
         }
 
+        // ===== الحالة =====
         function setStatus(btn, type) {
             const btns = btn.parentElement.querySelectorAll('.status-btn');
             btns.forEach(b => b.className = 'status-btn');
@@ -249,6 +309,7 @@
             else btn.classList.add('active-red');
         }
 
+        // ===== الصلاحيات =====
         function togglePerm(card) { card.classList.toggle('active'); }
         function toggleAllPerms() {
             const cards = document.querySelectorAll('.perm-card');
@@ -256,94 +317,87 @@
             cards.forEach(c => { if (allActive) c.classList.remove('active'); else c.classList.add('active'); });
         }
 
-        // === قائمة كل دول العالم (الأساسية) ===
-        const allCountries = [
-            { name: 'Afghanistan', code: '+93' }, { name: 'Albania', code: '+355' }, { name: 'Algeria', code: '+213' },
-            { name: 'Andorra', code: '+376' }, { name: 'Angola', code: '+244' }, { name: 'Argentina', code: '+54' },
-            { name: 'Armenia', code: '+374' }, { name: 'Australia', code: '+61' }, { name: 'Austria', code: '+43' },
-            { name: 'Azerbaijan', code: '+994' }, { name: 'Bahamas', code: '+1-242' }, { name: 'Bahrain', code: '+973' },
-            { name: 'Bangladesh', code: '+880' }, { name: 'Barbados', code: '+1-246' }, { name: 'Belarus', code: '+375' },
-            { name: 'Belgium', code: '+32' }, { name: 'Belize', code: '+501' }, { name: 'Benin', code: '+229' },
-            { name: 'Bhutan', code: '+975' }, { name: 'Bolivia', code: '+591' }, { name: 'Bosnia and Herzegovina', code: '+387' },
-            { name: 'Botswana', code: '+267' }, { name: 'Brazil', code: '+55' }, { name: 'Brunei', code: '+673' },
-            { name: 'Bulgaria', code: '+359' }, { name: 'Burkina Faso', code: '+226' }, { name: 'Burundi', code: '+257' },
-            { name: 'Cambodia', code: '+855' }, { name: 'Cameroon', code: '+237' }, { name: 'Canada', code: '+1' },
-            { name: 'Chad', code: '+235' }, { name: 'Chile', code: '+56' }, { name: 'China', code: '+86' },
-            { name: 'Colombia', code: '+57' }, { name: 'Comoros', code: '+269' }, { name: 'Congo', code: '+242' },
-            { name: 'Costa Rica', code: '+506' }, { name: 'Croatia', code: '+385' }, { name: 'Cuba', code: '+53' },
-            { name: 'Cyprus', code: '+357' }, { name: 'Czech Republic', code: '+420' }, { name: 'Denmark', code: '+45' },
-            { name: 'Djibouti', code: '+253' }, { name: 'Dominica', code: '+1-767' }, { name: 'Dominican Republic', code: '+1-809' },
-            { name: 'Ecuador', code: '+593' }, { name: 'Egypt', code: '+20' }, { name: 'El Salvador', code: '+503' },
-            { name: 'Estonia', code: '+372' }, { name: 'Ethiopia', code: '+251' }, { name: 'Fiji', code: '+679' },
-            { name: 'Finland', code: '+358' }, { name: 'France', code: '+33' }, { name: 'Gabon', code: '+241' },
-            { name: 'Gambia', code: '+220' }, { name: 'Georgia', code: '+995' }, { name: 'Germany', code: '+49' },
-            { name: 'Ghana', code: '+233' }, { name: 'Greece', code: '+30' }, { name: 'Grenada', code: '+1-473' },
-            { name: 'Guatemala', code: '+502' }, { name: 'Guinea', code: '+224' }, { name: 'Guyana', code: '+592' },
-            { name: 'Haiti', code: '+509' }, { name: 'Honduras', code: '+504' }, { name: 'Hungary', code: '+36' },
-            { name: 'Iceland', code: '+354' }, { name: 'India', code: '+91' }, { name: 'Indonesia', code: '+62' },
-            { name: 'Iran', code: '+98' }, { name: 'Iraq', code: '+964' }, { name: 'Ireland', code: '+353' },
-            { name: 'Israel', code: '+972' }, { name: 'Italy', code: '+39' }, { name: 'Jamaica', code: '+1-876' },
-            { name: 'Japan', code: '+81' }, { name: 'Jordan', code: '+962' }, { name: 'Kazakhstan', code: '+7' },
-            { name: 'Kenya', code: '+254' }, { name: 'Kuwait', code: '+965' }, { name: 'Kyrgyzstan', code: '+996' },
-            { name: 'Laos', code: '+856' }, { name: 'Latvia', code: '+371' }, { name: 'Lebanon', code: '+961' },
-            { name: 'Libya', code: '+218' }, { name: 'Liechtenstein', code: '+423' }, { name: 'Lithuania', code: '+370' },
-            { name: 'Luxembourg', code: '+352' }, { name: 'Madagascar', code: '+261' }, { name: 'Malaysia', code: '+60' },
-            { name: 'Maldives', code: '+960' }, { name: 'Mali', code: '+223' }, { name: 'Malta', code: '+356' },
-            { name: 'Mauritania', code: '+222' }, { name: 'Mauritius', code: '+230' }, { name: 'Mexico', code: '+52' },
-            { name: 'Monaco', code: '+377' }, { name: 'Mongolia', code: '+976' }, { name: 'Montenegro', code: '+382' },
-            { name: 'Morocco', code: '+212' }, { name: 'Mozambique', code: '+258' }, { name: 'Myanmar', code: '+95' },
-            { name: 'Namibia', code: '+264' }, { name: 'Nepal', code: '+977' }, { name: 'Netherlands', code: '+31' },
-            { name: 'New Zealand', code: '+64' }, { name: 'Nicaragua', code: '+505' }, { name: 'Niger', code: '+227' },
-            { name: 'Nigeria', code: '+234' }, { name: 'North Korea', code: '+850' }, { name: 'Norway', code: '+47' },
-            { name: 'Oman', code: '+968' }, { name: 'Pakistan', code: '+92' }, { name: 'Palestine', code: '+970' },
-            { name: 'Panama', code: '+507' }, { name: 'Paraguay', code: '+595' }, { name: 'Peru', code: '+51' },
-            { name: 'Philippines', code: '+63' }, { name: 'Poland', code: '+48' }, { name: 'Portugal', code: '+351' },
-            { name: 'Qatar', code: '+974' }, { name: 'Romania', code: '+40' }, { name: 'Russia', code: '+7' },
-            { name: 'Rwanda', code: '+250' }, { name: 'Saudi Arabia', code: '+966' }, { name: 'Senegal', code: '+221' },
-            { name: 'Serbia', code: '+381' }, { name: 'Singapore', code: '+65' }, { name: 'Slovakia', code: '+421' },
-            { name: 'Slovenia', code: '+386' }, { name: 'Somalia', code: '+252' }, { name: 'South Africa', code: '+27' },
-            { name: 'South Korea', code: '+82' }, { name: 'Spain', code: '+34' }, { name: 'Sri Lanka', code: '+94' },
-            { name: 'Sudan', code: '+249' }, { name: 'Sweden', code: '+46' }, { name: 'Switzerland', code: '+41' },
-            { name: 'Syria', code: '+963' }, { name: 'Taiwan', code: '+886' }, { name: 'Tajikistan', code: '+992' },
-            { name: 'Tanzania', code: '+255' }, { name: 'Thailand', code: '+66' }, { name: 'Tunisia', code: '+216' },
-            { name: 'Turkey', code: '+90' }, { name: 'Turkmenistan', code: '+993' }, { name: 'Uganda', code: '+256' },
-            { name: 'Ukraine', code: '+380' }, { name: 'United Arab Emirates', code: '+971' }, { name: 'United Kingdom', code: '+44' },
-            { name: 'United States', code: '+1' }, { name: 'Uruguay', code: '+598' }, { name: 'Uzbekistan', code: '+998' },
-            { name: 'Venezuela', code: '+58' }, { name: 'Vietnam', code: '+84' }, { name: 'Yemen', code: '+967' },
-            { name: 'Zambia', code: '+260' }, { name: 'Zimbabwe', code: '+263' }
-        ];
+        // ===== ✅ إصلاح #9 و #10: تحميل الدول مع حالة خطأ + أكواد اتصال صحيحة =====
+        let allCountries = [];
+        let countriesLoaded = false;
+        let countriesError = false;
+
+        async function loadCountries() {
+            countriesError = false;
+            try {
+                const res = await fetch('https://restcountries.com/v3.1/all?fields=name,idd');
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                allCountries = data.map(country => {
+                    const idd = country.idd || {};
+                    // ✅ إصلاح #10: نضيف اللاحقة فقط إذا كانت واحدة (لتجنب +1201 بدل +1)
+                    let code = '';
+                    if (idd.root) {
+                        code = idd.root + (idd.suffixes && idd.suffixes.length === 1 ? idd.suffixes[0] : '');
+                    }
+                    return { name: country.name?.common || '', code };
+                }).filter(c => c.name && c.code).sort((a, b) => a.name.localeCompare(b.name));
+                countriesLoaded = true;
+                // إن كانت القائمة مفتوحة، أعد رسمها
+                if (document.getElementById('countryDropdown').classList.contains('active')) {
+                    renderCountryList(allCountries);
+                }
+            } catch (e) {
+                console.warn('فشل تحميل الدول:', e);
+                countriesError = true;
+                if (document.getElementById('countryDropdown').classList.contains('active')) {
+                    showCountries();
+                }
+            }
+        }
+        loadCountries();
 
         let selectedCountryIndex = -1;
 
         function showCountries() {
             const dropdown = document.getElementById('countryDropdown');
+            if (!countriesLoaded) {
+                dropdown.innerHTML = countriesError
+                    ? '<div class="country-item" style="color:#ef4444;cursor:pointer;justify-content:center;" onclick="loadCountries()">فشل التحميل — اضغط لإعادة المحاولة</div>'
+                    : '<div class="country-item" style="color:#888;justify-content:center;">جاري تحميل الدول...</div>';
+                dropdown.classList.add('active');
+                return;
+            }
             renderCountryList(allCountries);
             dropdown.classList.add('active');
             selectedCountryIndex = -1;
         }
 
         function filterCountries(val) {
-            const dropdown = document.getElementById('countryDropdown');
-            const search = val.toLowerCase();
-            const filtered = allCountries.filter(c => c.name.toLowerCase().includes(search));
+            if (!countriesLoaded) return;
+            const search = val.toLowerCase().trim();
+            const filtered = search ? allCountries.filter(c => c.name.toLowerCase().includes(search)) : allCountries;
             renderCountryList(filtered);
-            dropdown.classList.add('active');
+            document.getElementById('countryDropdown').classList.add('active');
             selectedCountryIndex = -1;
         }
 
+        // ===== ✅ إصلاح #2: عرض آمن بـ data-* بدل inline onclick =====
         function renderCountryList(list) {
             const dropdown = document.getElementById('countryDropdown');
             if (list.length === 0) {
-                dropdown.innerHTML = '<div class="country-item" style="color: #888;">لا توجد نتائج</div>';
+                dropdown.innerHTML = '<div class="country-item" style="color:#888;justify-content:center;">لا توجد نتائج</div>';
                 return;
             }
             dropdown.innerHTML = list.map(c => `
-                <div class="country-item" data-code="${c.code}" data-name="${c.name}" onclick="selectCountry('${c.name}', '${c.code}')">
-                    <span>${c.name}</span>
-                    <span class="code">${c.code}</span>
+                <div class="country-item" data-code="${escapeAttr(c.code)}" data-name="${escapeAttr(c.name)}">
+                    <span>${escapeHtml(c.name)}</span>
+                    <span class="code">${escapeHtml(c.code)}</span>
                 </div>
             `).join('');
         }
+
+        // Event delegation بدل inline onclick
+        document.getElementById('countryDropdown').addEventListener('click', (e) => {
+            const item = e.target.closest('.country-item');
+            if (!item || !item.dataset.name) return;
+            selectCountry(item.dataset.name, item.dataset.code);
+        });
 
         function selectCountry(name, code) {
             document.getElementById('countrySearchInput').value = `${name} (${code})`;
@@ -353,11 +407,12 @@
             syncWhatsApp();
         }
 
+        // ===== ✅ إصلاح #3: Enter يستخدم selectCountry مباشرة =====
         function handleCountryKey(e) {
             const dropdown = document.getElementById('countryDropdown');
             if (!dropdown.classList.contains('active')) return;
-            const items = dropdown.querySelectorAll('.country-item');
-            if (items.length === 0 || items[0].innerText.includes('لا توجد')) return;
+            const items = dropdown.querySelectorAll('.country-item[data-name]');
+            if (items.length === 0) return;
 
             if (e.key === 'ArrowDown') {
                 e.preventDefault();
@@ -370,8 +425,11 @@
             } else if (e.key === 'Enter') {
                 e.preventDefault();
                 if (selectedCountryIndex > -1 && items[selectedCountryIndex]) {
-                    items[selectedCountryIndex].click();
+                    const el = items[selectedCountryIndex];
+                    selectCountry(el.dataset.name, el.dataset.code);
                 }
+            } else if (e.key === 'Escape') {
+                dropdown.classList.remove('active');
             }
         }
 
@@ -387,8 +445,102 @@
             }
         });
 
-        function syncWhatsApp() { document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value; }
-        function copyPhoneToWhatsApp() { document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value; }
+        // ===== ✅ إصلاح #4: syncWhatsApp لا يمسح الرقم المُدخل يدوياً =====
+        function syncWhatsApp() {
+            const w = document.getElementById('userWhatsApp');
+            const current = w.value.trim();
+            // نزامن فقط إن كان الحقل فارغاً أو يحوي كود دولة فقط
+            if (!current || /^\+\d*\s*$/.test(current)) {
+                w.value = document.getElementById('userPhone').value;
+            }
+        }
+
+        // ===== ✅ إصلاح #15: التحقق من صحة البريد وكلمة المرور =====
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        // ===== ✅ إصلاح #6: قراءة الحالة الفعلية + #13: التحقق من token + إرسال الصورة والبصمة =====
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            
+            const userCode = document.getElementById('fastCode').value.trim();
+            const fullName = document.getElementById('userName').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+            const password = document.getElementById('userPassword').value;
+            const phone = document.getElementById('userPhone').value.trim();
+            const whatsapp = document.getElementById('userWhatsApp').value.trim();
+            const wechat = document.getElementById('userWechat').value.trim();
+            const permissions = Array.from(document.querySelectorAll('.perm-card.active')).map(c => c.getAttribute('data-value'));
+            // ✅ إصلاح #6: قراءة الحالة الفعلية
+            const active = document.querySelector('.status-btn.active-green') !== null;
+
+            // التحقق
+            if (!userCode || !fullName || !email || !password) {
+                showCustomAlert('يرجى ملء الحقول الأساسية', true); return;
+            }
+            if (!isValidEmail(email)) {
+                showCustomAlert('صيغة البريد الإلكتروني غير صحيحة', true); return;
+            }
+            if (password.length < 6) {
+                showCustomAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل', true); return;
+            }
+            if (permissions.length === 0) {
+                showCustomAlert('يرجى تحديد صلاحية واحدة على الأقل', true); return;
+            }
+
+            // ✅ إصلاح #13: التحقق من وجود token
+            const token = localStorage.getItem('ione_admin_token');
+            if (!token) {
+                showCustomAlert('انتهت الجلسة، يرجى تسجيل الدخول', true);
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> جاري الحفظ...';
+            lucide.createIcons();
+
+            try {
+                // نستخدم FormData لدعم رفع الصورة
+                const formData = new FormData();
+                formData.append('userCode', userCode);
+                formData.append('full_name', fullName);
+                formData.append('email', email);
+                formData.append('password', password);
+                formData.append('phone', phone);
+                formData.append('whatsapp', whatsapp);
+                formData.append('wechat', wechat);
+                formData.append('permissions', JSON.stringify(permissions));
+                formData.append('role', permissions.includes('admin') ? 'admin' : 'user');
+                formData.append('active', active ? '1' : '0');
+                if (avatarFile) formData.append('avatar', avatarFile);
+                if (window.__faceCredentialId) formData.append('faceCredentialId', window.__faceCredentialId);
+
+                const response = await fetch('/api/users/create', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },  // ✅ لا نضع Content-Type يدوياً مع FormData
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showCustomAlert('تم إضافة المستخدم بنجاح!');
+                    setTimeout(() => window.location.href = 'list.html', 1500);
+                } else {
+                    showCustomAlert('حدث خطأ: ' + (data.error || 'غير معروف'), true);
+                }
+            } catch (error) {
+                console.error(error);
+                showCustomAlert('فشل الاتصال بالسيرفر.', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>
