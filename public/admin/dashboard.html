@@ -54,9 +54,7 @@
         .docked .note-header { cursor: grab; }
         .mac-dots { display: flex; gap: 6px; }
         .mac-dot { width: 10px; height: 10px; border-radius: 50%; }
-        .mac-dot.red { background: #ff5f56; }
-        .mac-dot.yellow { background: #ffbd2e; }
-        .mac-dot.green { background: #27c93f; }
+        .mac-dot.red { background: #ff5f56; } .mac-dot.yellow { background: #ffbd2e; } .mac-dot.green { background: #27c93f; }
         .note-body { padding: 0 12px 12px 12px; flex: 1; display: flex; flex-direction: column; }
         .inner-box { background: #27272a; border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; flex: 1; }
         .note-card textarea { width: 100%; background: transparent; border: none; resize: none; outline: none; font-family: 'Cairo', sans-serif; font-size: 0.9rem; font-weight: 600; color: #fff; line-height: 1.6; margin-bottom: 10px; flex: none; min-height: 40px; overflow-y: hidden; }
@@ -196,6 +194,8 @@
             <a href="ordix/customers.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="users"></i></div>العملاء</a>
             <a href="ordix/products.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="package"></i></div>المنتجات</a>
             <a href="ordix/purchases.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="file-text"></i></div>الفواتير</a>
+            <!-- الرابط الجديد هنا -->
+            <a href="users/list.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="shield-check"></i></div>المستخدمين</a>
             <a href="ordix/settings.html" class="drawer-item"><div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>الإعدادات</a>
         </div>
         <div style="width: 150px;"></div>
@@ -313,7 +313,8 @@
             if (cards.length === 0) {
                 cards = [
                     { id: 'orders', title: 'الطلبات', count: 10, link: 'ordix/orders.html', icon: 'shopping-bag', section: 'top' },
-                    { id: 'customers', title: 'العملاء', count: 150, link: 'ordix/customers.html', icon: 'users', section: 'top' }
+                    { id: 'customers', title: 'العملاء', count: 150, link: 'ordix/customers.html', icon: 'users', section: 'top' },
+                    { id: 'users', title: 'إدارة المستخدمين', count: null, link: 'users/list.html', icon: 'shield-check', section: 'mid' } // البطاقة الجديدة
                 ]; 
             }
 
