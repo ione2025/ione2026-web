@@ -28,15 +28,13 @@
         
         .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
         .form-label { font-size: 0.8rem; font-weight: 700; color: #ccc; display: flex; justify-content: space-between; align-items: center;}
-        /* ✅ إصلاح #11: الحشو الأيسر 40px لأيقونة العين */
         .form-input { width: 100%; padding: 10px 10px 10px 40px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; font-size: 0.9rem; transition: 0.2s; }
         .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
-        /* ✅ إصلاح #12: إزالة margin-top الترقيعي */
         .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; cursor: pointer; width: 20px; height: 20px; }
 
-        .image-upload-box { position: relative; border: 2px dashed var(--glass-border); border-radius: 16px; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; background-color: #000; background-size: cover; background-position: center; transition: 0.3s; flex-shrink: 0; margin-bottom: 5px; overflow: hidden; }
+        .image-upload-box { position: relative; border: 2px dashed var(--glass-border); border-radius: 16px; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; background-color: #000; background-size: contain; background-repeat: no-repeat; background-position: center; transition: 0.3s; flex-shrink: 0; margin-bottom: 5px; overflow: hidden; }
         .image-upload-box:hover { border-color: var(--accent-primary); }
-        .image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%); z-index: 1; }
+        .image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%); z-index: 1; pointer-events: none; }
         .image-upload-content { position: relative; z-index: 2; padding: 10px; display: flex; align-items: center; gap: 8px; color: #fff; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); border-radius: 20px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
         .image-upload-box:hover .image-upload-content { background: rgba(139, 92, 246, 0.8); }
 
@@ -54,15 +52,6 @@
         .perm-card.active { background: rgba(139, 92, 246, 0.15); border-color: var(--accent-primary); color: #fff; }
         .perm-card i { width: 18px; height: 18px; }
         .perm-card span { font-size: 0.65rem; font-weight: bold; text-align: center;}
-
-        .connect-area { display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; flex: 1; overflow: hidden; margin-top: 5px; }
-        .connect-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .connect-title { font-size: 0.85rem; font-weight: bold; color: #fff; }
-        .users-grid-inline { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; overflow-y: auto; padding-right: 5px; padding-top: 5px; }
-        .user-card-inline { position: relative; height: 100px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 3px solid var(--accent-red); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; }
-        .user-card-inline.selected { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
-        .user-card-inline img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .user-card-inline .name-overlay { position: relative; z-index: 2; width: 100%; text-align: center; padding: 5px 2px; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); font-size: 0.7rem; font-weight: bold; color: #fff; }
 
         .action-row { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
         .btn-save { width: 100%; padding: 12px; background: var(--accent-green); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; }
@@ -96,12 +85,13 @@
     </div>
 
     <div class="main-container">
+        <!-- القسم الأول: البيانات الأساسية -->
         <div class="section-card">
             <div class="section-title"><i data-lucide="user"></i> البيانات الأساسية</div>
             
             <div class="form-group">
                 <label class="form-label">كود الدخول السريع <button class="btn-generate" type="button" onclick="generateCode()">توليد تلقائي</button></label>
-                <input type="text" id="fastCode" class="form-input" placeholder="1001" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);">
+                <input type="text" id="fastCode" class="form-input" placeholder="1" oninput="updateLastCode(this.value)" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);">
             </div>
 
             <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="previewImage(event)">
@@ -124,7 +114,7 @@
 
             <div class="form-group">
                 <label class="form-label">البريد الإلكتروني</label>
-                <input type="text" id="userEmail" class="form-input" placeholder="11@qq.com" dir="ltr" style="text-align: left; padding-left: 10px; padding-right: 10px;" required>
+                <input type="text" id="userEmail" class="form-input" placeholder="test@test.com" dir="ltr" style="text-align: left; padding-left: 10px; padding-right: 10px;" required>
             </div>
 
             <div class="form-group">
@@ -134,23 +124,24 @@
             </div>
         </div>
 
+        <!-- القسم الثاني: بيانات الاتصال -->
         <div class="section-card">
             <div class="section-title"><i data-lucide="phone"></i> بيانات الاتصال والارتباط</div>
 
             <div class="form-group country-search-wrapper">
                 <label class="form-label">الدولة</label>
-                <input type="text" id="countrySearchInput" class="form-input" placeholder="اكتب حرف (P) للبحث..." oninput="filterCountries(this.value)" onkeydown="handleCountryKey(event)" onfocus="showCountries()" autocomplete="off">
+                <input type="text" id="countrySearchInput" class="form-input" placeholder="اكتب اسم الدولة..." oninput="filterCountries(this.value)" onkeydown="handleCountryKey(event)" onfocus="showCountries()" onclick="clearCountrySearch()" autocomplete="off">
                 <div class="country-dropdown" id="countryDropdown"></div>
             </div>
 
             <div class="form-group">
                 <label class="form-label">رقم الهاتف</label>
-                <input type="text" id="userPhone" class="form-input" placeholder="50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;">
+                <input type="text" id="userPhone" class="form-input" placeholder="50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;" oninput="autoSyncWhatsApp()">
             </div>
 
             <div class="form-group">
                 <label class="form-label">رقم الواتساب</label>
-                <input type="text" id="userWhatsApp" class="form-input" placeholder="+966 50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;">
+                <input type="text" id="userWhatsApp" class="form-input" placeholder="+966 50 123 4567" style="text-align: left; direction: ltr; padding-left: 10px; padding-right: 10px;" oninput="markWhatsAppEdited()">
             </div>
 
             <div class="form-group">
@@ -165,17 +156,9 @@
                     <button class="status-btn" type="button" onclick="setStatus(this, 'inactive')"><i data-lucide="x-circle"></i> معطل</button>
                 </div>
             </div>
-
-            <div class="connect-area">
-                <div class="connect-header">
-                    <div class="connect-title">يتصل بـ (التبعية الإدارية)</div>
-                </div>
-                <div class="users-grid-inline" id="inlineUsersGrid">
-                    <p style="color:#888; font-size:0.8rem;">جاري تحميل المستخدمين...</p>
-                </div>
-            </div>
         </div>
 
+        <!-- القسم الثالث: الصلاحيات -->
         <div class="section-card">
             <div class="section-title"><i data-lucide="shield-check"></i> الصلاحيات</div>
             
@@ -205,13 +188,11 @@
     <script>
         lucide.createIcons();
 
-        // ===== أدوات مساعدة آمنة =====
         function escapeHtml(s) {
             return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
         }
         function escapeAttr(s) { return escapeHtml(s); }
 
-        // ===== 1. تحميل بيانات الأدمن =====
         const adminName = localStorage.getItem('userName') || 'المدير';
         const adminRole = localStorage.getItem('userRole') || 'Admin';
         const adminAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=8b5cf6&color=fff`;
@@ -219,29 +200,37 @@
         document.getElementById('headerUserRole').innerText = adminRole;
         document.getElementById('headerUserAvatar').src = adminAvatar;
 
-        // ===== ✅ إصلاح #1: showCustomAlert آمن ضد XSS ومتعدد الاستدعاء =====
         let alertTimer = null;
         function showCustomAlert(msg, isError = false) {
             const alertBox = document.getElementById('customAlert');
             alertBox.className = 'custom-alert show' + (isError ? ' error' : '');
             alertBox.innerHTML = `<i data-lucide="${isError ? 'alert-circle' : 'check-circle'}"></i><span id="alertText"></span>`;
-            alertBox.querySelector('#alertText').textContent = msg;  // ✅ textContent آمن
+            alertBox.querySelector('#alertText').textContent = msg;
             lucide.createIcons();
             clearTimeout(alertTimer);
             alertTimer = setTimeout(() => alertBox.classList.remove('show'), 3000);
         }
 
-        // ===== كود الدخول =====
-        function generateCode() { document.getElementById('fastCode').value = Math.floor(1000 + Math.random() * 9000); }
+        function generateCode() {
+            let lastCode = parseInt(localStorage.getItem('lastUserCode')) || 0;
+            lastCode++; 
+            document.getElementById('fastCode').value = lastCode;
+            localStorage.setItem('lastUserCode', lastCode); 
+        }
+
+        function updateLastCode(val) {
+            if (val && !isNaN(val)) {
+                localStorage.setItem('lastUserCode', parseInt(val));
+            }
+        }
+
         generateCode();
 
-        // ===== ✅ إصلاح #7: حفظ ملف الصورة للإرسال =====
         let avatarFile = null;
         function previewImage(event) {
             const file = event.target.files[0];
             if (!file) return;
             if (!file.type.startsWith('image/')) { showCustomAlert('الملف ليس صورة صالحة', true); return; }
-            if (file.size > 5 * 1024 * 1024) { showCustomAlert('حجم الصورة أكبر من 5 ميجابايت', true); return; }
             avatarFile = file;
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -250,7 +239,6 @@
             reader.readAsDataURL(file);
         }
 
-        // ===== ✅ إصلاح #8: بصمة وجه حقيقية عبر WebAuthn =====
         async function startFaceID() {
             if (!window.PublicKeyCredential) { showCustomAlert('جهازك لا يدعم بصمة الوجه.', true); return; }
             try {
@@ -266,21 +254,13 @@
                     publicKey: {
                         challenge: crypto.getRandomValues(new Uint8Array(32)),
                         rp: { name: 'IONECENTER' },
-                        user: {
-                            id: crypto.getRandomValues(new Uint8Array(16)),
-                            name: email,
-                            displayName: fullName
-                        },
+                        user: { id: crypto.getRandomValues(new Uint8Array(16)), name: email, displayName: fullName },
                         pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-                        authenticatorSelection: {
-                            authenticatorAttachment: 'platform',
-                            userVerification: 'required'
-                        },
+                        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
                         timeout: 60000
                     }
                 });
                 if (cred) {
-                    // نحفظ credential id مؤقتاً للإرسال مع الطلب
                     window.__faceCredentialId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
                     showCustomAlert('تم تفعيل بصمة الوجه بنجاح!');
                 }
@@ -292,7 +272,6 @@
             }
         }
 
-        // ===== كلمة المرور =====
         function togglePassword() {
             const input = document.getElementById('userPassword');
             const icon = document.getElementById('togglePass');
@@ -301,7 +280,6 @@
             lucide.createIcons();
         }
 
-        // ===== الحالة =====
         function setStatus(btn, type) {
             const btns = btn.parentElement.querySelectorAll('.status-btn');
             btns.forEach(b => b.className = 'status-btn');
@@ -309,7 +287,6 @@
             else btn.classList.add('active-red');
         }
 
-        // ===== الصلاحيات =====
         function togglePerm(card) { card.classList.toggle('active'); }
         function toggleAllPerms() {
             const cards = document.querySelectorAll('.perm-card');
@@ -317,7 +294,6 @@
             cards.forEach(c => { if (allActive) c.classList.remove('active'); else c.classList.add('active'); });
         }
 
-        // ===== ✅ إصلاح #9 و #10: تحميل الدول مع حالة خطأ + أكواد اتصال صحيحة =====
         let allCountries = [];
         let countriesLoaded = false;
         let countriesError = false;
@@ -325,20 +301,17 @@
         async function loadCountries() {
             countriesError = false;
             try {
-                const res = await fetch('https://restcountries.com/v3.1/all?fields=name,idd');
+                const res = await fetch('https://countriesnow.space/api/v0.1/countries/codes');
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
-                allCountries = data.map(country => {
-                    const idd = country.idd || {};
-                    // ✅ إصلاح #10: نضيف اللاحقة فقط إذا كانت واحدة (لتجنب +1201 بدل +1)
-                    let code = '';
-                    if (idd.root) {
-                        code = idd.root + (idd.suffixes && idd.suffixes.length === 1 ? idd.suffixes[0] : '');
-                    }
-                    return { name: country.name?.common || '', code };
-                }).filter(c => c.name && c.code).sort((a, b) => a.name.localeCompare(b.name));
+                if (data.error) throw new Error('API Error');
+
+                allCountries = data.data.map(country => ({
+                    name: country.name,
+                    code: '+' + country.dial_code.replace('+', '')
+                })).filter(c => c.name && c.code).sort((a, b) => a.name.localeCompare(b.name));
+                
                 countriesLoaded = true;
-                // إن كانت القائمة مفتوحة، أعد رسمها
                 if (document.getElementById('countryDropdown').classList.contains('active')) {
                     renderCountryList(allCountries);
                 }
@@ -354,6 +327,14 @@
 
         let selectedCountryIndex = -1;
 
+        function clearCountrySearch() {
+            const input = document.getElementById('countrySearchInput');
+            if (input.value) {
+                input.value = '';
+                filterCountries('');
+            }
+        }
+
         function showCountries() {
             const dropdown = document.getElementById('countryDropdown');
             if (!countriesLoaded) {
@@ -368,16 +349,19 @@
             selectedCountryIndex = -1;
         }
 
+        // ===== تعديل دالة الفلترة لتبحث في بداية الاسم فقط =====
         function filterCountries(val) {
             if (!countriesLoaded) return;
             const search = val.toLowerCase().trim();
-            const filtered = search ? allCountries.filter(c => c.name.toLowerCase().includes(search)) : allCountries;
+            
+            // نستخدم startsWith للبحث عن الدول التي تبدأ بالحرف المكتوب فقط
+            const filtered = search ? allCountries.filter(c => c.name.toLowerCase().startsWith(search)) : allCountries;
+            
             renderCountryList(filtered);
             document.getElementById('countryDropdown').classList.add('active');
             selectedCountryIndex = -1;
         }
 
-        // ===== ✅ إصلاح #2: عرض آمن بـ data-* بدل inline onclick =====
         function renderCountryList(list) {
             const dropdown = document.getElementById('countryDropdown');
             if (list.length === 0) {
@@ -392,7 +376,6 @@
             `).join('');
         }
 
-        // Event delegation بدل inline onclick
         document.getElementById('countryDropdown').addEventListener('click', (e) => {
             const item = e.target.closest('.country-item');
             if (!item || !item.dataset.name) return;
@@ -402,12 +385,14 @@
         function selectCountry(name, code) {
             document.getElementById('countrySearchInput').value = `${name} (${code})`;
             document.getElementById('userPhone').value = code + ' ';
+            
+            isWhatsAppManuallyEdited = false;
+            document.getElementById('userWhatsApp').value = code + ' '; 
+
             document.getElementById('countryDropdown').classList.remove('active');
             document.getElementById('userPhone').focus();
-            syncWhatsApp();
         }
 
-        // ===== ✅ إصلاح #3: Enter يستخدم selectCountry مباشرة =====
         function handleCountryKey(e) {
             const dropdown = document.getElementById('countryDropdown');
             if (!dropdown.classList.contains('active')) return;
@@ -445,22 +430,18 @@
             }
         });
 
-        // ===== ✅ إصلاح #4: syncWhatsApp لا يمسح الرقم المُدخل يدوياً =====
-        function syncWhatsApp() {
-            const w = document.getElementById('userWhatsApp');
-            const current = w.value.trim();
-            // نزامن فقط إن كان الحقل فارغاً أو يحوي كود دولة فقط
-            if (!current || /^\+\d*\s*$/.test(current)) {
-                w.value = document.getElementById('userPhone').value;
+        let isWhatsAppManuallyEdited = false;
+
+        function autoSyncWhatsApp() {
+            if (!isWhatsAppManuallyEdited) {
+                document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value;
             }
         }
 
-        // ===== ✅ إصلاح #15: التحقق من صحة البريد وكلمة المرور =====
-        function isValidEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        function markWhatsAppEdited() {
+            isWhatsAppManuallyEdited = true;
         }
 
-        // ===== ✅ إصلاح #6: قراءة الحالة الفعلية + #13: التحقق من token + إرسال الصورة والبصمة =====
         document.getElementById('saveBtn').addEventListener('click', async () => {
             const btn = document.getElementById('saveBtn');
             const originalText = btn.innerHTML;
@@ -473,28 +454,15 @@
             const whatsapp = document.getElementById('userWhatsApp').value.trim();
             const wechat = document.getElementById('userWechat').value.trim();
             const permissions = Array.from(document.querySelectorAll('.perm-card.active')).map(c => c.getAttribute('data-value'));
-            // ✅ إصلاح #6: قراءة الحالة الفعلية
             const active = document.querySelector('.status-btn.active-green') !== null;
 
-            // التحقق
-            if (!userCode || !fullName || !email || !password) {
-                showCustomAlert('يرجى ملء الحقول الأساسية', true); return;
-            }
-            if (!isValidEmail(email)) {
-                showCustomAlert('صيغة البريد الإلكتروني غير صحيحة', true); return;
-            }
-            if (password.length < 6) {
-                showCustomAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل', true); return;
-            }
-            if (permissions.length === 0) {
-                showCustomAlert('يرجى تحديد صلاحية واحدة على الأقل', true); return;
-            }
+            if (!userCode || !fullName || !email || !password) { showCustomAlert('يرجى ملء الحقول الأساسية', true); return; }
+            if (permissions.length === 0) { showCustomAlert('يرجى تحديد صلاحية واحدة على الأقل', true); return; }
 
-            // ✅ إصلاح #13: التحقق من وجود token
             const token = localStorage.getItem('ione_admin_token');
             if (!token) {
                 showCustomAlert('انتهت الجلسة، يرجى تسجيل الدخول', true);
-                setTimeout(() => window.location.href = 'login.html', 1500);
+                setTimeout(() => window.location.href = '../login.html', 1500);
                 return;
             }
 
@@ -503,25 +471,24 @@
             lucide.createIcons();
 
             try {
-                // نستخدم FormData لدعم رفع الصورة
-                const formData = new FormData();
-                formData.append('userCode', userCode);
-                formData.append('full_name', fullName);
-                formData.append('email', email);
-                formData.append('password', password);
-                formData.append('phone', phone);
-                formData.append('whatsapp', whatsapp);
-                formData.append('wechat', wechat);
-                formData.append('permissions', JSON.stringify(permissions));
-                formData.append('role', permissions.includes('admin') ? 'admin' : 'user');
-                formData.append('active', active ? '1' : '0');
-                if (avatarFile) formData.append('avatar', avatarFile);
-                if (window.__faceCredentialId) formData.append('faceCredentialId', window.__faceCredentialId);
-
                 const response = await fetch('/api/users/create', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },  // ✅ لا نضع Content-Type يدوياً مع FormData
-                    body: formData
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({
+                        userCode: userCode,
+                        full_name: fullName,
+                        email: email,
+                        password: password,
+                        phone: phone,
+                        whatsapp: whatsapp,
+                        wechat: wechat,
+                        permissions: permissions,
+                        role: permissions.includes('admin') ? 'admin' : 'user',
+                        active: active
+                    })
                 });
 
                 const data = await response.json();
