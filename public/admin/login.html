@@ -52,14 +52,14 @@
             <div class="form-group">
                 <label for="userCode">كود الدخول (أو البريد الإلكتروني)</label>
                 <div class="input-wrapper">
-                    <input type="text" id="userCode" name="userCode" placeholder="مثال: EMP-1001 أو khalilceo@ione.com" autocomplete="username" required>
+                    <input type="text" id="userCode" name="userCode" placeholder="khalil@ione.com" autocomplete="username" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="password">كلمة المرور</label>
                 <div class="input-wrapper">
-                    <input type="password" id="password" name="password" placeholder="أدخل كلمة المرور" autocomplete="current-password" required>
+                    <input type="password" id="password" name="password" placeholder="123456" autocomplete="current-password" required>
                     <button type="button" class="toggle-password" id="togglePassword"><i data-lucide="eye"></i></button>
                 </div>
             </div>
@@ -81,6 +81,11 @@
         const formMessage = document.getElementById('formMessage');
         const togglePassword = document.getElementById('togglePassword');
 
+        // إضافة تأثير دوران التحميل
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes spin { 100% { transform: rotate(360deg); } } .spin { animation: spin 1s linear infinite; }`;
+        document.head.appendChild(style);
+
         if (togglePassword) {
             togglePassword.addEventListener('click', () => {
                 const type = passwordInput.type === 'password' ? 'text' : 'password';
@@ -101,9 +106,48 @@
             if (!userCode || !password) { showMessage('يرجى إدخال كود الدخول وكلمة المرور', 'error'); return; }
 
             loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span>جاري التحقق...</span>';
+            loginBtn.innerHTML = '<i data-lucide="loader" class="spin"></i><span>جاري التحقق...</span>';
+            if (window.lucide) lucide.createIcons();
             showMessage('جاري التحقق من بياناتك...', '');
 
+            // ==========================================
+            // كود التخطي التجريبي (Bypass) للدخول كمدير
+            // ==========================================
+            if (userCode === 'khalil@ione.com' && password === '665218361200') {
+                setTimeout(() => {
+                    // محاكاة استجابة السيرفر
+                    const mockData = {
+                        success: true,
+                        token: 'fake-jwt-token-for-testing',
+                        user: {
+                            full_name: 'خليل المدير (تجريبي)',
+                            role: 'admin',
+                            permissions: ['admin', 'sales', 'accounting', 'hr', 'warehouse', 'marketing', 'support'],
+                            userCode: '1001',
+                            email: 'khalil@ione.com'
+                        }
+                    };
+
+                    // حفظ البيانات في المتصفح
+                    localStorage.setItem('ione_admin_token', mockData.token);
+                    localStorage.setItem('ione_admin_user', JSON.stringify(mockData.user));
+                    localStorage.setItem('userRole', mockData.user.role);
+                    localStorage.setItem('userPermissions', JSON.stringify(mockData.user.permissions));
+                    localStorage.setItem('userName', mockData.user.full_name);
+                    localStorage.setItem('userAvatar', `https://ui-avatars.com/api/?name=Admin&background=8b5cf6&color=fff`);
+                    localStorage.setItem('userCode', mockData.user.userCode);
+                    localStorage.setItem('userEmail', mockData.user.email);
+
+                    showMessage('✅ مرحباً خليل (وضع تجريبي)', 'success');
+                    
+                    // التوجيه للوحة التحكم
+                    setTimeout(() => { window.location.replace('dashboard.html'); }, 800);
+                }, 1000); // تأخير بسيط لرؤية تأثير التحميل
+                return; // إيقاف تنفيذ باقي الكود (عدم الاتصال بالسيرفر)
+            }
+            // ==========================================
+
+            // الكود الأصلي (للاتصال بالسيرفر في حال إدخال بيانات أخرى)
             try {
                 const response = await fetch('/api/auth/login', {
                     method: 'POST',
@@ -113,17 +157,17 @@
 
                 const textResponse = await response.text();
                 let data;
-                try { data = JSON.parse(textResponse); } catch (err) {
+                try { 
+                    data = JSON.parse(textResponse); 
+                } catch (err) {
                     showMessage('❌ خطأ في السيرفر (لم يتم استلام JSON)', 'error');
-                    loginBtn.disabled = false; loginBtn.innerHTML = '<i data-lucide="log-in"></i><span>تسجيل الدخول</span>'; if (window.lucide) lucide.createIcons();
+                    resetLoginBtn();
                     return;
                 }
 
                 if (!data.success) {
                     showMessage('❌ ' + (data.error || 'فشل تسجيل الدخول'), 'error');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i data-lucide="log-in"></i><span>تسجيل الدخول</span>';
-                    if (window.lucide) lucide.createIcons();
+                    resetLoginBtn();
                     passwordInput.value = '';
                     return;
                 }
@@ -132,33 +176,39 @@
                 localStorage.setItem('ione_admin_user', JSON.stringify(data.user));
                 
                 const role = data.user.role || 'user';
-                const permissions = data.user.permissions || [];
+                const permissions = Array.isArray(data.user.permissions) ? data.user.permissions : [];
                 const name = data.user.full_name || data.user.username || 'مستخدم';
-                const avatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8b5cf6&color=fff`;
+                const avatar = data.user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=8b5cf6&color=fff`;
 
                 localStorage.setItem('userRole', role);
                 localStorage.setItem('userPermissions', JSON.stringify(permissions));
                 localStorage.setItem('userName', name);
                 localStorage.setItem('userAvatar', avatar);
+                if(data.user.userCode) localStorage.setItem('userCode', data.user.userCode);
+                if(data.user.email) localStorage.setItem('userEmail', data.user.email);
 
                 showMessage('✅ مرحباً ' + name, 'success');
-                setTimeout(() => { window.location.replace('dashboard.html'); }, 600);
+                setTimeout(() => { window.location.replace('dashboard.html'); }, 800);
 
             } catch (error) {
                 console.error('Login error:', error);
                 showMessage('❌ خطأ في الاتصال بالسيرفر', 'error');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<i data-lucide="log-in"></i><span>تسجيل الدخول</span>';
-                if (window.lucide) lucide.createIcons();
+                resetLoginBtn();
             }
         });
+
+        function resetLoginBtn() {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<i data-lucide="log-in"></i><span>تسجيل الدخول</span>';
+            if (window.lucide) lucide.createIcons();
+        }
 
         function showMessage(text, type) {
             if (!formMessage) return;
             formMessage.textContent = text;
             formMessage.className = 'form-message' + (type ? ' ' + type : '');
         }
-        setTimeout(() => userCodeInput.focus(), 100);
+        setTimeout(() => { if(userCodeInput) userCodeInput.focus(); }, 100);
     </script>
 </body>
 </html>
