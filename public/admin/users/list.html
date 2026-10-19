@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IONECENTER — إدارة المستخدمين</title>
+    <title>معاينة - إدارة المستخدمين</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -24,7 +24,6 @@
         .btn-add { background: var(--accent-primary); color: white; padding: 8px 16px; border-radius: 10px; text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 5px; font-size: 0.9rem; transition: 0.2s; }
         
         .main-container { flex: 1; display: flex; padding: 20px 30px; overflow: hidden; }
-        /* تصغير حجم البطاقات */
         .users-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; width: 100%; overflow-y: auto; padding: 5px; align-content: start; }
         .users-grid::-webkit-scrollbar { width: 0px; }
 
@@ -59,35 +58,37 @@
     <div class="top-header">
         <a href="#" class="user-profile-header">
             <div class="user-info-header">
-                <div class="user-name-header" id="headerUserName">جاري التحميل...</div>
-                <div class="user-role-header" id="headerUserRole">...</div>
+                <div class="user-name-header">خليل المدير</div>
+                <div class="user-role-header">CEO</div>
             </div>
-            <img src="" alt="Admin" class="user-avatar-header" id="headerUserAvatar">
+            <img src="https://ui-avatars.com/api/?name=Khalil&background=8b5cf6&color=fff" alt="Admin" class="user-avatar-header">
         </a>
         
         <div style="display: flex; gap: 10px;">
-            <a href="../../dashboard.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
-            <a href="create.html" class="btn-add"><i data-lucide="user-plus"></i> إضافة مستخدم</a>
+            <a href="#" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+            <a href="#" class="btn-add"><i data-lucide="user-plus"></i> إضافة مستخدم</a>
         </div>
     </div>
 
     <div class="main-container">
         <div class="users-grid" id="usersGrid">
-            <p style="color:#888; grid-column: 1/-1; text-align: center; margin-top: 50px;">جاري تحميل المستخدمين...</p>
+            <!-- سيتم توليد البطاقات هنا -->
         </div>
     </div>
 
     <script>
         lucide.createIcons();
 
-        const currentUserName = localStorage.getItem('userName') || 'المدير';
-        const currentUserRole = localStorage.getItem('userRole') || 'Admin';
-        const currentUserAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=8b5cf6&color=fff`;
-        document.getElementById('headerUserName').innerText = currentUserName;
-        document.getElementById('headerUserRole').innerText = currentUserRole;
-        document.getElementById('headerUserAvatar').src = currentUserAvatar;
-
-        const isAdmin = currentUserRole.toLowerCase() === 'admin' || currentUserRole.toLowerCase() === 'ceo';
+        // بيانات وهمية للمعاينة فقط
+        const dummyUsers = [
+            { id: '1', full_name: 'خليل المدير', role: 'ceo', isAdmin: true },
+            { id: '3', full_name: 'عابد', role: 'sales', isAdmin: false },
+            { id: '5', full_name: 'نور', role: 'accounting', isAdmin: false },
+            { id: '1002', full_name: 'محمد', role: 'warehouse', isAdmin: false },
+            { id: '1003', full_name: 'سارة', role: 'hr', isAdmin: false },
+            { id: '1004', full_name: 'علي', role: 'support', isAdmin: false },
+            { id: '1005', full_name: 'لينا', role: 'marketing', isAdmin: false }
+        ];
 
         function showCustomAlert(msg, isError = false) {
             const alertBox = document.getElementById('customAlert');
@@ -97,86 +98,54 @@
             setTimeout(() => alertBox.classList.remove('show'), 3000);
         }
 
-        // جلب المستخدمين
-        async function loadUsers() {
-            const token = localStorage.getItem('ione_admin_token');
+        function renderUsers() {
             const grid = document.getElementById('usersGrid');
+            // نعتبر المستخدم الحالي أدمن للمعاينة
+            const isAdmin = true; 
             
-            try {
-                const res = await fetch('/api/users/list', { headers: { 'Authorization': `Bearer ${token}` } });
-                const data = await res.json();
+            grid.innerHTML = dummyUsers.map(u => {
+                const imgUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name)}&background=random&size=300`;
+                const deleteBtnClass = isAdmin ? 'action-btn delete' : 'action-btn delete hide-delete';
                 
-                if (data.success && data.users.length > 0) {
-                    grid.innerHTML = data.users.map(u => {
-                        const imgUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name)}&background=random&size=300`;
-                        const deleteBtnClass = isAdmin ? 'action-btn delete' : 'action-btn delete hide-delete';
-                        
-                        return `
-                        <div class="user-card" onclick="openUserModal('${u.userCode || u.email}', '${u.full_name}', '${u.role}')">
-                            <img src="${imgUrl}" alt="${u.full_name}">
-                            <div class="card-overlay"></div>
-                            
-                            <div class="action-buttons">
-                                <button class="${deleteBtnClass}" onclick="deleteUser(event, '${u.userCode || u.email}', '${u.full_name}')" title="حذف">
-                                    <i data-lucide="trash-2"></i>
-                                </button>
-                                <button class="action-btn edit" onclick="editUser(event, '${u.userCode || u.email}')" title="تعديل">
-                                    <i data-lucide="pencil"></i>
-                                </button>
-                            </div>
-
-                            <div class="card-info">
-                                <div class="user-name">${u.full_name}</div>
-                                <div class="user-role">${u.role}</div>
-                            </div>
-                        </div>
-                        `;
-                    }).join('');
-                } else {
-                    grid.innerHTML = '<p style="color:#888; grid-column: 1/-1; text-align: center; margin-top: 50px;">لا يوجد مستخدمون حالياً.</p>';
-                }
-                lucide.createIcons();
-            } catch (error) {
-                grid.innerHTML = '<p style="color:#ef4444; grid-column: 1/-1; text-align: center; margin-top: 50px;">حدث خطأ في الاتصال بالسيرفر.</p>';
-            }
-        }
-
-        // دالة الحذف الحقيقية
-        async function deleteUser(event, id, name) {
-            event.stopPropagation();
-            if (!isAdmin) { showCustomAlert('لا تملك صلاحية الحذف', true); return; }
-            
-            if(confirm(`هل أنت متأكد من حذف المستخدم: ${name}؟`)) {
-                const token = localStorage.getItem('ione_admin_token');
-                try {
-                    const res = await fetch('/api/users/delete', { 
-                        method: 'POST', 
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
-                        body: JSON.stringify({ id: id }) 
-                    });
-                    const data = await res.json();
+                return `
+                <div class="user-card">
+                    <img src="${imgUrl}" alt="${u.full_name}">
+                    <div class="card-overlay"></div>
                     
-                    if(data.success) {
-                        showCustomAlert('تم الحذف بنجاح');
-                        loadUsers(); 
-                    } else {
-                        showCustomAlert(data.error || 'فشل الحذف', true);
-                    }
-                } catch(e) { showCustomAlert('فشل الاتصال', true); }
+                    <div class="action-buttons">
+                        <button class="${deleteBtnClass}" onclick="deleteUser(event, '${u.id}', '${u.full_name}')" title="حذف">
+                            <i data-lucide="trash-2"></i>
+                        </button>
+                        <button class="action-btn edit" onclick="editUser(event, '${u.id}')" title="تعديل">
+                            <i data-lucide="pencil"></i>
+                        </button>
+                    </div>
+
+                    <div class="card-info">
+                        <div class="user-name">${u.full_name}</div>
+                        <div class="user-role">${u.role}</div>
+                    </div>
+                </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        // دالة الحذف (وهمية للمعاينة)
+        function deleteUser(event, id, name) {
+            event.stopPropagation();
+            if(confirm(`هل أنت متأكد من حذف المستخدم: ${name}؟ (هذه معاينة فقط)`)) {
+                showCustomAlert('تم الحذف بنجاح (محاكاة)');
             }
         }
 
-        // دالة التعديل
+        // دالة التعديل (وهمية للمعاينة)
         function editUser(event, id) {
             event.stopPropagation();
-            window.location.href = `edit.html?id=${id}`;
+            showCustomAlert(`سيتم فتح صفحة تعديل المستخدم: ${id}`);
         }
 
-        function openUserModal(id, name, role) {
-            console.log('User Details:', name);
-        }
-
-        window.onload = loadUsers;
+        window.onload = renderUsers;
     </script>
 </body>
 </html>
