@@ -41,7 +41,7 @@
         .main-container { flex: 1; display: flex; padding: 20px 30px; overflow: hidden; }
         .users-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* تصغير الحجم */
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px; 
             width: 100%; 
             overflow-y: auto; 
@@ -51,69 +51,35 @@
         .users-grid::-webkit-scrollbar { width: 0px; }
 
         /* البطاقة */
-        .user-card { 
-            position: relative; 
-            height: 200px; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            cursor: pointer; 
-            border: 2px solid transparent;
-            transition: 0.3s;
-            background: #111;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-        .user-card:hover { 
-            transform: translateY(-5px); 
-            border-color: var(--accent-primary); 
-            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3); 
-        }
-        
-        /* صورة كامل البطاقة */
+        .user-card { position: relative; height: 200px; border-radius: 16px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.3s; background: #111; box-shadow: 0 5px 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: flex-end; }
+        .user-card:hover { transform: translateY(-5px); border-color: var(--accent-primary); box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3); }
         .user-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        
-        /* التدرج لإظهار النص */
         .card-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.2) 50%, transparent 100%); z-index: 2; }
-
-        /* معلومات المستخدم */
         .card-info { position: relative; z-index: 3; padding: 12px; text-align: center; }
         .user-name { font-size: 0.95rem; font-weight: 800; color: #fff; margin-bottom: 2px; }
         .user-role { font-size: 0.7rem; color: var(--accent-cyan); font-weight: bold; background: rgba(6, 182, 212, 0.15); padding: 2px 8px; border-radius: 6px; display: inline-block; backdrop-filter: blur(5px); }
         
-        /* أزرار التعديل والحذف (تظهر عند تمرير الماوس) */
-        .action-buttons { 
-            position: absolute; 
-            top: 10px; 
-            right: 10px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 8px; 
-            z-index: 4; 
-            opacity: 0; 
-            transition: 0.3s; 
-            transform: translateX(20px);
-        }
+        /* أزرار التعديل والحذف */
+        .action-buttons { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 4; opacity: 0; transition: 0.3s; transform: translateX(20px); }
         .user-card:hover .action-buttons { opacity: 1; transform: translateX(0); }
-        
-        .action-btn { 
-            width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; 
-            cursor: pointer; border: none; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
+        .action-btn { width: 35px; height: 35px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; border: none; color: white; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .action-btn.edit { background: var(--accent-primary); }
         .action-btn.edit:hover { background: #7c3aed; transform: scale(1.1); }
         .action-btn.delete { background: var(--accent-red); }
         .action-btn.delete:hover { background: #dc2626; transform: scale(1.1); }
         .action-btn i { width: 16px; height: 16px; }
-
-        /* إخفاء زر الحذف للمستخدمين العاديين (يتم التحكم به بالجافاسكريبت) */
         .hide-delete { display: none !important; }
+
+        /* الإشعارات */
+        .custom-alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #10b981; color: white; padding: 15px 30px; border-radius: 12px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999; transition: 0.3s; opacity: 0; display: flex; align-items: center; gap: 10px; }
+        .custom-alert.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .custom-alert.error { background: #ef4444; }
     </style>
 </head>
 <body>
 
-    <!-- الشريط العلوي -->
+    <div class="custom-alert" id="customAlert"><i data-lucide="check-circle"></i> <span id="alertText">تم بنجاح</span></div>
+
     <div class="top-dashboard-drawer" id="topDashboard">
         <div class="drawer-nav">
             <a href="../../dashboard.html" class="drawer-item">
@@ -154,7 +120,6 @@
 
     <div class="main-container">
         <div class="users-grid" id="usersGrid">
-            <!-- سيتم توليد البطاقات هنا -->
             <p style="color:#888; grid-column: 1/-1; text-align: center; margin-top: 50px;">جاري تحميل المستخدمين...</p>
         </div>
     </div>
@@ -162,25 +127,34 @@
     <script>
         lucide.createIcons();
 
-        // 1. إعداد بيانات الأدمن من الجلسة
+        // 1. إعداد بيانات الأدمن
         const currentUserName = localStorage.getItem('userName') || 'المدير';
         const currentUserRole = localStorage.getItem('userRole') || 'Admin';
         const currentUserAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserName)}&background=8b5cf6&color=fff`;
-        
         document.getElementById('headerUserName').innerText = currentUserName;
         document.getElementById('headerUserRole').innerText = currentUserRole;
         document.getElementById('headerUserAvatar').src = currentUserAvatar;
 
-        // تحديد هل المستخدم الحالي أدمن أم لا (لإظهار زر الحذف)
         const isAdmin = currentUserRole.toLowerCase() === 'admin' || currentUserRole.toLowerCase() === 'ceo';
 
-        // 2. تفعيل الشريط العلوي
+        // 2. الشريط العلوي
         const hoverArea = document.getElementById('hoverArea');
         const drawer = document.getElementById('topDashboard');
         hoverArea.addEventListener('mouseenter', () => drawer.classList.add('active'));
         drawer.addEventListener('mouseleave', () => drawer.classList.remove('active'));
 
-        // 3. جلب المستخدمين من السيرفر
+        // 3. الإشعارات
+        function showCustomAlert(msg, isError = false) {
+            const alertBox = document.getElementById('customAlert');
+            document.getElementById('alertText').innerText = msg;
+            alertBox.className = 'custom-alert show' + (isError ? ' error' : '');
+            if(isError) alertBox.innerHTML = `<i data-lucide="alert-circle"></i> <span id="alertText">${msg}</span>`;
+            else alertBox.innerHTML = `<i data-lucide="check-circle"></i> <span id="alertText">${msg}</span>`;
+            lucide.createIcons();
+            setTimeout(() => alertBox.classList.remove('show'), 3000);
+        }
+
+        // 4. جلب المستخدمين
         async function loadUsers() {
             const token = localStorage.getItem('ione_admin_token');
             const grid = document.getElementById('usersGrid');
@@ -191,23 +165,19 @@
                 
                 if (data.success && data.users.length > 0) {
                     grid.innerHTML = data.users.map(u => {
-                        // تحديد صورة عشوائية بناءً على الاسم
                         const imgUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name)}&background=random&size=200`;
-                        
-                        // إخفاء زر الحذف إذا لم يكن المستخدم أدمن
                         const deleteBtnClass = isAdmin ? 'action-btn delete' : 'action-btn delete hide-delete';
                         
                         return `
-                        <div class="user-card" onclick="openUserModal('${u.id || u.userCode}', '${u.full_name}', '${u.role}', '${u.userCode || ''}', '${u.email || ''}', '${u.phone || ''}')">
+                        <div class="user-card" onclick="openUserModal('${u.userCode || u.email}', '${u.full_name}', '${u.role}')">
                             <img src="${imgUrl}" alt="${u.full_name}">
                             <div class="card-overlay"></div>
                             
-                            <!-- أزرار التعديل والحذف -->
                             <div class="action-buttons">
-                                <button class="${deleteBtnClass}" onclick="deleteUser(event, '${u.id || u.userCode}', '${u.full_name}')" title="حذف">
+                                <button class="${deleteBtnClass}" onclick="deleteUser(event, '${u.userCode || u.email}', '${u.full_name}')" title="حذف">
                                     <i data-lucide="trash-2"></i>
                                 </button>
-                                <button class="action-btn edit" onclick="editUser(event, '${u.id || u.userCode}')" title="تعديل">
+                                <button class="action-btn edit" onclick="editUser(event, '${u.userCode || u.email}')" title="تعديل">
                                     <i data-lucide="pencil"></i>
                                 </button>
                             </div>
@@ -228,36 +198,42 @@
             }
         }
 
-        // 4. وظيفة الحذف (تعمل فقط للأدمن)
+        // 5. وظيفة الحذف (حقيقية)
         async function deleteUser(event, id, name) {
-            event.stopPropagation(); // منع فتح النافذة عند الضغط على زر الحذف
-            if (!isAdmin) {
-                alert('عذراً، لا تملك صلاحية الحذف.');
-                return;
-            }
+            event.stopPropagation();
+            if (!isAdmin) { showCustomAlert('عذراً، لا تملك صلاحية الحذف.', true); return; }
             
             if(confirm(`هل أنت متأكد من حذف المستخدم: ${name}؟`)) {
                 const token = localStorage.getItem('ione_admin_token');
                 try {
-                    // هنا سنستدعي API الحذف (سنقوم بإنشائه لاحقاً)
-                    // const res = await fetch('/api/users/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ id: id }) });
-                    // if (res.ok) { loadUsers(); }
-                    alert('ميزة الحذف ستتوفر بعد إنشاء API الحذف.');
-                } catch(e) { console.error(e); }
+                    const res = await fetch('/api/users/delete', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, 
+                        body: JSON.stringify({ id: id }) 
+                    });
+                    const data = await res.json();
+                    
+                    if(data.success) {
+                        showCustomAlert('تم حذف المستخدم بنجاح');
+                        loadUsers(); // إعادة تحميل القائمة
+                    } else {
+                        showCustomAlert(data.error || 'فشل الحذف', true);
+                    }
+                } catch(e) { showCustomAlert('فشل الاتصال بالسيرفر', true); }
             }
         }
 
-        // 5. وظيفة التعديل (متاحة للجميع)
+        // 6. وظيفة التعديل (توجيه لصفحة التعديل)
         function editUser(event, id) {
             event.stopPropagation();
-            // سيتم توجيه المستخدم لصفحة التعديل (أو فتح مودال للتعديل)
-            alert('سيتم توجيهك لصفحة التعديل قريباً.');
+            // التوجيه لصفحة التعديل مع تمرير الكود
+            window.location.href = `edit.html?id=${id}`;
         }
 
-        // 6. فتح نافذة التفاصيل عند الضغط على البطاقة
-        function openUserModal(id, name, role, code, email, phone) {
-            // يمكنك لاحقاً فتح مودال يعرض هذه التفاصيل
-            console.log('User Details:', name, role);
+        // 7. فتح نافذة التفاصيل
+        function openUserModal(id, name, role) {
+            // هذه الدالة يمكن تطويرها لاحقاً لعرض المزيد من التفاصيل
+            console.log('Details:', id, name, role);
         }
 
         window.onload = loadUsers;

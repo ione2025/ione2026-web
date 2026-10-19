@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER — تعديل مستخدم</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-primary: #8b5cf6; --accent-cyan: #06b6d4; --accent-green: #10b981; --accent-red: #ef4444;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* الشريط العلوي */
+        .top-dashboard-drawer { position: fixed; top: 10px; left: 50%; transform: translateX(-50%) translateY(-150%); width: 90%; max-width: 700px; background: rgba(18, 20, 28, 0.6); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; z-index: 1000; padding: 15px 30px; display: flex; justify-content: center; align-items: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; opacity: 0; }
+        .top-dashboard-drawer.active { transform: translateX(-50%) translateY(0); pointer-events: auto; opacity: 1; }
+        .drawer-nav { display: flex; justify-content: center; gap: 40px; }
+        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #aaa; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s; }
+        .drawer-icon-wrap { width: 55px; height: 55px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .drawer-item:hover { color: #fff; }
+        .drawer-item:hover .drawer-icon-wrap { background: rgba(139, 92, 246, 0.2); transform: translateY(-3px); border-color: var(--accent-primary); }
+
+        /* الهيدر */
+        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: rgba(10, 11, 15, 0.95); border-bottom: 1px solid var(--glass-border); flex-shrink: 0; position: relative; z-index: 10; }
+        .user-profile-header { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid var(--glass-border); text-decoration: none; color: #fff; }
+        .user-avatar-header { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); }
+        .user-info-header { display: flex; flex-direction: column; align-items: flex-start; }
+        .user-name-header { font-size: 0.85rem; font-weight: 800; }
+        .user-role-header { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
+        .hover-trigger { flex: 1; height: 100%; min-height: 40px; cursor: pointer; }
+        .btn-back { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 8px 16px; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; transition: 0.2s; font-size: 0.9rem; }
+        .btn-back:hover { background: rgba(255,255,255,0.1); }
+        
+        /* الحاوية الرئيسية */
+        .main-container { flex: 1; display: flex; padding: 15px 25px; gap: 20px; overflow: hidden; }
+        .section-card { flex: 1; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow-y: auto; }
+        .section-card::-webkit-scrollbar { width: 0px; } 
+        .section-title { font-size: 1.1rem; font-weight: 800; color: #fff; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        
+        /* الحقول */
+        .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
+        .form-label { font-size: 0.8rem; font-weight: 700; color: #ccc; display: flex; justify-content: space-between; align-items: center;}
+        .form-input { width: 100%; padding: 10px 40px 10px 10px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; font-size: 0.9rem; transition: 0.2s; }
+        .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+        
+        /* إصلاح أيقونة العين */
+        .input-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; cursor: pointer; width: 20px; height: 20px; transition: 0.2s; margin-top: 10px; }
+        .input-icon:hover { color: var(--accent-cyan); }
+
+        /* الصورة */
+        .image-upload-box { position: relative; border: 2px dashed var(--glass-border); border-radius: 16px; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; background-color: #000; background-size: cover; background-position: center; transition: 0.3s; flex-shrink: 0; margin-bottom: 5px; overflow: hidden; }
+        .image-upload-box:hover { border-color: var(--accent-primary); }
+        .image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%); z-index: 1; }
+        .image-upload-content { position: relative; z-index: 2; padding: 10px; display: flex; align-items: center; gap: 8px; color: #fff; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); border-radius: 20px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        .image-upload-box:hover .image-upload-content { background: rgba(139, 92, 246, 0.8); }
+        .image-upload-content i { width: 16px; height: 16px; }
+        .image-upload-content span { font-size: 0.75rem; font-weight: bold; }
+
+        /* الكود السريع */
+        .btn-generate { background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-generate:hover { background: rgba(6, 182, 212, 0.2); }
+
+        /* أداة اختيار الدولة */
+        .country-search-wrapper { position: relative; }
+        .country-dropdown { position: absolute; top: 100%; right: 0; left: 0; background: #12141c; border: 1px solid var(--glass-border); border-radius: 10px; margin-top: 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .country-dropdown.active { display: block; }
+        .country-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .country-item:hover, .country-item.selected { background: rgba(139, 92, 246, 0.2); color: var(--accent-cyan); }
+        .country-item span.code { font-family: monospace; color: #888; font-weight: bold; }
+
+        /* أزرار الحالة */
+        .status-toggles { display: flex; gap: 10px; }
+        .status-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; background: #111; border: 1px solid var(--glass-border); border-radius: 10px; cursor: pointer; color: var(--text-muted); font-weight: bold; transition: 0.2s; font-family: inherit; font-size: 0.85rem; }
+        .status-btn.active-green { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-green); color: var(--accent-green); }
+        .status-btn.active-red { background: rgba(239, 68, 68, 0.15); border-color: var(--accent-red); color: var(--accent-red); }
+
+        /* زر تحديد الكل */
+        .btn-select-all-large { width: 100%; padding: 10px; background: rgba(139, 92, 246, 0.15); color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .btn-select-all-large:hover { background: rgba(139, 92, 246, 0.3); }
+
+        /* الصلاحيات */
+        .permissions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: 1; align-content: start; }
+        .perm-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 5px; background: #111; border: 1px solid var(--glass-border); border-radius: 10px; cursor: pointer; transition: 0.2s; color: var(--text-muted); }
+        .perm-card:hover { border-color: rgba(255,255,255,0.2); }
+        .perm-card.active { background: rgba(139, 92, 246, 0.15); border-color: var(--accent-primary); color: #fff; }
+        .perm-card.active i { color: var(--accent-primary); }
+        .perm-card i { width: 18px; height: 18px; }
+        .perm-card span { font-size: 0.65rem; font-weight: bold; text-align: center;}
+
+        /* الأزرار السفلية */
+        .action-row { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+        .btn-save { width: 100%; padding: 12px; background: var(--accent-green); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #059669; }
+        .btn-faceid { width: 100%; padding: 10px; background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-faceid:hover { background: rgba(6, 182, 212, 0.2); }
+
+        /* الإشعارات */
+        .custom-alert { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #10b981; color: white; padding: 15px 30px; border-radius: 12px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 9999; transition: 0.3s; opacity: 0; display: flex; align-items: center; gap: 10px; }
+        .custom-alert.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .custom-alert.error { background: #ef4444; }
+    </style>
+</head>
+<body>
+
+    <div class="custom-alert" id="customAlert"><i data-lucide="check-circle"></i> <span id="alertText">تم بنجاح</span></div>
+
+    <div class="top-dashboard-drawer" id="topDashboard">
+        <div class="drawer-nav">
+            <a href="../../dashboard.html" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>
+                الرئيسية
+            </a>
+            <a href="list.html" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="users"></i></div>
+                المستخدمين
+            </a>
+        </div>
+    </div>
+
+    <div class="top-header">
+        <a href="#" class="user-profile-header">
+            <div class="user-info-header">
+                <div class="user-name-header" id="headerUserName">جاري التحميل...</div>
+                <div class="user-role-header" id="headerUserRole">...</div>
+            </div>
+            <img src="" alt="Admin" class="user-avatar-header" id="headerUserAvatar">
+        </a>
+        
+        <div class="hover-trigger" id="hoverArea"></div>
+        
+        <a href="list.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- القسم الأيمن -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="user"></i> البيانات الأساسية</div>
+            
+            <div class="form-group">
+                <label class="form-label">كود الدخول السريع</label>
+                <input type="text" id="fastCode" class="form-input" placeholder="1001" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);" disabled>
+            </div>
+
+            <div class="image-upload-box" id="imagePreviewBox">
+                <div class="image-overlay"></div>
+                <div class="image-upload-content">
+                    <i data-lucide="camera"></i>
+                    <span>تغيير الصورة (قريباً)</span>
+                </div>
+            </div>
+
+            <button class="btn-faceid" type="button" onclick="startFaceID()">
+                <i data-lucide="scan-face"></i> تفعيل بصمة الوجه
+            </button>
+
+            <div class="form-group">
+                <label class="form-label">الاسم الكامل</label>
+                <input type="text" id="userName" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">البريد الإلكتروني</label>
+                <input type="email" id="userEmail" class="form-input" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">كلمة المرور (اتركها فارغة لعدم التغيير)</label>
+                <input type="password" id="userPassword" class="form-input" placeholder="******">
+                <i data-lucide="eye" class="input-icon" id="togglePass" onclick="togglePassword()"></i>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">العنوان</label>
+                <input type="text" id="userAddress" class="form-input">
+            </div>
+        </div>
+
+        <!-- القسم الأوسط -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="phone"></i> بيانات الاتصال والارتباط</div>
+
+            <div class="form-group country-search-wrapper">
+                <label class="form-label">الدولة</label>
+                <input type="text" id="countrySearchInput" class="form-input" placeholder="اكتب حرف (P) للبحث..." oninput="filterCountries(this.value)" onkeydown="handleCountryKey(event)" onfocus="showCountries()" autocomplete="off">
+                <div class="country-dropdown" id="countryDropdown"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">رقم الهاتف</label>
+                <input type="text" id="userPhone" class="form-input" style="text-align: left; direction: ltr;" oninput="syncWhatsApp()">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="display: flex; justify-content: space-between;">
+                    رقم الواتساب 
+                    <span style="font-size: 0.7rem; color: var(--accent-cyan); cursor: pointer;" onclick="copyPhoneToWhatsApp()">نسخ من الهاتف</span>
+                </label>
+                <input type="text" id="userWhatsApp" class="form-input" style="text-align: left; direction: ltr;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">معرف ويتشات</label>
+                <input type="text" id="userWechat" class="form-input">
+            </div>
+
+            <div class="form-group" style="margin-top: 5px;">
+                <label class="form-label">حالة الحساب</label>
+                <div class="status-toggles">
+                    <button class="status-btn" type="button" onclick="setStatus(this, 'active')"><i data-lucide="check-circle"></i> نشط</button>
+                    <button class="status-btn" type="button" onclick="setStatus(this, 'inactive')"><i data-lucide="x-circle"></i> معطل</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- القسم الأيسر -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="shield-check"></i> الصلاحيات</div>
+            
+            <button class="btn-select-all-large" type="button" onclick="toggleAllPerms()"><i data-lucide="check-square"></i> تحديد الكل / إلغاء الكل</button>
+
+            <div class="permissions-grid">
+                <div class="perm-card" onclick="togglePerm(this)" data-value="admin"><i data-lucide="shield"></i><span>مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="assistant"><i data-lucide="users"></i><span>مساعد مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="sales"><i data-lucide="shopping-cart"></i><span>مبيعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="accounting"><i data-lucide="calculator"></i><span>محاسبة</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="support"><i data-lucide="headphones"></i><span>دعم</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="warehouse"><i data-lucide="package"></i><span>مستودعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="facebook"><i data-lucide="facebook"></i><span>فيسبوك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="youtube"><i data-lucide="youtube"></i><span>يوتيوب</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="tiktok"><i data-lucide="music"></i><span>تيك توك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="export"><i data-lucide="truck"></i><span>تصدير بضائع</span></div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-save" type="button" id="updateBtn">
+                    <i data-lucide="save"></i> حفظ التعديلات
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // 1. إعداد بيانات الأدمن
+        const adminName = localStorage.getItem('userName') || 'المدير';
+        const adminRole = localStorage.getItem('userRole') || 'Admin';
+        const adminAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=8b5cf6&color=fff`;
+        document.getElementById('headerUserName').innerText = adminName;
+        document.getElementById('headerUserRole').innerText = adminRole;
+        document.getElementById('headerUserAvatar').src = adminAvatar;
+
+        // 2. الشريط العلوي
+        const hoverArea = document.getElementById('hoverArea');
+        const drawer = document.getElementById('topDashboard');
+        hoverArea.addEventListener('mouseenter', () => drawer.classList.add('active'));
+        drawer.addEventListener('mouseleave', () => drawer.classList.remove('active'));
+
+        // 3. الإشعارات
+        function showCustomAlert(msg, isError = false) {
+            const alertBox = document.getElementById('customAlert');
+            document.getElementById('alertText').innerText = msg;
+            alertBox.className = 'custom-alert show' + (isError ? ' error' : '');
+            if(isError) alertBox.innerHTML = `<i data-lucide="alert-circle"></i> <span id="alertText">${msg}</span>`;
+            else alertBox.innerHTML = `<i data-lucide="check-circle"></i> <span id="alertText">${msg}</span>`;
+            lucide.createIcons();
+            setTimeout(() => alertBox.classList.remove('show'), 3000);
+        }
+
+        // 4. جلب بيانات المستخدم المطلوب تعديله
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+        
+        async function loadUserData() {
+            if (!userId) {
+                showCustomAlert('معرف المستخدم غير موجود', true);
+                return;
+            }
+
+            const token = localStorage.getItem('ione_admin_token');
+            try {
+                // ملاحظة: سنستخدم API القائمة ونفلتر منه مؤقتاً، الأفضل إنشاء API مخصص
+                const res = await fetch('/api/users/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                if (data.success) {
+                    const user = data.users.find(u => (u.userCode === userId || u.email === userId));
+                    if (user) {
+                        // ملء الحقول
+                        document.getElementById('fastCode').value = user.userCode || '';
+                        document.getElementById('userName').value = user.full_name || '';
+                        document.getElementById('userEmail').value = user.email || '';
+                        document.getElementById('userAddress').value = user.address || '';
+                        document.getElementById('userPhone').value = user.phone || '';
+                        document.getElementById('userWhatsApp').value = user.whatsapp || '';
+                        document.getElementById('userWechat').value = user.wechat || '';
+                        
+                        // الحالة
+                        if (user.active) document.querySelector('.status-btn[onclick*="active"]').classList.add('active-green');
+                        else document.querySelector('.status-btn[onclick*="inactive"]').classList.add('active-red');
+
+                        // الصلاحيات
+                        if (user.permissions) {
+                            document.querySelectorAll('.perm-card').forEach(card => {
+                                if (user.permissions.includes(card.getAttribute('data-value'))) {
+                                    card.classList.add('active');
+                                }
+                            });
+                        }
+
+                        // الصورة
+                        document.getElementById('imagePreviewBox').style.backgroundImage = `url(https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name)}&background=random&size=200)`;
+                    }
+                }
+            } catch (e) { showCustomAlert('فشل تحميل بيانات المستخدم', true); }
+        }
+
+        // 5. وظائف مساعدة (كلمة المرور، الدول، إلخ)
+        function togglePassword() {
+            const input = document.getElementById('userPassword');
+            const icon = document.getElementById('togglePass');
+            if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); } 
+            else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
+            lucide.createIcons();
+        }
+
+        const allCountries = [
+            { name: 'Palestine', code: '+970' }, { name: 'Saudi Arabia', code: '+966' }, { name: 'Egypt', code: '+20' },
+            { name: 'United States', code: '+1' }, { name: 'United Kingdom', code: '+44' }
+        ];
+
+        function showCountries() { renderCountryList(allCountries); document.getElementById('countryDropdown').classList.add('active'); }
+        function filterCountries(val) {
+            const filtered = allCountries.filter(c => c.name.toLowerCase().includes(val.toLowerCase()));
+            renderCountryList(filtered);
+            document.getElementById('countryDropdown').classList.add('active');
+        }
+        function renderCountryList(list) {
+            document.getElementById('countryDropdown').innerHTML = list.map(c => `
+                <div class="country-item" onclick="selectCountry('${c.name}', '${c.code}')">
+                    <span>${c.name}</span><span class="code">${c.code}</span>
+                </div>
+            `).join('');
+        }
+        function selectCountry(name, code) {
+            document.getElementById('countrySearchInput').value = `${name} (${code})`;
+            document.getElementById('countryDropdown').classList.remove('active');
+        }
+
+        function syncWhatsApp() { document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value; }
+        function copyPhoneToWhatsApp() { document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value; }
+        function setStatus(btn, type) {
+            const btns = btn.parentElement.querySelectorAll('.status-btn');
+            btns.forEach(b => b.className = 'status-btn');
+            if (type === 'active') btn.classList.add('active-green');
+            else btn.classList.add('active-red');
+        }
+        function togglePerm(card) { card.classList.toggle('active'); }
+        function toggleAllPerms() {
+            const cards = document.querySelectorAll('.perm-card');
+            const allActive = Array.from(cards).every(c => c.classList.contains('active'));
+            cards.forEach(c => { if (allActive) c.classList.remove('active'); else c.classList.add('active'); });
+        }
+        function startFaceID() { showCustomAlert('سيتم تفعيل البصمة قريباً'); }
+
+        // 6. حفظ التعديلات (الربط مع update.js)
+        document.getElementById('updateBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('updateBtn');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> جاري الحفظ...';
+            lucide.createIcons();
+
+            const token = localStorage.getItem('ione_admin_token');
+            const permissions = Array.from(document.querySelectorAll('.perm-card.active')).map(c => c.getAttribute('data-value'));
+            const isActive = document.querySelector('.status-btn.active-green') !== null;
+
+            const payload = {
+                id: userId, // معرف المستخدم الأصلي
+                full_name: document.getElementById('userName').value.trim(),
+                email: document.getElementById('userEmail').value.trim(),
+                address: document.getElementById('userAddress').value.trim(),
+                phone: document.getElementById('userPhone').value.trim(),
+                whatsapp: document.getElementById('userWhatsApp').value.trim(),
+                wechat: document.getElementById('userWechat').value.trim(),
+                permissions: permissions,
+                role: permissions.includes('admin') ? 'admin' : 'user',
+                active: isActive
+            };
+
+            try {
+                const response = await fetch('/api/users/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if(data.success) {
+                    showCustomAlert('تم التحديث بنجاح');
+                    setTimeout(() => window.location.href = 'list.html', 1500);
+                } else {
+                    showCustomAlert(data.error || 'فشل التحديث', true);
+                }
+            } catch (e) {
+                showCustomAlert('فشل الاتصال', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                lucide.createIcons();
+            }
+        });
+
+        window.onload = loadUserData;
+    </script>
+</body>
+</html>
