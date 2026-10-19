@@ -3,210 +3,537 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IONECENTER — إضافة مستخدم</title>
+    <title>IONECENTER — إضافة مستخدم ذكي</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
-            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-cyan: #06b6d4; --accent-green: #10b981; --accent-red: #ef4444;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --accent-primary: #8b5cf6; --accent-cyan: #06b6d4; --accent-green: #10b981; --accent-red: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        .create-container { width: 100%; max-width: 700px; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative; }
-        .create-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
-        .create-title { font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 10px; }
+        /* --- الشريط العلوي كبطاقة عائمة --- */
+        .top-dashboard-drawer { 
+            position: fixed; 
+            top: 10px; 
+            left: 50%; 
+            transform: translateX(-50%) translateY(-150%); 
+            width: 90%; 
+            max-width: 700px;
+            background: rgba(18, 20, 28, 0.6); 
+            backdrop-filter: blur(40px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 24px; 
+            z-index: 1000; 
+            padding: 15px 30px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(139, 92, 246, 0.1); 
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            pointer-events: none;
+            opacity: 0;
+        }
+        .top-dashboard-drawer.active { 
+            transform: translateX(-50%) translateY(0); 
+            pointer-events: auto;
+            opacity: 1;
+        }
         
-        .form-row { display: flex; gap: 15px; margin-bottom: 20px; }
-        .form-group { flex: 1; }
-        .form-label { display: block; font-size: 0.9rem; font-weight: 700; color: #ccc; margin-bottom: 8px; }
-        .form-input { width: 100%; padding: 14px; background: #000; border: 1px solid var(--glass-border); border-radius: 12px; color: #fff; font-family: inherit; outline: none; transition: 0.2s; font-size: 1rem; }
-        .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
-        
-        .permissions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-top: 10px; }
-        .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; cursor: pointer; color: #ccc; }
-        .checkbox-label input { accent-color: var(--accent-cyan); width: 18px; height: 18px; cursor: pointer; }
-        
-        .btn-submit { width: 100%; padding: 16px; background: var(--accent-green); color: #fff; border: none; border-radius: 12px; font-family: inherit; font-size: 1.1rem; font-weight: 800; cursor: pointer; transition: 0.2s; margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .btn-submit:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); }
-        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-        
-        .btn-back { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 8px 15px; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; transition: 0.2s; }
-        .btn-back:hover { background: rgba(255,255,255,0.1); }
+        .drawer-nav { display: flex; justify-content: center; gap: 40px; }
+        .drawer-item { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #aaa; text-decoration: none; font-size: 0.75rem; font-weight: 700; transition: 0.3s; }
+        .drawer-icon-wrap { width: 55px; height: 55px; border-radius: 16px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: center; align-items: center; transition: 0.3s; }
+        .drawer-item:hover { color: #fff; }
+        .drawer-item:hover .drawer-icon-wrap { background: rgba(139, 92, 246, 0.2); transform: translateY(-3px); border-color: var(--accent-primary); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2); }
 
-        .toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #fff; padding: 15px 30px; border-radius: 12px; font-weight: 700; z-index: 10001; transition: 0.4s; display: flex; align-items: center; gap: 10px; font-size: 1.1rem; }
-        .toast.show { bottom: 30px; }
-        .toast.error { background: var(--accent-red); }
+        /* الهيدر */
+        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 30px; background: rgba(10, 11, 15, 0.95); border-bottom: 1px solid var(--glass-border); flex-shrink: 0; position: relative; z-index: 10; }
+        .user-profile-header { display: flex; align-items: center; gap: 12px; background: rgba(255, 255, 255, 0.03); padding: 6px 16px 6px 6px; border-radius: 50px; border: 1px solid var(--glass-border); text-decoration: none; color: #fff; }
+        .user-avatar-header { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent-primary); }
+        .user-info-header { display: flex; flex-direction: column; align-items: flex-start; }
+        .user-name-header { font-size: 0.85rem; font-weight: 800; }
+        .user-role-header { font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700; }
+        
+        .hover-trigger { flex: 1; height: 100%; min-height: 40px; cursor: pointer; }
+        
+        .btn-back { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 8px 16px; border-radius: 10px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-weight: 700; transition: 0.2s; font-size: 0.9rem; }
+        .btn-back:hover { background: rgba(255,255,255,0.1); }
+        
+        /* الحاوية الرئيسية */
+        .main-container { flex: 1; display: flex; padding: 15px 25px; gap: 20px; overflow: hidden; }
+        .section-card { flex: 1; background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); overflow-y: auto; }
+        .section-card::-webkit-scrollbar { width: 0px; } 
+        .section-title { font-size: 1.1rem; font-weight: 800; color: #fff; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        
+        /* الحقول */
+        .form-group { display: flex; flex-direction: column; gap: 5px; position: relative; }
+        .form-label { font-size: 0.8rem; font-weight: 700; color: #ccc; display: flex; justify-content: space-between; align-items: center;}
+        .form-input { width: 100%; padding: 10px 36px 10px 10px; background: #000; border: 1px solid var(--glass-border); border-radius: 10px; color: #fff; font-family: inherit; outline: none; font-size: 0.9rem; transition: 0.2s; }
+        .form-input:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.2); }
+        .input-icon { position: absolute; left: 10px; top: 30px; color: #888; cursor: pointer; width: 18px; height: 18px; }
+        
+        /* الصورة الشخصية */
+        .image-upload-box { position: relative; border: 2px dashed var(--glass-border); border-radius: 16px; height: 160px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; cursor: pointer; background-color: #000; background-image: url('https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop'); background-size: cover; background-position: center; transition: 0.3s; flex-shrink: 0; margin-bottom: 5px; overflow: hidden; }
+        .image-upload-box:hover { border-color: var(--accent-primary); }
+        .image-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.2) 50%, transparent 100%); z-index: 1; }
+        .image-upload-content { position: relative; z-index: 2; padding: 10px; display: flex; align-items: center; gap: 8px; color: #fff; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); border-radius: 20px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        .image-upload-box:hover .image-upload-content { background: rgba(139, 92, 246, 0.8); }
+        .image-upload-content i { width: 16px; height: 16px; }
+        .image-upload-content span { font-size: 0.75rem; font-weight: bold; }
+
+        /* الكود السريع */
+        .btn-generate { background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); border: 1px solid rgba(6, 182, 212, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-generate:hover { background: rgba(6, 182, 212, 0.2); }
+
+        /* أداة اختيار الدولة */
+        .country-search-wrapper { position: relative; }
+        .country-dropdown { position: absolute; top: 100%; right: 0; left: 0; background: #12141c; border: 1px solid var(--glass-border); border-radius: 10px; margin-top: 5px; max-height: 200px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .country-dropdown.active { display: block; }
+        .country-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        .country-item:hover, .country-item.selected { background: rgba(139, 92, 246, 0.2); color: var(--accent-cyan); }
+        .country-item span.code { font-family: monospace; color: #888; font-weight: bold; }
+
+        /* أزرار الحالة */
+        .status-toggles { display: flex; gap: 10px; }
+        .status-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; background: #111; border: 1px solid var(--glass-border); border-radius: 10px; cursor: pointer; color: var(--text-muted); font-weight: bold; transition: 0.2s; font-family: inherit; font-size: 0.85rem; }
+        .status-btn.active-green { background: rgba(16, 185, 129, 0.15); border-color: var(--accent-green); color: var(--accent-green); }
+        .status-btn.active-red { background: rgba(239, 68, 68, 0.15); border-color: var(--accent-red); color: var(--accent-red); }
+
+        /* زر تحديد الكل الكبير */
+        .btn-select-all-large { width: 100%; padding: 10px; background: rgba(139, 92, 246, 0.15); color: var(--accent-primary); border: 2px solid var(--accent-primary); border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .btn-select-all-large:hover { background: rgba(139, 92, 246, 0.3); }
+
+        /* الصلاحيات */
+        .permissions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; flex: 1; align-content: start; }
+        .perm-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 5px; background: #111; border: 1px solid var(--glass-border); border-radius: 10px; cursor: pointer; transition: 0.2s; color: var(--text-muted); }
+        .perm-card:hover { border-color: rgba(255,255,255,0.2); }
+        .perm-card.active { background: rgba(139, 92, 246, 0.15); border-color: var(--accent-primary); color: #fff; }
+        .perm-card.active i { color: var(--accent-primary); }
+        .perm-card i { width: 18px; height: 18px; }
+        .perm-card span { font-size: 0.65rem; font-weight: bold; text-align: center;}
+
+        /* منطقة المستخدمين */
+        .connect-area { display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; flex: 1; overflow: hidden; margin-top: 5px; }
+        .connect-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .connect-title { font-size: 0.85rem; font-weight: bold; color: #fff; }
+        
+        .users-grid-inline { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; overflow-y: auto; padding-right: 5px; padding-top: 5px; }
+        .user-card-inline { position: relative; height: 100px; border-radius: 12px; cursor: pointer; transition: 0.2s; border: 3px solid var(--accent-red); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; }
+        .user-card-inline.selected { border-color: var(--accent-green); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3); }
+        .user-card-inline img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .user-card-inline .name-overlay { position: relative; z-index: 2; width: 100%; text-align: center; padding: 5px 2px; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); font-size: 0.7rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* الأزرار السفلية */
+        .action-row { display: flex; flex-direction: column; gap: 10px; margin-top: auto; }
+        .btn-save { width: 100%; padding: 12px; background: var(--accent-green); color: #fff; border: none; border-radius: 10px; font-family: inherit; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-save:hover { background: #059669; }
+        .btn-faceid { width: 100%; padding: 10px; background: rgba(6, 182, 212, 0.1); color: var(--accent-cyan); border: 2px solid var(--accent-cyan); border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-faceid:hover { background: rgba(6, 182, 212, 0.2); }
     </style>
 </head>
 <body>
-    <div class="toast" id="toast"><i data-lucide="check-circle"></i> <span id="toastMessage">تم بنجاح</span></div>
 
-    <div class="create-container">
-        <div class="create-header">
-            <div class="create-title"><i data-lucide="user-plus"></i> إضافة مستخدم جديد</div>
-            <!-- تم إصلاح علامة التنصيص هنا -->
-            <a href="../controller.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+    <!-- الشريط العلوي -->
+    <div class="top-dashboard-drawer" id="topDashboard">
+        <div class="drawer-nav">
+            <a href="../../dashboard.html" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="layout-dashboard"></i></div>
+                الرئيسية
+            </a>
+            <a href="list.html" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="users"></i></div>
+                المستخدمين
+            </a>
+            <a href="#" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="shopping-bag"></i></div>
+                الطلبات
+            </a>
+            <a href="#" class="drawer-item">
+                <div class="drawer-icon-wrap"><i data-lucide="settings"></i></div>
+                الإعدادات
+            </a>
+        </div>
+    </div>
+
+    <div class="top-header">
+        <a href="#" class="user-profile-header">
+            <div class="user-info-header">
+                <div class="user-name-header" id="headerUserName">جاري التحميل...</div>
+                <div class="user-role-header" id="headerUserRole">...</div>
+            </div>
+            <img src="" alt="Admin" class="user-avatar-header" id="headerUserAvatar">
+        </a>
+        
+        <div class="hover-trigger" id="hoverArea"></div>
+        
+        <a href="list.html" class="btn-back"><i data-lucide="arrow-right"></i> رجوع</a>
+    </div>
+
+    <div class="main-container">
+        
+        <!-- القسم الأيمن -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="user"></i> البيانات الأساسية</div>
+            
+            <div class="form-group">
+                <label class="form-label">كود الدخول السريع <button class="btn-generate" type="button" onclick="generateCode()">توليد تلقائي</button></label>
+                <input type="text" id="fastCode" class="form-input" placeholder="1001" style="font-family: monospace; font-weight: bold; color: var(--accent-cyan);">
+            </div>
+
+            <div class="image-upload-box" onclick="alert('ميزة رفع الصور ستتوفر قريباً')">
+                <div class="image-overlay"></div>
+                <div class="image-upload-content">
+                    <i data-lucide="camera"></i>
+                    <span>تغيير الصورة</span>
+                </div>
+            </div>
+
+            <button class="btn-faceid" type="button" onclick="alert('سيتم تفعيل بصمة الوجه (Face ID) قريباً')">
+                <i data-lucide="scan-face"></i> تفعيل بصمة الوجه
+            </button>
+
+            <div class="form-group">
+                <label class="form-label">الاسم الكامل</label>
+                <input type="text" id="userName" class="form-input" placeholder="مثال: أحمد محمد" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">البريد الإلكتروني</label>
+                <input type="email" id="userEmail" class="form-input" placeholder="ahmad@ione.com" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">كلمة المرور</label>
+                <input type="password" id="userPassword" class="form-input" placeholder="******" required>
+                <i data-lucide="eye" class="input-icon" id="togglePass" onclick="togglePassword()"></i>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">العنوان</label>
+                <input type="text" id="userAddress" class="form-input" placeholder="المدينة، الحي، الشارع...">
+            </div>
         </div>
 
-        <form id="createUserForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">الاسم الكامل</label>
-                    <input type="text" id="userName" class="form-input" placeholder="مثال: أحمد محمد" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">البريد الإلكتروني</label>
-                    <input type="email" id="userEmail" class="form-input" placeholder="ahmad@example.com" required>
-                </div>
+        <!-- القسم الأوسط -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="phone"></i> بيانات الاتصال والارتباط</div>
+
+            <div class="form-group country-search-wrapper">
+                <label class="form-label">الدولة</label>
+                <input type="text" id="countrySearchInput" class="form-input" placeholder="اكتب حرف (P) للبحث..." oninput="filterCountries(this.value)" onfocus="showCountries()" autocomplete="off">
+                <div class="country-dropdown" id="countryDropdown"></div>
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">كلمة المرور</label>
-                    <input type="password" id="userPassword" class="form-input" placeholder="******" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">كود الدخول (للدخول السريع)</label>
-                    <input type="text" id="userCode" class="form-input" placeholder="1001" maxlength="6" required>
-                </div>
+
+            <div class="form-group">
+                <label class="form-label">رقم الهاتف</label>
+                <input type="text" id="userPhone" class="form-input" placeholder="50 123 4567" style="text-align: left; direction: ltr;" oninput="syncWhatsApp()">
             </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label class="form-label">رقم الهاتف</label>
-                    <input type="text" id="userPhone" class="form-input" placeholder="+966 50 123 4567">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">العنوان</label>
-                    <input type="text" id="userAddress" class="form-input" placeholder="المدينة، الحي">
+
+            <div class="form-group">
+                <label class="form-label" style="display: flex; justify-content: space-between;">
+                    رقم الواتساب 
+                    <span style="font-size: 0.7rem; color: var(--accent-cyan); cursor: pointer;" onclick="copyPhoneToWhatsApp()">نسخ من الهاتف</span>
+                </label>
+                <input type="text" id="userWhatsApp" class="form-input" placeholder="+966 50 123 4567" style="text-align: left; direction: ltr;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">معرف ويتشات</label>
+                <input type="text" id="userWechat" class="form-input" placeholder="wechat_id_123">
+            </div>
+
+            <div class="form-group" style="margin-top: 5px;">
+                <label class="form-label">حالة الحساب</label>
+                <div class="status-toggles">
+                    <button class="status-btn active-green" type="button" onclick="setStatus(this, 'active')"><i data-lucide="check-circle"></i> نشط</button>
+                    <button class="status-btn" type="button" onclick="setStatus(this, 'inactive')"><i data-lucide="x-circle"></i> معطل</button>
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 15px;">
-                <label class="form-label">الصلاحيات</label>
-                <div class="permissions-grid">
-                    <label class="checkbox-label"><input type="checkbox" value="admin" class="perm-checkbox"> مدير (Admin)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="sales" class="perm-checkbox"> مبيعات (Sales)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="accounting" class="perm-checkbox"> محاسبة (Accounting)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="support" class="perm-checkbox"> دعم (Support)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="warehouse" class="perm-checkbox"> مستودعات (Warehouse)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="hr" class="perm-checkbox"> موارد بشرية (HR)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="marketing" class="perm-checkbox"> تسويق (Marketing)</label>
-                    <label class="checkbox-label"><input type="checkbox" value="viewer" class="perm-checkbox"> مشاهدة (Viewer)</label>
+            <div class="connect-area">
+                <div class="connect-header">
+                    <div class="connect-title">يتصل بـ (التبعية الإدارية)</div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-generate" type="button" onclick="toggleAllInlineUsers(true)" style="font-size: 0.65rem;">تحديد الكل</button>
+                        <button class="btn-generate" type="button" onclick="toggleAllInlineUsers(false)" style="font-size: 0.65rem; background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3);">إلغاء</button>
+                    </div>
+                </div>
+                <div class="users-grid-inline" id="inlineUsersGrid">
+                    <p style="color:#888; font-size:0.8rem;">جاري تحميل المستخدمين...</p>
                 </div>
             </div>
 
-            <button type="submit" class="btn-submit" id="submitBtn">
-                <i data-lucide="save"></i> حفظ المستخدم
-            </button>
-        </form>
+        </div>
+
+        <!-- القسم الأيسر -->
+        <div class="section-card">
+            <div class="section-title"><i data-lucide="shield-check"></i> الصلاحيات</div>
+            
+            <button class="btn-select-all-large" type="button" onclick="toggleAllPerms()"><i data-lucide="check-square"></i> تحديد الكل / إلغاء الكل</button>
+
+            <div class="permissions-grid">
+                <div class="perm-card" onclick="togglePerm(this)" data-value="admin"><i data-lucide="shield"></i><span>مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="assistant"><i data-lucide="users"></i><span>مساعد مدير</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="sales"><i data-lucide="shopping-cart"></i><span>مبيعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="accounting"><i data-lucide="calculator"></i><span>محاسبة</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="support"><i data-lucide="headphones"></i><span>دعم</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="warehouse"><i data-lucide="package"></i><span>مستودعات</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="facebook"><i data-lucide="facebook"></i><span>فيسبوك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="youtube"><i data-lucide="youtube"></i><span>يوتيوب</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="tiktok"><i data-lucide="music"></i><span>تيك توك</span></div>
+                <div class="perm-card" onclick="togglePerm(this)" data-value="export"><i data-lucide="truck"></i><span>تصدير بضائع</span></div>
+            </div>
+
+            <div class="action-row">
+                <button class="btn-save" type="button" id="saveBtn">
+                    <i data-lucide="save"></i> حفظ المستخدم
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
         lucide.createIcons();
 
-        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader" class="spin"></i> جاري الحفظ...';
-            lucide.createIcons();
+        // 1. تحميل بيانات الأدمن في الهيدر
+        const adminName = localStorage.getItem('userName') || 'المدير';
+        const adminRole = localStorage.getItem('userRole') || 'Admin';
+        const adminAvatar = localStorage.getItem('userAvatar') || `https://ui-avatars.com/api/?name=${encodeURIComponent(adminName)}&background=8b5cf6&color=fff`;
 
+        document.getElementById('headerUserName').innerText = adminName;
+        document.getElementById('headerUserRole').innerText = adminRole;
+        document.getElementById('headerUserAvatar').src = adminAvatar;
+
+        // 2. تفعيل الشريط العلوي
+        const hoverArea = document.getElementById('hoverArea');
+        const drawer = document.getElementById('topDashboard');
+        hoverArea.addEventListener('mouseenter', () => drawer.classList.add('active'));
+        drawer.addEventListener('mouseleave', () => drawer.classList.remove('active'));
+
+        // 3. توليد كود سريع
+        function generateCode() {
+            const code = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('fastCode').value = code;
+        }
+        generateCode();
+
+        // 4. إظهار/إخفاء كلمة المرور
+        function togglePassword() {
+            const input = document.getElementById('userPassword');
+            const icon = document.getElementById('togglePass');
+            if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); } 
+            else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
+            lucide.createIcons();
+        }
+
+        // 5. قائمة الدول
+        const allCountries = [
+            { name: 'Palestine', code: '+970' }, { name: 'Pakistan', code: '+92' }, { name: 'Panama', code: '+507' },
+            { name: 'Saudi Arabia', code: '+966' }, { name: 'United Arab Emirates', code: '+971' },
+            { name: 'Egypt', code: '+20' }, { name: 'Jordan', code: '+962' },
+            { name: 'United States', code: '+1' }, { name: 'United Kingdom', code: '+44' }
+        ];
+
+        function showCountries() {
+            const dropdown = document.getElementById('countryDropdown');
+            renderCountryList(allCountries);
+            dropdown.classList.add('active');
+        }
+
+        function filterCountries(val) {
+            const dropdown = document.getElementById('countryDropdown');
+            const search = val.toLowerCase();
+            const filtered = allCountries.filter(c => c.name.toLowerCase().includes(search));
+            renderCountryList(filtered);
+            dropdown.classList.add('active');
+        }
+
+        function renderCountryList(list) {
+            const dropdown = document.getElementById('countryDropdown');
+            if (list.length === 0) {
+                dropdown.innerHTML = '<div class="country-item" style="color: #888;">لا توجد نتائج</div>';
+                return;
+            }
+            dropdown.innerHTML = list.map(c => `
+                <div class="country-item" data-code="${c.code}" data-name="${c.name}" onclick="selectCountry('${c.name}', '${c.code}')">
+                    <span>${c.name}</span>
+                    <span class="code">${c.code}</span>
+                </div>
+            `).join('');
+        }
+
+        function selectCountry(name, code) {
+            document.getElementById('countrySearchInput').value = `${name} (${code})`;
+            document.getElementById('userPhone').value = code + ' ';
+            document.getElementById('countryDropdown').classList.remove('active');
+            document.getElementById('userPhone').focus();
+            syncWhatsApp();
+        }
+
+        document.getElementById('countrySearchInput').addEventListener('keydown', function(e) {
+            const dropdown = document.getElementById('countryDropdown');
+            if (!dropdown.classList.contains('active')) return;
+            const items = dropdown.querySelectorAll('.country-item');
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if(items.length > 0) items[0].click();
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.country-search-wrapper')) {
+                document.getElementById('countryDropdown').classList.remove('active');
+            }
+        });
+
+        // 6. مزامنة الواتساب
+        function syncWhatsApp() {
+            document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value;
+        }
+        function copyPhoneToWhatsApp() {
+            document.getElementById('userWhatsApp').value = document.getElementById('userPhone').value;
+        }
+
+        // 7. حالة الحساب
+        function setStatus(btn, type) {
+            const btns = btn.parentElement.querySelectorAll('.status-btn');
+            btns.forEach(b => b.className = 'status-btn');
+            if (type === 'active') btn.classList.add('active-green');
+            else btn.classList.add('active-red');
+        }
+
+        // 8. الصلاحيات
+        function togglePerm(card) { card.classList.toggle('active'); }
+        function toggleAllPerms() {
+            const cards = document.querySelectorAll('.perm-card');
+            const allActive = Array.from(cards).every(c => c.classList.contains('active'));
+            cards.forEach(c => {
+                if (allActive) c.classList.remove('active');
+                else c.classList.add('active');
+            });
+        }
+
+        // 9. تحميل المستخدمين للاتصال (شبكة)
+        let selectedUsers = [];
+        async function loadUsersForConnection() {
+            const token = localStorage.getItem('ione_admin_token');
+            const grid = document.getElementById('inlineUsersGrid');
+            try {
+                const res = await fetch('/api/users/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.success && data.users.length > 0) {
+                    grid.innerHTML = data.users.map(u => `
+                        <div class="user-card-inline selected" onclick="toggleInlineUser(this, '${u.userCode || u.email}')" title="${u.full_name}">
+                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(u.full_name)}&background=random">
+                            <div class="name-overlay">${u.full_name.split(' ')[0]}</div>
+                        </div>
+                    `).join('');
+                    
+                    // تعيين الكل كمحدد افتراضياً
+                    selectedUsers = data.users.map(u => u.userCode || u.email);
+                } else {
+                    grid.innerHTML = '<p style="color:#888; font-size:0.8rem;">لا يوجد مستخدمون حالياً.</p>';
+                }
+            } catch (error) {
+                grid.innerHTML = '<p style="color:red; font-size:0.8rem;">فشل تحميل المستخدمين.</p>';
+            }
+        }
+        loadUsersForConnection();
+
+        function toggleInlineUser(card, id) {
+            card.classList.toggle('selected');
+            if (card.classList.contains('selected')) {
+                if (!selectedUsers.includes(id)) selectedUsers.push(id);
+            } else {
+                selectedUsers = selectedUsers.filter(u => u !== id);
+            }
+        }
+
+        function toggleAllInlineUsers(state) {
+            const cards = document.querySelectorAll('.user-card-inline');
+            cards.forEach(c => {
+                if(state) c.classList.add('selected');
+                else c.classList.remove('selected');
+            });
+            if(!state) selectedUsers = [];
+            else {
+                // إعادة تعيين القائمة
+                loadUsersForConnection(); 
+            }
+        }
+
+        // 10. حفظ المستخدم (الربط الفعلي بالسيرفر)
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const btn = document.getElementById('saveBtn');
+            const originalText = btn.innerHTML;
+            
             // جمع البيانات
-            const name = document.getElementById('userName').value.trim();
+            const userCode = document.getElementById('fastCode').value.trim();
+            const fullName = document.getElementById('userName').value.trim();
             const email = document.getElementById('userEmail').value.trim();
             const password = document.getElementById('userPassword').value;
-            const userCode = document.getElementById('userCode').value.trim();
-            const phone = document.getElementById('userPhone').value.trim();
             const address = document.getElementById('userAddress').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+            const whatsapp = document.getElementById('userWhatsApp').value.trim();
+            const wechat = document.getElementById('userWechat').value.trim();
             
-            const permissions = Array.from(document.querySelectorAll('.perm-checkbox:checked')).map(cb => cb.value);
+            // الصلاحيات
+            const permissions = Array.from(document.querySelectorAll('.perm-card.active')).map(c => c.getAttribute('data-value'));
             
-            if (permissions.length === 0) {
-                showToast('يرجى تحديد صلاحية واحدة على الأقل', true);
-                resetBtn();
-                return;
+            // التحقق
+            if(!userCode || !fullName || !email || !password) {
+                alert('يرجى ملء الحقول الأساسية (الكود، الاسم، الإيميل، المرور)'); return;
             }
+            if(permissions.length === 0) {
+                alert('يرجى تحديد صلاحية واحدة على الأقل'); return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> جاري الحفظ...';
+            lucide.createIcons();
 
             const token = localStorage.getItem('ione_admin_token');
-            if (!token) {
-                showToast('انتهت الجلسة، يرجى تسجيل الدخول مجدداً', true);
-                setTimeout(() => window.location.href = '../login.html', 1500); // تم إصلاح المسار هنا
-                return;
-            }
-
+            
             try {
-                // إرسال البيانات إلى الـ API
                 const response = await fetch('/api/users/create', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify({
                         email: email,
                         password: password,
-                        full_name: name,
-                        role: permissions.includes('admin') ? 'admin' : 'user',
-                        permissions: permissions,
-                        active: true,
+                        full_name: fullName,
                         userCode: userCode,
                         phone: phone,
-                        address: address
+                        whatsapp: whatsapp,
+                        wechat: wechat,
+                        address: address,
+                        permissions: permissions,
+                        role: permissions.includes('admin') ? 'admin' : 'user',
+                        active: true,
+                        connectedTo: selectedUsers // إرسال المستخدمين المرتبطين
                     })
                 });
 
-                const textResponse = await response.text();
-                let data;
+                const data = await response.json();
 
-                try {
-                    data = JSON.parse(textResponse);
-                } catch (err) {
-                    console.error("Server returned non-JSON:", textResponse);
-                    showToast(`فشل (كود ${response.status}): المتصفح لم يستقبل JSON.`, true);
-                    resetBtn();
-                    return;
+                if(data.success) {
+                    alert('تم إضافة المستخدم بنجاح!');
+                    window.location.href = 'list.html'; // تحويل لصفحة القائمة
+                } else {
+                    alert('حدث خطأ: ' + data.error);
                 }
-
-                if (!response.ok || !data.success) {
-                    showToast('فشل الإنشاء: ' + (data.error || 'خطأ غير معروف'), true);
-                    resetBtn();
-                    return;
-                }
-
-                // نجاح
-                showToast('تم إضافة المستخدم بنجاح!');
-                
-                setTimeout(() => {
-                    window.location.href = 'list.html';
-                }, 1500);
-
-
             } catch (error) {
-                console.error("Fetch failed:", error);
-                showToast('فشل الاتصال بالسيرفر. تحقق من Console (F12).', true);
-                resetBtn();
-            }
-
-            function resetBtn() {
+                alert('فشل الاتصال بالسيرفر. يرجى المحاولة لاحقاً.');
+            } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
                 lucide.createIcons();
             }
         });
 
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = msg;
-            toast.className = 'toast show' + (isError ? ' error' : '');
-            if (isError) toast.innerHTML = `<i data-lucide="alert-circle"></i> <span id="toastMessage">${msg}</span>`;
-            else toast.innerHTML = `<i data-lucide="check-circle"></i> <span id="toastMessage">${msg}</span>`;
-            
-            lucide.createIcons();
-            setTimeout(() => toast.classList.remove('show'), 4000);
-        }
     </script>
 </body>
 </html>
