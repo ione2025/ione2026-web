@@ -66,7 +66,7 @@
         }
 
         /* =========================================================
-           🟢 اليسار: النماذج (دخول من اليسار إلى اليمين)
+           🟢 اليسار: النماذج
         ========================================================= */
         .auth-container {
             width: 100%;
@@ -89,60 +89,6 @@
             padding: 50px;
             box-shadow: 0 25px 60px rgba(0,0,0,0.7);
         }
-
-        /* ⚡ Quick Access */
-        .quick-access {
-            background: rgba(168, 85, 247, 0.15);
-            border: 1px solid rgba(168, 85, 247, 0.4);
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .quick-access label {
-            display: block;
-            font-size: 0.95rem;
-            color: #d8b4fe;
-            margin-bottom: 12px;
-            font-weight: 700;
-            letter-spacing: 1px;
-        }
-
-        .quick-access-input { display: flex; gap: 12px; }
-
-        .quick-access input {
-            flex: 1;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(168, 85, 247, 0.5);
-            border-radius: 10px;
-            padding: 14px 18px;
-            color: white;
-            font-family: 'Inter', sans-serif;
-            text-align: center;
-            letter-spacing: 6px;
-            font-size: 1.4rem;
-            outline: none;
-            transition: 0.3s;
-        }
-
-        .quick-access input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-        }
-
-        .quick-access button {
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 0 24px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-
-        .quick-access button:hover { background: #7c3aed; }
 
         /* التبويبات */
         .tabs { display: flex; margin-bottom: 30px; border-bottom: 1px solid var(--glass-border); }
@@ -217,7 +163,7 @@
         .btn-submit:hover { background: #c4181d; transform: translateY(-2px); }
 
         /* =========================================================
-           🌌 اليمين: الكون + العداد (دخول متتالي)
+           🌌 اليمين: الكون + العداد
         ========================================================= */
         .right-container {
             display: flex;
@@ -235,7 +181,6 @@
             100% { opacity: 1; transform: translateX(0); }
         }
 
-        /* العنوان (يهبط من الأعلى) */
         .right-container h2 {
             font-size: 3rem;
             font-weight: 800;
@@ -254,7 +199,6 @@
             100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ⏳ العد التنازلي (يصعد من الأسفل) */
         .countdown-container {
             display: flex;
             justify-content: center;
@@ -306,7 +250,6 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.9);
         }
 
-        /* الشعار (يصعد من الأسفل متأخراً) */
         .logo-box {
             opacity: 0;
             animation: slideUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
@@ -358,14 +301,7 @@
         <div class="auth-container">
             <div class="auth-box">
                 
-                <!-- Quick Access -->
-                <div class="quick-access">
-                    <label>⚡ Quick Access</label>
-                    <div class="quick-access-input">
-                        <input type="password" id="quickPass" maxlength="6" placeholder="******" onkeydown="if(event.key==='Enter') checkQuickAccess()">
-                        <button onclick="checkQuickAccess()"><i data-lucide="arrow-right"></i></button>
-                    </div>
-                </div>
+                <!-- تم حذف Quick Access من هنا -->
 
                 <!-- التبويبات -->
                 <div class="tabs">
@@ -470,16 +406,7 @@
             }
         }
 
-        function checkQuickAccess() {
-            const pass = document.getElementById('quickPass').value;
-            if (pass === '665218') {
-                showToast('Access Granted! Redirecting...', 'success');
-                // توجيه للوحة التحكم
-                setTimeout(() => window.location.href = 'admin/login.html', 1500);
-            } else if (pass !== '') {
-                showToast('Incorrect Quick Access Password!', 'error');
-            }
-        }
+        // تم حذف دالة checkQuickAccess لأن الصندوق لم يعد موجوداً
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -502,7 +429,7 @@
             }, 3000);
         }
 
-        // ⏳ إعداد العد التنازلي (يمكنك تعديل التاريخ)
+        // ⏳ إعداد العد التنازلي
         const countdownDate = new Date();
         countdownDate.setDate(countdownDate.getDate() + 15);
         countdownDate.setHours(countdownDate.getHours() + 6);
