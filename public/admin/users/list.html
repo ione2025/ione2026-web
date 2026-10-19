@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IONECENTER — إدارة المستخدمين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-body: #0b0c10; --bg-surface: rgba(18, 20, 28, 0.7); --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; --accent-cyan: #06b6d4; --accent-primary: #8b5cf6; --accent-green: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--bg-body); background-image: radial-gradient(circle at center, #151b29 0%, #0b0c10 100%); color: var(--text-main); min-height: 100vh; padding: 30px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--glass-border); }
+        .page-title { font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; gap: 12px; color: var(--accent-cyan); }
+        .btn-add { background: var(--accent-primary); color: white; padding: 10px 20px; border: none; border-radius: 12px; font-family: inherit; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: 0.2s; }
+        .btn-add:hover { background: #7c3aed; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3); }
+        
+        .table-container { background: var(--bg-surface); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+        table { width: 100%; border-collapse: collapse; text-align: right; }
+        th, td { padding: 18px 20px; border-bottom: 1px solid var(--glass-border); }
+        th { background: rgba(0,0,0,0.4); font-weight: 800; color: #ccc; }
+        tr:hover { background: rgba(255,255,255,0.03); }
+        .code-badge { background: var(--accent-cyan); color: #000; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-family: monospace; }
+        .role-badge { background: rgba(139, 92, 246, 0.2); color: var(--accent-primary); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; border: 1px solid var(--accent-primary); }
+        .status-active { color: var(--accent-green); display: flex; align-items: center; gap: 5px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="page-title"><i data-lucide="users"></i> إدارة المستخدمين</div>
+        <div style="display: flex; gap: 10px;">
+            <a href="../controller.html" class="btn-add" style="background: transparent; border: 1px solid var(--glass-border);"><i data-lucide="arrow-right"></i> رجوع</a>
+            <a href="create.html" class="btn-add"><i data-lucide="user-plus"></i> إضافة مستخدم</a>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>كود الدخول</th>
+                    <th>الاسم الكامل</th>
+                    <th>البريد الإلكتروني</th>
+                    <th>الصلاحية</th>
+                    <th>رقم الهاتف</th>
+                    <th>الحالة</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <tr><td colspan="6" style="text-align: center;">جاري تحميل البيانات...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        async function loadUsers() {
+            const token = localStorage.getItem('ione_admin_token');
+            const tbody = document.getElementById('usersTableBody');
+            
+            try {
+                const res = await fetch('/api/users/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                
+                if (data.success && data.users.length > 0) {
+                    tbody.innerHTML = data.users.map(u => `
+                        <tr>
+                            <td><span class="code-badge">${u.userCode || '---'}</span></td>
+                            <td style="font-weight: bold;">${u.full_name}</td>
+                            <td style="color: #888;">${u.email}</td>
+                            <td><span class="role-badge">${u.role}</span></td>
+                            <td style="color: #888; direction: ltr; text-align: right;">${u.phone || '---'}</td>
+                            <td><span class="status-active"><i data-lucide="check-circle" size="16"></i> نشط</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888;">لا يوجد مستخدمون حتى الآن. ابدأ بإضافة مستخدم.</td></tr>';
+                }
+                lucide.createIcons();
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">حدث خطأ في الاتصال بالسيرفر.</td></tr>';
+            }
+        }
+        window.onload = loadUsers;
+    </script>
+</body>
+</html>
