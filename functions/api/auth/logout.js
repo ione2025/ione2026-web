@@ -15,9 +15,7 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers });
     }
-    
-    // Logout is client-side (delete token from localStorage)
-    // This endpoint just confirms
+
     return new Response(JSON.stringify({
         success: true,
         message: 'تم تسجيل الخروج بنجاح'

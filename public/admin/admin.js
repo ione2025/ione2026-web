@@ -36,7 +36,7 @@ function isLoggedIn() {
 function logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
-    window.location.replace('login.html');
+    window.location.replace('/login.html');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -79,7 +79,7 @@ async function apiCall(endpoint, options = {}) {
     if (response.status === 401) {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
-        window.location.replace('login.html');
+        window.location.replace('/login.html');
         throw new Error('Session expired');
     }
     
@@ -101,7 +101,7 @@ function protectPage() {
     if (isLoggedIn()) return;
     
     // غير مسجل + في صفحة محمية → انتقل لـ login
-    window.location.replace('login.html');
+    window.location.replace('/login.html');
 }
 
 // تشغيل الحماية (فقط للصفحات غير login)
@@ -110,7 +110,7 @@ function protectPage() {
     const isLoginPage = path.includes('login.html');
     
     if (!isLoginPage && !isLoggedIn()) {
-        window.location.replace('login.html');
+        window.location.replace('/login.html');
     }
 })();
 
